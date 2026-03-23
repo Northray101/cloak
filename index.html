@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#211E1A" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#FAFAF7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1A1816">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Cloak">
@@ -19,17 +18,10 @@
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
   if(localStorage.getItem('cloak_dark')!=='0') document.documentElement.classList.add('dark');
-  // Set theme-color immediately to avoid flash of wrong color in PWA
-  (function(){
-    var isDark=localStorage.getItem('cloak_dark')!=='0';
-    document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.remove();});
-    var tc=document.createElement('meta');tc.name='theme-color';tc.content=isDark?'#211E1A':'#FAFAF7';
-    document.head.appendChild(tc);
-  })();
 </script>
 <style>
 /* ═══════════════════════════════════════════
-   CLOAK — AN ETHICAL AI, (YES THIS CODE IS VIBECODED LOL)
+   CLOAK — NEOBRUTALIST  (clean rebuild)
 ═══════════════════════════════════════════ */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -84,18 +76,22 @@ body {
 
 /* ── KEYFRAMES ───────────────────────────── */
 @keyframes fade     { from{opacity:0} to{opacity:1} }
-@keyframes slideUp  { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
-@keyframes wordRev  { from{opacity:0;filter:blur(4px);transform:translateY(5px)} to{opacity:1;filter:none;transform:none} }
-@keyframes msgIn    { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
-@keyframes pop      { 0%{opacity:0;transform:scale(.96) translateY(6px)} 60%{transform:scale(1.01)} 100%{opacity:1;transform:none} }
-@keyframes tdot     { 0%,60%,100%{transform:translateY(0);opacity:.3} 30%{transform:translateY(-5px);opacity:1} }
-@keyframes float    { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@keyframes fadeOut  { from{opacity:1} to{opacity:0} }
+@keyframes slideUp  { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+@keyframes slideDown{ from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+@keyframes wordRev  { from{opacity:0;filter:blur(3px);transform:translateY(4px)} to{opacity:1;filter:blur(0);transform:translateY(0)} }
+@keyframes msgIn    { from{opacity:0;transform:translateY(10px) scale(.98)} to{opacity:1;transform:translateY(0) scale(1)} }
+@keyframes pop      { 0%{opacity:0;transform:scale(.94) translateY(8px)} 55%{transform:scale(1.015) translateY(-1px)} 100%{opacity:1;transform:scale(1) translateY(0)} }
+@keyframes tdot     { 0%,60%,100%{transform:translateY(0);opacity:.25} 30%{transform:translateY(-6px);opacity:1} }
+@keyframes float    { 0%,100%{transform:translateY(0) rotate(0deg)} 33%{transform:translateY(-7px) rotate(3deg)} 66%{transform:translateY(-4px) rotate(-2deg)} }
 @keyframes spin     { to{transform:rotate(360deg)} }
-@keyframes pdot     { 0%,100%{opacity:1} 50%{opacity:.25} }
-@keyframes shake    { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
-@keyframes exploreQ { from{opacity:0;transform:translateX(12px)} to{opacity:1;transform:none} }
+@keyframes pdot     { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.2;transform:scale(.7)} }
+@keyframes shake    { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-5px)} 40%{transform:translateX(4px)} 60%{transform:translateX(-3px)} 80%{transform:translateX(2px)} }
+@keyframes morph    { 0%{border-radius:0} 50%{border-radius:4px} 100%{border-radius:0} }
+@keyframes quizCard { from{opacity:0;transform:translateY(16px) scale(.98)} to{opacity:1;transform:translateY(0) scale(1)} }
+@keyframes starPop  { 0%{transform:scale(1) rotate(0deg)} 40%{transform:scale(1.22) rotate(12deg)} 70%{transform:scale(.95) rotate(-4deg)} 100%{transform:scale(1) rotate(0deg)} }
 
-.wa { display:inline-block; opacity:0; animation:wordRev .2s ease forwards; }
+.wa { display:inline-block; opacity:0; animation:wordRev .22s cubic-bezier(.16,1,.3,1) forwards; }
 
 /* ── LOADING ─────────────────────────────── */
 #s-loading { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:var(--paper); z-index:999; transition:opacity .2s; }
@@ -103,18 +99,27 @@ body {
 .load-star { animation:spin 1s linear infinite; }
 
 /* ── SCREENS ─────────────────────────────── */
-.screen { display:none; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:24px 20px; background:var(--paper); }
+.screen {
+  display:none; flex-direction:column; align-items:center; justify-content:center;
+  min-height:100vh; min-height:100dvh;
+  padding:24px 20px;
+  padding-top:max(24px, calc(env(safe-area-inset-top, 0px) + 20px));
+  padding-bottom:max(24px, calc(env(safe-area-inset-bottom, 0px) + 20px));
+  background:var(--paper);
+  position:relative;
+}
 .screen.active { display:flex; }
 
 /* ── AUTH CARD ───────────────────────────── */
 .auth-card {
   background:var(--surf); border:var(--bd); box-shadow:var(--shlg);
   padding:32px 28px; width:100%; max-width:400px;
-  animation:pop .26s cubic-bezier(.16,1,.3,1);
+  animation:pop .36s cubic-bezier(.16,1,.3,1);
+  transition:box-shadow var(--tm), transform var(--tm);
 }
 .brand { display:flex; flex-direction:column; align-items:center; gap:8px; margin-bottom:24px; text-align:center; }
-.brand-icon { cursor:default; transition:transform .2s ease; }
-.brand-icon:hover { transform:rotate(14deg) scale(1.12); }
+.brand-icon { cursor:default; transition:transform .3s cubic-bezier(.34,1.56,.64,1); }
+.brand-icon:hover { animation:starPop .45s cubic-bezier(.34,1.56,.64,1); }
 .brand-name { font-family:var(--fd); font-size:28px; font-weight:800; text-transform:uppercase; letter-spacing:-.5px; color:var(--ink); }
 .brand-slogan { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.13em; color:var(--acc); opacity:.8; }
 
@@ -263,9 +268,9 @@ body {
 
 /* ── EMPTY STATE ─────────────────────────── */
 .empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; padding:24px 20px; text-align:center; gap:12px; animation:fade .22s ease; }
-.empty-star { animation:float 4s ease-in-out infinite; cursor:default; }
-.empty-star-inner { display:block; transition:transform .28s cubic-bezier(.34,1.56,.64,1); }
-.empty-star:hover .empty-star-inner { transform:rotate(20deg) scale(1.18); }
+.empty-star { animation:float 5s cubic-bezier(.45,.05,.55,.95) infinite; cursor:default; }
+.empty-star-inner { display:block; transition:transform .35s cubic-bezier(.34,1.56,.64,1); }
+.empty-star:hover .empty-star-inner { animation:starPop .45s cubic-bezier(.34,1.56,.64,1); }
 .empty-greeting { font-family:var(--fd); font-size:clamp(26px,6vw,46px); font-weight:800; text-transform:uppercase; letter-spacing:-.5px; color:var(--ink); line-height:1; }
 .empty-slogan { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:var(--acc); opacity:.6; }
 
@@ -351,7 +356,7 @@ body {
 
 /* ── MESSAGES ────────────────────────────── */
 .messages { display:flex; flex-direction:column; padding:24px 20px 16px; max-width:780px; margin:0 auto; width:100%; gap:18px; }
-.msg { display:flex; gap:10px; align-items:flex-start; animation:msgIn .22s cubic-bezier(.16,1,.3,1); }
+.msg { display:flex; gap:10px; align-items:flex-start; animation:msgIn .28s cubic-bezier(.16,1,.3,1); }
 .msg.user { flex-direction:row-reverse; }
 .av { width:30px; height:30px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; font-family:var(--fd); text-transform:uppercase; }
 .av-bot { background:var(--acc); color:#fff; border:var(--bd); }
@@ -438,7 +443,7 @@ body {
 /* ── MODALS ──────────────────────────────── */
 .overlay { position:fixed; inset:0; background:rgba(10,10,10,.55); display:flex; align-items:center; justify-content:center; z-index:300; animation:fade .18s ease; backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px); }
 .overlay.hiding { opacity:0; transition:opacity .12s ease; }
-.modal { background:var(--surf); border:var(--bd); box-shadow:var(--shlg); width:calc(100% - 32px); max-width:640px; display:flex; flex-direction:column; max-height:90vh; overflow:hidden; animation:pop .22s cubic-bezier(.16,1,.3,1); }
+.modal { background:var(--surf); border:var(--bd); box-shadow:var(--shlg); width:calc(100% - 32px); max-width:640px; display:flex; flex-direction:column; max-height:90vh; overflow:hidden; animation:pop .3s cubic-bezier(.16,1,.3,1); }
 .modal-head { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:var(--bd); background:var(--p2); }
 .modal-title { font-family:var(--fd); font-size:18px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--ink); }
 .modal-x { width:30px; height:30px; border:var(--bd); background:var(--surf); color:var(--ink); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; box-shadow:var(--shsm); transition:background var(--t), box-shadow var(--t), transform var(--t); }
@@ -559,62 +564,41 @@ textarea.inp-field { height:auto; padding:10px 12px; }
   .input,.inp-field,.chat-input,.quiz-inp { font-size:16px!important; }
 }
 
-/* ══════════════════════════════════════════
-   iOS SAFE AREAS — COMPLETE FIX
-   viewport-fit=cover + black-translucent means
-   we're fully edge-to-edge in ALL contexts.
-   The #ios-inset div is a dedicated background
-   layer that fills exactly the Dynamic Island /
-   notch height. Topbar stays its natural 50px.
-   ══════════════════════════════════════════ */
+/* ── Safe areas (notch + home bar) ──────── */
+/* ── iOS Safe Areas ─────────────────────────
+   viewport-fit=cover means we're edge-to-edge.
+   We handle safe areas ourselves in ALL contexts
+   (browser + PWA). Pattern: a spacer div fills
+   the Dynamic Island area; no topbar inflation.
+   ─────────────────────────────────────────── */
 
-/* Dynamic Island / notch spacer — always active */
+/* Status bar spacer — exact height of Dynamic Island / notch */
 #ios-inset {
   height: env(safe-area-inset-top, 0px);
-  min-height: env(safe-area-inset-top, 0px);
-  background: var(--surf);
+  background: var(--surf);   /* matches topbar */
   flex-shrink: 0;
   width: 100%;
   transition: background var(--t);
-  /* Force GPU layer so color matches perfectly */
-  will-change: background;
-  position: relative;
-  z-index: 1;
 }
 
-/* Auth screens — push content below notch */
-.screen {
-  padding-top: max(24px, calc(env(safe-area-inset-top, 0px) + 20px));
-}
+/* Auth screens — safe area handled in .screen base rule */
 
-/* Loading screen — centered, notch-aware */
-#s-loading {
-  padding-top: 0;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Values page — notch-aware top padding */
+/* Values page */
 #s-values {
-  padding-top: max(52px, calc(env(safe-area-inset-top, 0px) + 28px)) !important;
-  /* Side padding respects landscape notch */
-  padding-left: max(24px, calc(env(safe-area-inset-left, 0px) + 24px)) !important;
-  padding-right: max(24px, calc(env(safe-area-inset-right, 0px) + 24px)) !important;
-  padding-bottom: max(60px, calc(env(safe-area-inset-bottom, 0px) + 40px)) !important;
+  padding-top: max(48px, calc(env(safe-area-inset-top, 0px) + 24px)) !important;
 }
 
-/* Input area — home indicator clearance */
-/* Tight but never clips the home bar */
+/* Loading screen */
+#s-loading {
+  padding-top: env(safe-area-inset-top, 0px);
+  align-items: flex-start;
+  padding-top: max(40%, env(safe-area-inset-top, 0px));
+  align-items: center;
+}
+
+/* Input area — home indicator clearance, tight but safe */
 .input-area {
-  padding-bottom: max(10px, calc(env(safe-area-inset-bottom, 0px) + 6px));
-  /* Match paper background so no gap shows at edges */
-  background: var(--surf);
-}
-
-/* Chat container — fill whole screen minus safe areas */
-#s-chat {
-  /* Ensure background bleeds into corners on all devices */
-  background: var(--paper);
+  padding-bottom: max(8px, calc(env(safe-area-inset-bottom, 0px) + 4px));
 }
 
 /* ── Mobile layout ≤640px ────────────────── */
@@ -625,9 +609,7 @@ textarea.inp-field { height:auto; padding:10px 12px; }
   .sidebar {
     position:fixed;left:0;top:0;bottom:0;z-index:200;
     width:var(--sw)!important;min-width:var(--sw)!important;
-    /* Top padding clears Dynamic Island */
-    padding:max(12px, calc(env(safe-area-inset-top, 0px) + 8px)) 8px max(12px, calc(env(safe-area-inset-bottom, 0px) + 8px)) !important;
-    opacity:1!important;
+    padding:12px 8px!important;opacity:1!important;
     transform:translateX(-100%);
     transition:transform .28s cubic-bezier(.16,1,.3,1);
     pointer-events:none;
@@ -641,7 +623,7 @@ textarea.inp-field { height:auto; padding:10px 12px; }
 
   /* ─ Auth card ─ */
   .auth-card { padding:24px 20px;box-shadow:none;border-left:none;border-right:none;max-width:100%;border-radius:0; }
-  .screen { padding:0;justify-content:flex-start;overflow-y:auto; }
+  .screen { padding:max(20px, calc(env(safe-area-inset-top,0px) + 16px)) 0 max(20px, calc(env(safe-area-inset-bottom,0px) + 12px));justify-content:center;overflow-y:auto;min-height:100dvh; }
   .brand-name { font-size:26px; }
 
   /* ─ Topbar ─ */
@@ -656,8 +638,7 @@ textarea.inp-field { height:auto; padding:10px 12px; }
   .bot-content { font-size:14px; }
 
   /* ─ Input area ─ */
-  /* Override: safe area bottom is handled globally above */
-  .input-area { padding:6px 12px max(10px, calc(env(safe-area-inset-bottom, 0px) + 6px)); }
+  .input-area { padding:6px 12px 6px; }
   .input-box { padding:7px 10px; }
   .input-sub { display:none; }
   .input-disc { font-size:9px; }
@@ -1812,14 +1793,21 @@ async function postAnn(){
   else log('err','Post failed: '+error.message);
 }
 async function loadAdminAnns(){
-  const{data}=await sb.from('announcements').select('*').eq('active',true).order('created_at',{ascending:false});
+  const{data}=await sb.from('announcements').select('*').order('created_at',{ascending:false});
   const el=document.getElementById('admin-ann-list');if(!el)return;
   if(!data?.length){el.innerHTML='<div style="font-size:13px;opacity:.55">None active.</div>';return;}
-  el.innerHTML=data.map(a=>'<div class="ann-row"><div class="ann-row-msg">'+hesc(a.message)+'<\/div><button class="ann-deact" onclick="deactAnn(\''+a.id+'\')">Deactivate<\/button><\/div>').join('');
+  el.innerHTML=data.map(a=>'<div class="ann-row"><div class="ann-row-msg">'+hesc(a.message)+(a.active?'':' <span style="opacity:.4;font-size:10px">(inactive)</span>')+'<\/div><button class="ann-deact" onclick="deactAnn(\''+a.id+'\')">Delete<\/button><\/div>').join('');
 }
 async function deactAnn(id){
-  await sb.from('announcements').update({active:false}).eq('id',id);
-  if(annId===id)document.getElementById('ann-bar').classList.remove('show');loadAdminAnns();
+  await sb.from('announcements').delete().eq('id',id);
+  if(annId===id){
+    annId=null;
+    document.getElementById('ann-bar').classList.remove('show');
+    const sbAnn=document.getElementById('sb-ann-bar');
+    if(sbAnn)sbAnn.style.display='none';
+    localStorage.removeItem('cloak_ann');
+  }
+  loadAdminAnns();
 }
 
 /* GUEST LIMIT */
@@ -1855,9 +1843,6 @@ function refreshUI(){
 function toggleDark(){
   dark=!dark;document.body.classList.toggle('dark',dark);document.documentElement.classList.toggle('dark',dark);
   localStorage.setItem('cloak_dark',dark?'1':'0');
-  // Update theme-color meta so PWA status bar matches current mode
-  document.querySelectorAll('meta[name="theme-color"]').forEach(m=>m.remove());
-  const tc=document.createElement('meta');tc.name='theme-color';tc.content=dark?'#211E1A':'#FAFAF7';document.head.appendChild(tc);
   const ml=document.getElementById('mode-label');if(ml)ml.textContent=dark?'dark':'light';
   refreshUI();
 }
