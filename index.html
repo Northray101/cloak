@@ -598,6 +598,18 @@ textarea.inp-field { height:auto; padding:10px 12px; }
 .onboard-checkbox.checked { background:var(--ink); }
 .onboard-check-label { font-size:13px; font-weight:600; color:var(--ink); line-height:1.4; }
 
+/* ── AD CONSENT ──────────────────────────── */
+.ad-overlay { position:fixed; inset:0; background:rgba(10,10,10,.65); display:flex; align-items:center; justify-content:center; z-index:1000; animation:fade .22s ease; backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); }
+.ad-card { background:var(--surf); border:var(--bd); box-shadow:var(--shlg); width:calc(100% - 40px); max-width:420px; animation:pop .28s cubic-bezier(.16,1,.3,1); padding: 28px 24px; text-align: center; }
+.ad-title { font-family:var(--fd); font-size:24px; font-weight:800; text-transform:uppercase; letter-spacing:-.2px; color:var(--ink); margin-bottom: 12px; }
+.ad-text { font-size:13px; color:var(--ink); line-height:1.6; margin-bottom: 24px; opacity: 0.85;}
+.ad-actions { display:flex; align-items:center; gap:12px; justify-content: center; }
+.btn-agree { flex: 2; height: 48px; min-width: 140px; padding: 0 20px; background: var(--acc); border: var(--bd); box-shadow: var(--sh); color: #fff; font-family: var(--fu); font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; cursor: pointer; transition: all var(--t); }
+.btn-agree:hover { box-shadow: var(--shlg); transform: translate(-1px,-1px); }
+.btn-agree:active { box-shadow: none; transform: translate(2px,2px); }
+.btn-disagree { flex: 1; height: 38px; min-width: 100px; padding: 0 12px; background: transparent; border: 2px dashed var(--ink); color: var(--ink); font-family: var(--fu); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; cursor: pointer; transition: all var(--t); }
+.btn-disagree:hover { background: var(--p2); }
+
 /* ── LINK INTERCEPT ──────────────────────── */
 .link-overlay { position:fixed; inset:0; background:rgba(10,10,10,.55); display:flex; align-items:center; justify-content:center; z-index:700; animation:fade .15s ease; }
 .link-card { background:var(--surf); border:var(--bd); box-shadow:var(--shlg); width:calc(100% - 40px); max-width:380px; padding:22px; animation:pop .2s cubic-bezier(.16,1,.3,1); }
@@ -748,6 +760,8 @@ textarea.inp-field { height:auto; padding:10px 12px; }
   .vals-section { padding:0 18px 32px; }
   .vals-back-btn { margin:16px 18px 0; }
   .vals-footer { padding:16px 18px 32px; }
+  .ad-actions { flex-direction: column; }
+  .btn-agree, .btn-disagree { width: 100%; }
 }
 @media(min-width:641px){ .sb-overlay { display:none!important; } }
 
@@ -1329,6 +1343,18 @@ textarea.inp-field { height:auto; padding:10px 12px; }
     </div>
   </div>
 
+  <!-- AD CONSENT MODAL -->
+  <div class="ad-overlay" id="ad-modal" style="display:none">
+    <div class="ad-card">
+      <div class="ad-title">Allow ads?</div>
+      <div class="ad-text">Ads allow cloak to use the profits to offset carbon emissions and better services.</div>
+      <div class="ad-actions">
+        <button class="btn-agree" onclick="handleAdAgree()">Agree</button>
+        <button class="btn-disagree" id="ad-disagree-btn" onclick="handleAdDisagree()">Disagree</button>
+      </div>
+    </div>
+  </div>
+
   <!-- LINK INTERCEPT -->
   <div class="link-overlay" id="link-modal" style="display:none">
     <div class="link-card">
@@ -1515,6 +1541,49 @@ async function confirmOnboarding(){
   document.getElementById('onboard-modal').style.display='none';
   onboardingDone=true;
   if(uid)await sb.from('profiles').update({onboarding_done:true}).eq('id',uid);
+}
+
+/* AD CONSENT LOGIC */
+let _adDisagreeClicks = 0;
+
+function checkAdConsent() {
+  const consent = localStorage.getItem('cloak_ad_consent');
+  if (consent === 'yes') {
+    loadAdSense();
+  } else if (!consent) {
+    document.getElementById('ad-modal').style.display = 'flex';
+  }
+}
+
+function loadAdSense() {
+  if (document.getElementById('adsense-script')) return; // Avoid duplicates
+  const script = document.createElement('script');
+  script.id = 'adsense-script';
+  script.async = true;
+  script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6774734854152622";
+  script.crossOrigin = "anonymous";
+  document.head.appendChild(script);
+}
+
+function handleAdAgree() {
+  localStorage.setItem('cloak_ad_consent', 'yes');
+  document.getElementById('ad-modal').style.display = 'none';
+  loadAdSense();
+}
+
+function handleAdDisagree() {
+  _adDisagreeClicks++;
+  const btn = document.getElementById('ad-disagree-btn');
+  
+  if (_adDisagreeClicks === 1) {
+    btn.textContent = 'Are you sure?';
+    btn.style.borderColor = 'var(--acc)';
+    btn.style.color = 'var(--acc)';
+    btn.style.fontWeight = '800';
+  } else {
+    localStorage.setItem('cloak_ad_consent', 'no');
+    document.getElementById('ad-modal').style.display = 'none';
+  }
 }
 
 /* LINK INTERCEPT */
@@ -2009,6 +2078,9 @@ function renderImgStrip(){
 function removeImg(i){attachedImgs.splice(i,1);renderImgStrip();}
 
 (function(){if(window.innerWidth<=640)document.getElementById('sidebar').classList.add('collapsed');})();
+
+/* FIRE AD CHECK ON LOAD */
+checkAdConsent();
 init();
 </script>
 </body>
