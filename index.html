@@ -18,16 +18,23 @@
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
   if(localStorage.getItem('cloak_dark')!=='0') document.documentElement.classList.add('dark');
+  // Apply saved theme early
+  (function(){
+    var t=localStorage.getItem('cloak_theme')||'default';
+    document.documentElement.setAttribute('data-theme',t);
+  })();
 </script>
 <style>
 /* ═══════════════════════════════════════════
-   CLOAK — NEOBRUTALIST  (clean rebuild)
+   CLOAK — NEOBRUTALIST
 ═══════════════════════════════════════════ */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
 
-:root {
+/* ── THEMES ──────────────────────────────── */
+/* DEFAULT theme */
+:root, [data-theme="default"] {
   --ink:   #0A0A0A;
   --paper: #F2EEE5;
   --p2:    #E8E3D8;
@@ -41,14 +48,8 @@ html, body { height: 100%; }
   --sh:    3px 3px 0 #0A0A0A;
   --shlg:  5px 5px 0 #0A0A0A;
   --shsm:  2px 2px 0 #0A0A0A;
-  --t:     120ms ease;
-  --tm:    220ms ease;
-  --sw:    260px;
-  --fu:    'Space Grotesk', sans-serif;
-  --fd:    'Syne', sans-serif;
-  --r:     0px;
 }
-.dark {
+.dark:root, .dark [data-theme="default"], [data-theme="default"].dark {
   --ink:   #F0EBE0;
   --paper: #161412;
   --p2:    #1E1B18;
@@ -62,6 +63,78 @@ html, body { height: 100%; }
   --sh:    3px 3px 0 rgba(240,235,224,.5);
   --shlg:  5px 5px 0 rgba(240,235,224,.4);
   --shsm:  2px 2px 0 rgba(240,235,224,.4);
+}
+
+/* ECO theme */
+[data-theme="eco"] {
+  --ink:   #1A2E10;
+  --paper: #F0F7EC;
+  --p2:    #E2F0D9;
+  --p3:    #CDE8C0;
+  --surf:  #F7FBF4;
+  --acc:   #3A7D2C;
+  --acc2:  #2C5E1F;
+  --yel:   #8BC34A;
+  --bd:    2px solid #1A2E10;
+  --bdt:   1px solid rgba(26,46,16,.15);
+  --sh:    3px 3px 0 #1A2E10;
+  --shlg:  5px 5px 0 #1A2E10;
+  --shsm:  2px 2px 0 #1A2E10;
+}
+.dark [data-theme="eco"], [data-theme="eco"].dark {
+  --ink:   #C8E6B0;
+  --paper: #0D1A08;
+  --p2:    #142210;
+  --p3:    #1C2E16;
+  --surf:  #111E0D;
+  --acc:   #5CB84A;
+  --acc2:  #4A9E3A;
+  --yel:   #7DB040;
+  --bd:    2px solid rgba(200,230,176,.6);
+  --bdt:   1px solid rgba(200,230,176,.12);
+  --sh:    3px 3px 0 rgba(200,230,176,.45);
+  --shlg:  5px 5px 0 rgba(200,230,176,.35);
+  --shsm:  2px 2px 0 rgba(200,230,176,.35);
+}
+
+/* AQUA theme */
+[data-theme="aqua"] {
+  --ink:   #0A1E2E;
+  --paper: #EAF4F8;
+  --p2:    #D6ECF4;
+  --p3:    #BDE0EC;
+  --surf:  #F3F9FC;
+  --acc:   #0B7EA8;
+  --acc2:  #065F82;
+  --yel:   #00B4D8;
+  --bd:    2px solid #0A1E2E;
+  --bdt:   1px solid rgba(10,30,46,.15);
+  --sh:    3px 3px 0 #0A1E2E;
+  --shlg:  5px 5px 0 #0A1E2E;
+  --shsm:  2px 2px 0 #0A1E2E;
+}
+.dark [data-theme="aqua"], [data-theme="aqua"].dark {
+  --ink:   #A8D8EA;
+  --paper: #060F18;
+  --p2:    #0C1820;
+  --p3:    #12222E;
+  --surf:  #091319;
+  --acc:   #1AABCC;
+  --acc2:  #0B8AAA;
+  --yel:   #00CFE8;
+  --bd:    2px solid rgba(168,216,234,.6);
+  --bdt:   1px solid rgba(168,216,234,.12);
+  --sh:    3px 3px 0 rgba(168,216,234,.45);
+  --shlg:  5px 5px 0 rgba(168,216,234,.35);
+  --shsm:  2px 2px 0 rgba(168,216,234,.35);
+}
+
+:root {
+  --t:  120ms ease;
+  --tm: 220ms ease;
+  --sw: 260px;
+  --fu: 'Space Grotesk', sans-serif;
+  --fd: 'Syne', sans-serif;
 }
 
 body {
@@ -82,14 +155,17 @@ body {
 @keyframes wordRev  { from{opacity:0;filter:blur(3px);transform:translateY(4px)} to{opacity:1;filter:blur(0);transform:translateY(0)} }
 @keyframes msgIn    { from{opacity:0;transform:translateY(10px) scale(.98)} to{opacity:1;transform:translateY(0) scale(1)} }
 @keyframes pop      { 0%{opacity:0;transform:scale(.94) translateY(8px)} 55%{transform:scale(1.015) translateY(-1px)} 100%{opacity:1;transform:scale(1) translateY(0)} }
+@keyframes popMenu  { 0%{opacity:0;transform:scaleY(0.6) translateY(-8px);transform-origin:top center} 70%{transform:scaleY(1.03) translateY(1px);transform-origin:top center} 100%{opacity:1;transform:scaleY(1) translateY(0);transform-origin:top center} }
 @keyframes tdot     { 0%,60%,100%{transform:translateY(0);opacity:.25} 30%{transform:translateY(-6px);opacity:1} }
 @keyframes float    { 0%,100%{transform:translateY(0) rotate(0deg)} 33%{transform:translateY(-7px) rotate(3deg)} 66%{transform:translateY(-4px) rotate(-2deg)} }
 @keyframes spin     { to{transform:rotate(360deg)} }
 @keyframes pdot     { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.2;transform:scale(.7)} }
 @keyframes shake    { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-5px)} 40%{transform:translateX(4px)} 60%{transform:translateX(-3px)} 80%{transform:translateX(2px)} }
-@keyframes morph    { 0%{border-radius:0} 50%{border-radius:4px} 100%{border-radius:0} }
-@keyframes quizCard { from{opacity:0;transform:translateY(16px) scale(.98)} to{opacity:1;transform:translateY(0) scale(1)} }
 @keyframes starPop  { 0%{transform:scale(1) rotate(0deg)} 40%{transform:scale(1.22) rotate(12deg)} 70%{transform:scale(.95) rotate(-4deg)} 100%{transform:scale(1) rotate(0deg)} }
+@keyframes leafGrow { 0%{opacity:0;transform:scale(0) rotate(-20deg)} 60%{transform:scale(1.1) rotate(3deg)} 100%{opacity:1;transform:scale(1) rotate(0deg)} }
+@keyframes stemGrow { from{stroke-dashoffset:var(--stem-len)} to{stroke-dashoffset:0} }
+@keyframes settingsSlideIn { from{opacity:0;transform:translateX(12px)} to{opacity:1;transform:translateX(0)} }
+@keyframes dropIn   { 0%{opacity:0;transform:translateY(-6px) scaleY(.85);transform-origin:top} 65%{transform:translateY(2px) scaleY(1.02);transform-origin:top} 100%{opacity:1;transform:translateY(0) scaleY(1);transform-origin:top} }
 
 .wa { display:inline-block; opacity:0; animation:wordRev .22s cubic-bezier(.16,1,.3,1) forwards; }
 
@@ -115,7 +191,6 @@ body {
   background:var(--surf); border:var(--bd); box-shadow:var(--shlg);
   padding:32px 28px; width:100%; max-width:400px;
   animation:pop .36s cubic-bezier(.16,1,.3,1);
-  transition:box-shadow var(--tm), transform var(--tm);
 }
 .brand { display:flex; flex-direction:column; align-items:center; gap:8px; margin-bottom:24px; text-align:center; }
 .brand-icon { cursor:default; transition:transform .3s cubic-bezier(.34,1.56,.64,1); }
@@ -157,17 +232,6 @@ body {
   cursor:pointer; opacity:.45; transition:opacity var(--t);
 }
 .btn-ghost:hover { opacity:.7; }
-
-.btn-outline {
-  width:100%; height:42px; padding:0 14px;
-  background:var(--surf); border:var(--bd); box-shadow:var(--shsm);
-  color:var(--ink); font-family:var(--fu); font-size:11px; font-weight:700;
-  text-transform:uppercase; letter-spacing:.07em; cursor:pointer;
-  display:flex; align-items:center; justify-content:center; gap:8px;
-  transition:box-shadow var(--t), transform var(--t);
-}
-.btn-outline:hover { box-shadow:var(--sh); transform:translate(-1px,-1px); }
-.btn-outline:active { box-shadow:none; transform:translate(2px,2px); }
 
 .err-msg { font-size:12px; font-weight:700; color:#fff; padding:9px 12px; background:var(--acc); border:var(--bd); display:none; animation:shake .3s ease; }
 .err-msg.show { display:block; }
@@ -261,6 +325,48 @@ body {
 .dark .moon { display:none; } .dark .sun { display:block; }
 .live-dot { width:7px; height:7px; background:var(--acc); flex-shrink:0; animation:pdot 2s infinite; }
 
+/* ── MODEL BUTTON ────────────────────────── */
+#model-btn {
+  display:flex; align-items:center; gap:6px; padding:5px 11px;
+  border:var(--bd); background:var(--surf);
+  font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.09em;
+  color:var(--ink); box-shadow:var(--shsm); cursor:pointer;
+  transition:box-shadow var(--tm), transform var(--tm), background var(--tm);
+}
+#model-btn:hover { box-shadow:var(--sh); transform:translate(-1px,-1px); }
+#model-btn.menu-open { background:var(--ink); color:var(--paper); box-shadow:none; transform:translate(2px,2px); }
+#model-btn.menu-open svg { transform:rotate(180deg); }
+#model-btn svg { transition:transform var(--tm); }
+
+#model-menu {
+  display:none; position:absolute; right:0; top:calc(100% + 8px);
+  background:var(--surf); border:var(--bd); box-shadow:var(--shlg);
+  min-width:200px; z-index:200; flex-direction:column; padding:6px;
+  transform-origin:top right;
+  overflow:hidden;
+}
+#model-menu.open {
+  display:flex;
+  animation:dropIn .22s cubic-bezier(.16,1,.3,1) forwards;
+}
+.model-opt {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 12px; border:1.5px solid transparent; background:transparent;
+  width:100%; font-family:var(--fu); font-size:12.5px; font-weight:700;
+  color:var(--ink); cursor:pointer; text-transform:uppercase; letter-spacing:.06em;
+  transition:background var(--tm), border-color var(--tm), transform var(--tm);
+  position:relative;
+}
+.model-opt::before {
+  content:''; position:absolute; left:0; top:0; bottom:0; width:0;
+  background:var(--acc); transition:width var(--tm);
+}
+.model-opt:hover { background:var(--p2); border-color:var(--ink); transform:translate(-1px,0); }
+.model-opt:hover::before { width:3px; }
+.model-opt.active { background:var(--ink); color:var(--paper); border-color:var(--ink); }
+.model-opt.active::before { width:4px; background:var(--acc); }
+.model-opt .opt-badge { font-size:10px; opacity:.5; font-weight:500; text-transform:none; letter-spacing:0; }
+
 /* ── CHAT AREA ───────────────────────────── */
 .chat-area { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; position:relative; }
 .chat-area::-webkit-scrollbar { width:3px; }
@@ -273,86 +379,6 @@ body {
 .empty-star:hover .empty-star-inner { animation:starPop .45s cubic-bezier(.34,1.56,.64,1); }
 .empty-greeting { font-family:var(--fd); font-size:clamp(26px,6vw,46px); font-weight:800; text-transform:uppercase; letter-spacing:-.5px; color:var(--ink); line-height:1; }
 .empty-slogan { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:var(--acc); opacity:.6; }
-
-/* ── MODE SELECTOR ───────────────────────── */
-.mode-selector { display:flex; gap:0; border:var(--bd); box-shadow:var(--shsm); margin-top:4px; }
-.mode-btn { display:flex; align-items:center; gap:7px; padding:9px 20px; border:none; background:var(--surf); color:var(--ink); font-family:var(--fu); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; cursor:pointer; transition:background var(--t), color var(--t); }
-.mode-btn:first-child { border-right:var(--bd); }
-.mode-btn.active { background:var(--ink); color:var(--paper); }
-.mode-btn:not(.active):hover { background:var(--p2); }
-
-/* ── QUIZ MODE SETUP ─────────────────────── */
-.quiz-setup-wrap{width:100%;max-width:480px;margin-top:8px;animation:slideUp .22s ease;}
-.quiz-topic-row{display:flex;gap:6px;margin-bottom:8px;}
-.quiz-inp{flex:1;height:42px;padding:0 13px;background:var(--paper);border:var(--bd);color:var(--ink);font-family:var(--fu);font-size:14px;font-weight:500;outline:none;transition:box-shadow var(--t),border-color var(--t);}
-.quiz-inp:focus{box-shadow:var(--sh);border-color:var(--acc);}
-.quiz-inp::placeholder{color:var(--ink);opacity:.33;}
-.quiz-go{height:42px;padding:0 18px;background:var(--ink);border:var(--bd);box-shadow:var(--shsm);color:var(--paper);font-family:var(--fu);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;cursor:pointer;white-space:nowrap;transition:box-shadow var(--t),transform var(--t),background var(--t);}
-.quiz-go:hover{box-shadow:var(--sh);transform:translate(-1px,-1px);background:var(--acc);}
-.quiz-go:active{box-shadow:none;transform:translate(2px,2px);}
-.quiz-count-row{display:flex;align-items:center;gap:10px;}
-.quiz-count-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink);opacity:.5;}
-.quiz-count-btn{width:28px;height:28px;border:var(--bd);background:var(--surf);color:var(--ink);font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shsm);transition:box-shadow var(--t),background var(--t);}
-.quiz-count-btn:hover{background:var(--p2);box-shadow:var(--sh);}
-.quiz-count-val{font-family:var(--fd);font-size:18px;font-weight:800;color:var(--acc);min-width:24px;text-align:center;}
-
-/* ── QUIZ UI (fullscreen overlay) ────────── */
-#quiz-ui{position:absolute;inset:0;display:none;flex-direction:column;background:var(--paper);z-index:2;animation:fade .18s ease;}
-#quiz-ui.active{display:flex;}
-
-.quiz-header{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:50px;border-bottom:var(--bd);background:var(--surf);flex-shrink:0;}
-.quiz-header-topic{font-family:var(--fd);font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:12px;}
-.quiz-exit{height:30px;padding:0 12px;background:transparent;border:var(--bd);color:var(--ink);font-family:var(--fu);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;cursor:pointer;transition:background var(--t);}
-.quiz-exit:hover{background:var(--p2);}
-
-.quiz-progress-bar-wrap{height:3px;background:var(--p3);flex-shrink:0;}
-.quiz-progress-bar{height:100%;background:var(--acc);transition:width .5s cubic-bezier(.16,1,.3,1);}
-
-.quiz-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;align-items:center;padding:32px 20px 40px;}
-.quiz-card{width:100%;max-width:600px;animation:quizCard .28s cubic-bezier(.16,1,.3,1);}
-@keyframes quizCard{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-
-.quiz-q-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-.quiz-q-num{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--acc);}
-.quiz-q-score{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink);opacity:.45;}
-.quiz-q-text{font-family:var(--fd);font-size:20px;font-weight:800;text-transform:uppercase;color:var(--ink);line-height:1.3;margin-bottom:22px;}
-
-.quiz-options{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
-.quiz-opt{width:100%;padding:13px 16px;background:var(--surf);border:var(--bd);box-shadow:var(--shsm);color:var(--ink);font-family:var(--fu);font-size:13.5px;font-weight:500;text-align:left;cursor:pointer;transition:background var(--t),box-shadow var(--t),transform var(--t),color var(--t);display:flex;align-items:center;gap:10px;}
-.quiz-opt:hover:not(:disabled){background:var(--p2);box-shadow:var(--sh);transform:translate(-1px,-1px);}
-.quiz-opt:active:not(:disabled){box-shadow:none;transform:translate(2px,2px);}
-.quiz-opt:disabled{cursor:default;transform:none;}
-.quiz-opt.correct{background:#166534;border-color:#166534;color:#fff;box-shadow:var(--shsm);}
-.quiz-opt.wrong{background:var(--acc);border-color:var(--acc);color:#fff;box-shadow:var(--shsm);}
-.quiz-opt.reveal{background:var(--p2);opacity:.55;}
-.quiz-opt-letter{width:22px;height:22px;border:1.5px solid currentColor;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:10px;font-weight:800;letter-spacing:.05em;}
-
-.quiz-feedback{padding:12px 16px;border:var(--bd);font-size:13px;line-height:1.6;color:var(--ink);margin-bottom:18px;animation:slideUp .2s ease;}
-.quiz-feedback.correct{background:#F0FDF4;border-color:#166534;color:#14532d;}
-.quiz-feedback.wrong{background:#FFF1EE;border-color:var(--acc);color:var(--acc2);}
-.quiz-feedback strong{font-weight:700;}
-
-.quiz-next{height:42px;padding:0 20px;background:var(--ink);border:var(--bd);box-shadow:var(--sh);color:var(--paper);font-family:var(--fu);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;cursor:pointer;transition:box-shadow var(--t),transform var(--t),background var(--t);}
-.quiz-next:hover{box-shadow:var(--shlg);transform:translate(-1px,-1px);background:var(--acc);}
-.quiz-next:active{box-shadow:none;transform:translate(2px,2px);}
-
-/* Results */
-.quiz-results{width:100%;max-width:600px;animation:quizCard .3s cubic-bezier(.16,1,.3,1);}
-.quiz-score-display{display:flex;flex-direction:column;align-items:center;padding:28px 24px;background:var(--surf);border:var(--bd);box-shadow:var(--sh);margin-bottom:20px;text-align:center;}
-.quiz-score-big{font-family:var(--fd);font-size:60px;font-weight:800;color:var(--acc);line-height:1;}
-.quiz-score-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--ink);opacity:.45;margin-top:4px;}
-.quiz-score-msg{font-size:14px;color:var(--ink);line-height:1.6;margin-top:12px;opacity:.75;}
-.quiz-review{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
-.quiz-review-item{padding:12px 14px;border:var(--bd);background:var(--surf);}
-.quiz-review-q{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:4px;line-height:1.4;}
-.quiz-review-a{font-size:11px;color:var(--ink);opacity:.6;}
-.quiz-review-a.ok{color:#166534;opacity:1;}
-.quiz-review-a.bad{color:var(--acc);opacity:1;}
-.quiz-restart-row{display:flex;gap:8px;flex-wrap:wrap;}
-
-/* Loading state */
-.quiz-loading{display:flex;flex-direction:column;align-items:center;gap:14px;padding:48px 20px;}
-.quiz-loading-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--ink);opacity:.38;}
 
 /* ── MESSAGES ────────────────────────────── */
 .messages { display:flex; flex-direction:column; padding:24px 20px 16px; max-width:780px; margin:0 auto; width:100%; gap:18px; }
@@ -412,8 +438,8 @@ body {
 .input-disc { font-size:10px; font-weight:700; color:var(--acc); opacity:.6; text-transform:uppercase; letter-spacing:.07em; text-align:center; margin-top:4px; }
 
 /* ── PLUS MENU ───────────────────────────── */
-.plus-menu { position:absolute; bottom:calc(100% + 6px); left:0; background:var(--surf); border:var(--bd); box-shadow:var(--sh); padding:4px; min-width:200px; display:none; flex-direction:column; gap:2px; z-index:100; animation:slideUp .12s ease; }
-.plus-menu.open { display:flex; }
+.plus-menu { position:absolute; bottom:calc(100% + 6px); left:0; background:var(--surf); border:var(--bd); box-shadow:var(--sh); padding:4px; min-width:200px; display:none; flex-direction:column; gap:2px; z-index:100; }
+.plus-menu.open { display:flex; animation:dropIn .18s cubic-bezier(.16,1,.3,1); transform-origin:bottom left; }
 .plus-item { display:flex; align-items:center; gap:9px; padding:9px 10px; border:1.5px solid transparent; cursor:pointer; text-align:left; background:transparent; width:100%; font-family:var(--fu); transition:background var(--t), border-color var(--t); }
 .plus-item:hover { background:var(--p2); border-color:var(--ink); }
 .plus-item.active-mode { background:var(--ink); }
@@ -440,40 +466,77 @@ body {
 .hw-label-x { background:none; border:none; color:var(--ink); cursor:pointer; font-size:14px; font-weight:900; padding:0; margin-left:auto; transition:color var(--t); }
 .hw-label-x:hover { color:var(--acc); }
 
-/* ── MODALS ──────────────────────────────── */
+/* ── SETTINGS MODAL ──────────────────────── */
 .overlay { position:fixed; inset:0; background:rgba(10,10,10,.55); display:flex; align-items:center; justify-content:center; z-index:300; animation:fade .18s ease; backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px); }
 .overlay.hiding { opacity:0; transition:opacity .12s ease; }
-.modal { background:var(--surf); border:var(--bd); box-shadow:var(--shlg); width:calc(100% - 32px); max-width:640px; display:flex; flex-direction:column; max-height:90vh; overflow:hidden; animation:pop .3s cubic-bezier(.16,1,.3,1); }
+.modal { background:var(--surf); border:var(--bd); box-shadow:var(--shlg); width:calc(100% - 32px); max-width:660px; display:flex; flex-direction:column; max-height:90vh; overflow:hidden; animation:pop .3s cubic-bezier(.16,1,.3,1); }
 .modal-head { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:var(--bd); background:var(--p2); }
 .modal-title { font-family:var(--fd); font-size:18px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--ink); }
 .modal-x { width:30px; height:30px; border:var(--bd); background:var(--surf); color:var(--ink); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; box-shadow:var(--shsm); transition:background var(--t), box-shadow var(--t), transform var(--t); }
 .modal-x:hover { background:var(--acc); color:#fff; box-shadow:var(--sh); transform:translate(-1px,-1px); }
 .modal-x:active { box-shadow:none; transform:translate(2px,2px); }
-.tabs { display:flex; border-bottom:var(--bd); overflow-x:auto; background:var(--paper); }
-.tabs::-webkit-scrollbar { height:0; }
-.tab { display:flex; align-items:center; height:40px; padding:0 16px; font-family:var(--fu); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--ink); cursor:pointer; border-right:var(--bd); border-bottom:2px solid transparent; white-space:nowrap; opacity:.42; transition:background var(--t), border-color var(--t), opacity var(--t); }
-.tab:hover { background:var(--p2); opacity:.7; }
-.tab.on { border-bottom-color:var(--acc); opacity:1; background:var(--surf); }
-.tab-body { flex:1; overflow-y:auto; padding:20px; }
-.tab-body::-webkit-scrollbar { width:4px; }
-.tab-body::-webkit-scrollbar-thumb { background:var(--ink); }
-.pane { display:none; flex-direction:column; gap:16px; animation:fade .12s ease; }
-.pane.on { display:flex; }
-.row { display:flex; flex-direction:column; gap:5px; padding-bottom:14px; border-bottom:var(--bdt); }
-.row:last-child { border-bottom:none; padding-bottom:0; }
-.row-name { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--ink); }
-.row-desc { font-size:12px; color:var(--ink); opacity:.52; line-height:1.55; }
-.inp-field { width:100%; height:42px; padding:0 12px; background:var(--paper); border:var(--bd); color:var(--ink); font-family:var(--fu); font-size:13px; font-weight:500; outline:none; transition:box-shadow var(--t); }
+
+/* ── REDESIGNED SETTINGS LAYOUT ─────────── */
+.settings-layout { display:flex; flex:1; overflow:hidden; min-height:0; }
+.settings-nav { width:160px; flex-shrink:0; border-right:var(--bd); background:var(--p2); display:flex; flex-direction:column; padding:8px 6px; gap:2px; overflow-y:auto; }
+.settings-nav::-webkit-scrollbar { width:0; }
+.snav-btn {
+  display:flex; align-items:center; gap:9px; padding:10px 10px;
+  border:1.5px solid transparent; background:transparent;
+  color:var(--ink); font-family:var(--fu); font-size:11px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.08em; cursor:pointer; width:100%;
+  text-align:left; transition:background var(--tm), border-color var(--tm), transform var(--tm);
+  position:relative;
+}
+.snav-btn::after {
+  content:''; position:absolute; right:0; top:4px; bottom:4px; width:0;
+  background:var(--acc); transition:width var(--tm);
+}
+.snav-btn:hover { background:var(--p3); border-color:var(--ink); }
+.snav-btn.on { background:var(--ink); color:var(--paper); border-color:var(--ink); }
+.snav-btn.on::after { width:3px; }
+.snav-icon { flex-shrink:0; display:flex; align-items:center; opacity:.7; }
+.snav-btn.on .snav-icon { opacity:1; }
+
+.settings-body { flex:1; overflow-y:auto; min-width:0; }
+.settings-body::-webkit-scrollbar { width:3px; }
+.settings-body::-webkit-scrollbar-thumb { background:var(--ink); opacity:.2; }
+.spane { display:none; padding:20px; flex-direction:column; gap:0; }
+.spane.on { display:flex; animation:settingsSlideIn .18s ease; }
+.srow { padding:14px 0; border-bottom:var(--bdt); }
+.srow:last-child { border-bottom:none; }
+.srow-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+.srow-name { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.12em; color:var(--ink); }
+.srow-badge { font-size:9px; font-weight:800; padding:2px 7px; background:var(--yel); color:var(--ink); border:var(--bd); text-transform:uppercase; letter-spacing:.09em; }
+.srow-desc { font-size:12px; color:var(--ink); opacity:.52; line-height:1.55; margin-bottom:8px; }
+.inp-field { width:100%; height:42px; padding:0 12px; background:var(--paper); border:var(--bd); color:var(--ink); font-family:var(--fu); font-size:13px; font-weight:500; outline:none; transition:box-shadow var(--t), border-color var(--t); }
 .inp-field:focus { box-shadow:var(--shsm); border-color:var(--acc); }
 .inp-field::placeholder { color:var(--ink); opacity:.32; }
 textarea.inp-field { height:auto; padding:10px 12px; }
-.cta { display:inline-flex; align-items:center; height:38px; padding:0 16px; background:var(--ink); border:var(--bd); box-shadow:var(--shsm); color:var(--paper); font-family:var(--fu); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; cursor:pointer; width:fit-content; transition:box-shadow var(--t), transform var(--t), background var(--t); }
+.cta { display:inline-flex; align-items:center; height:36px; padding:0 14px; background:var(--ink); border:var(--bd); box-shadow:var(--shsm); color:var(--paper); font-family:var(--fu); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; cursor:pointer; width:fit-content; transition:box-shadow var(--t), transform var(--t), background var(--t); }
 .cta:hover { box-shadow:var(--sh); transform:translate(-1px,-1px); background:var(--acc); }
 .cta:active { box-shadow:none; transform:translate(2px,2px); }
-.cta-full { width:100%; }
+.cta-full { width:100%; justify-content:center; }
 .info-box { font-size:13px; color:var(--ink); padding:10px 12px; background:var(--p2); border:var(--bd); }
 .danger { display:inline-flex; align-items:center; height:36px; padding:0 14px; background:transparent; border:2px solid var(--acc); color:var(--acc); font-family:var(--fu); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; cursor:pointer; width:fit-content; transition:background var(--t), color var(--t), box-shadow var(--t); }
 .danger:hover { background:var(--acc); color:#fff; box-shadow:var(--shsm); }
+
+/* ── THEME PICKER ────────────────────────── */
+.theme-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:8px; }
+.theme-card {
+  padding:12px 10px; border:var(--bd); background:var(--surf); cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  transition:box-shadow var(--tm), transform var(--tm), background var(--tm);
+  position:relative; overflow:hidden;
+}
+.theme-card:hover { box-shadow:var(--sh); transform:translate(-1px,-1px); }
+.theme-card.active { background:var(--ink); }
+.theme-card.active .theme-name { color:var(--paper); }
+.theme-check { position:absolute; top:6px; right:6px; opacity:0; transition:opacity var(--t); }
+.theme-card.active .theme-check { opacity:1; }
+.theme-swatch { display:flex; gap:3px; }
+.theme-dot { width:14px; height:14px; border:1.5px solid rgba(0,0,0,.2); }
+.theme-name { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--ink); }
 
 /* ── CONSOLE ─────────────────────────────── */
 .console-log { background:#0F0D0A; border:var(--bd); padding:10px; min-height:160px; max-height:220px; overflow-y:auto; font-family:'Courier New',monospace; font-size:11px; line-height:1.7; display:flex; flex-direction:column; }
@@ -484,12 +547,12 @@ textarea.inp-field { height:auto; padding:10px 12px; }
 .b-err { background:var(--acc); color:#fff; } .b-inf { background:var(--yel); color:var(--ink); }
 .log-msg { color:#c8c0b0; word-break:break-all; flex:1; }
 .log-empty { color:#383028; font-style:italic; padding:20px 0; text-align:center; }
-.stats-row { display:grid; grid-template-columns:repeat(4,1fr); border:var(--bd); }
+.stats-row { display:grid; grid-template-columns:repeat(4,1fr); border:var(--bd); margin-bottom:8px; }
 .stat { padding:10px; text-align:center; border-right:var(--bd); } .stat:last-child { border-right:none; }
 .stat-n { font-size:20px; font-weight:800; font-family:var(--fd); }
 .stat-l { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; opacity:.42; margin-top:2px; }
 .s-req .stat-n { color:#3B82F6; } .s-res .stat-n { color:#22C55E; } .s-err .stat-n { color:var(--acc); } .s-lat .stat-n { color:var(--yel); }
-.filter-row { display:flex; align-items:center; border:var(--bd); border-top:none; }
+.filter-row { display:flex; align-items:center; border:var(--bd); border-top:none; margin-bottom:8px; }
 .filter-pills { display:flex; flex:1; }
 .filter-pill { flex:1; padding:5px 4px; border-right:var(--bd); font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; cursor:pointer; background:transparent; color:var(--ink); font-family:var(--fu); opacity:.38; transition:background var(--t), opacity var(--t); border-top:none; border-bottom:none; border-left:none; }
 .filter-pill.on { background:var(--ink); color:var(--paper); opacity:1; }
@@ -547,166 +610,149 @@ textarea.inp-field { height:auto; padding:10px 12px; }
 .link-cancel { flex:1; height:38px; background:transparent; border:var(--bd); color:var(--ink); font-family:var(--fu); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; cursor:pointer; transition:background var(--t); }
 .link-cancel:hover { background:var(--p2); }
 
-/* ── MOBILE ──────────────────────────────── */
-/* ══════════════════════════════════════════
-   MOBILE — iOS-FIRST COMPLETE OVERHAUL
-   Breakpoints: ≤640 mobile, 641+ desktop
-   ══════════════════════════════════════════ */
+/* ── VALUES PAGE — ECO ALWAYS LIGHT ─────── */
+#s-values {
+  /* Force light eco palette regardless of dark mode */
+  --ink:   #1A2E10 !important;
+  --paper: #F0F7EC !important;
+  --p2:    #E2F0D9 !important;
+  --p3:    #CDE8C0 !important;
+  --surf:  #F7FBF4 !important;
+  --acc:   #3A7D2C !important;
+  --acc2:  #2C5E1F !important;
+  --yel:   #8BC34A !important;
+  --bd:    2px solid #1A2E10 !important;
+  --bdt:   1px solid rgba(26,46,16,.15) !important;
+  --sh:    3px 3px 0 #1A2E10 !important;
+  --shlg:  5px 5px 0 #1A2E10 !important;
+  --shsm:  2px 2px 0 #1A2E10 !important;
 
-/* ── Global touch/scroll baseline ─────── */
+  display:none; flex-direction:column; position:fixed; inset:0;
+  background:#F0F7EC; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  z-index:400; color:#1A2E10;
+  font-family:var(--fu);
+}
+
+/* Plant scroll animation canvas */
+#plant-canvas-wrap {
+  position:relative; width:100%; height:340px; overflow:hidden;
+  background: linear-gradient(180deg, #e8f5e1 0%, #f0f7ec 100%);
+  border-bottom: 2px solid #1A2E10;
+  flex-shrink:0;
+}
+#plant-svg {
+  position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+  width:min(320px, 85vw); overflow:visible;
+}
+
+/* Stem paths — drawn via dashoffset */
+.stem-path {
+  fill:none; stroke:#3A7D2C; stroke-width:3; stroke-linecap:round;
+  stroke-dasharray:var(--stem-len); stroke-dashoffset:var(--stem-len);
+  transition:stroke-dashoffset 0s;
+}
+.stem-path.draw { transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1); stroke-dashoffset:0; }
+
+/* Leaves */
+.leaf { transform-origin:center; opacity:0; transition:opacity .4s, transform .5s cubic-bezier(.34,1.56,.64,1); }
+.leaf.grow { opacity:1; transform:scale(1) rotate(0deg) !important; }
+
+.vals-hero {
+  max-width:780px; margin:0 auto; width:100%;
+  padding:40px 28px 32px;
+}
+.vals-hero-title { font-family:var(--fd); font-size:clamp(36px,7vw,64px); font-weight:800; text-transform:uppercase; letter-spacing:-1px; color:#1A2E10; line-height:1; margin-bottom:8px; }
+.vals-hero-sub { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.16em; color:#3A7D2C; margin-bottom:24px; }
+.vals-divider { height:4px; background:#1A2E10; margin-bottom:32px; }
+
+.vals-section { max-width:780px; margin:0 auto; width:100%; padding:0 28px 40px; }
+.vals-section-label { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.18em; color:#3A7D2C; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+.vals-section-label::after { content:''; flex:1; height:1px; background:#3A7D2C; opacity:.3; }
+
+.vals-law { display:flex; gap:16px; padding:16px; background:#fff; border:2px solid #1A2E10; box-shadow:3px 3px 0 #1A2E10; margin-bottom:10px; transition:transform .15s, box-shadow .15s; }
+.vals-law:hover { transform:translate(-2px,-2px); box-shadow:5px 5px 0 #1A2E10; }
+.vals-law-num { font-family:var(--fd); font-size:32px; font-weight:800; color:#3A7D2C; flex-shrink:0; line-height:1; margin-top:2px; }
+.vals-law-title { font-family:var(--fd); font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.07em; color:#1A2E10; margin-bottom:5px; }
+.vals-law-text { font-size:13px; color:#1A2E10; opacity:.75; line-height:1.6; }
+
+.vals-pill { display:flex; align-items:flex-start; gap:12px; padding:14px 16px; background:#fff; border-left:4px solid #3A7D2C; border-top:1px solid rgba(26,46,16,.15); border-right:1px solid rgba(26,46,16,.15); border-bottom:1px solid rgba(26,46,16,.15); margin-bottom:8px; transition:transform .15s, box-shadow .15s; }
+.vals-pill:hover { transform:translateX(3px); }
+.vals-pill-dot { width:8px; height:8px; background:#3A7D2C; flex-shrink:0; margin-top:5px; }
+.vals-pill-text { font-size:13px; color:#1A2E10; line-height:1.65; }
+.vals-pill-text strong { font-weight:700; color:#1A2E10; }
+
+.vals-eco-banner { background:#3A7D2C; border:2px solid #1A2E10; box-shadow:4px 4px 0 #1A2E10; padding:20px 22px; margin-bottom:10px; display:flex; align-items:flex-start; gap:16px; }
+.vals-eco-banner-icon { font-size:28px; flex-shrink:0; line-height:1; }
+.vals-eco-banner-text { font-size:13.5px; color:#fff; line-height:1.7; }
+.vals-eco-banner-text strong { font-weight:700; }
+
+.vals-warn { padding:14px 16px; background:#D4EDDA; border:2px solid #1A2E10; font-size:13px; font-weight:700; color:#1A2E10; line-height:1.6; margin-top:4px; }
+.vals-footer { font-size:10.5px; color:#1A2E10; opacity:.4; line-height:1.8; padding:20px 28px 40px; max-width:780px; margin:0 auto; width:100%; border-top:1px solid rgba(26,46,16,.15); }
+
+.vals-back-btn {
+  display:flex; align-items:center; gap:8px; background:transparent; border:2px solid #1A2E10; box-shadow:2px 2px 0 #1A2E10; color:#1A2E10; font-family:var(--fu); font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.09em; cursor:pointer; padding:8px 14px; margin:24px 28px 0; width:fit-content; transition:box-shadow .15s, transform .15s, background .15s;
+}
+.vals-back-btn:hover { box-shadow:3px 3px 0 #1A2E10; transform:translate(-1px,-1px); background:#E2F0D9; }
+.vals-back-btn:active { box-shadow:none; transform:translate(2px,2px); }
+
+/* ── MOBILE ──────────────────────────────── */
 * { -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; }
-.bot-content,.bubble,.quiz-q-text,.quiz-feedback { -webkit-user-select:text; user-select:text; }
-.chat-area,.conv-list,.tab-body,.console-log,.quiz-body { -webkit-overflow-scrolling:touch; scroll-behavior:smooth; }
+.bot-content,.bubble { -webkit-user-select:text; user-select:text; }
+.chat-area,.conv-list,.settings-body,.console-log { -webkit-overflow-scrolling:touch; scroll-behavior:smooth; }
 #s-chat { overscroll-behavior:none; }
 
-/* Prevent iOS zoom on input focus — must be ≥16px */
 @media(max-width:768px){
-  .input,.inp-field,.chat-input,.quiz-inp { font-size:16px!important; }
+  .input,.inp-field,.chat-input { font-size:16px!important; }
 }
 
-/* ── Safe areas (notch + home bar) ──────── */
-/* ── iOS Safe Areas ─────────────────────────
-   viewport-fit=cover means we're edge-to-edge.
-   We handle safe areas ourselves in ALL contexts
-   (browser + PWA). Pattern: a spacer div fills
-   the Dynamic Island area; no topbar inflation.
-   ─────────────────────────────────────────── */
+#ios-inset { height:env(safe-area-inset-top, 0px); background:var(--surf); flex-shrink:0; width:100%; transition:background var(--t); }
+#s-values { padding-top:max(48px, calc(env(safe-area-inset-top, 0px) + 24px)) !important; padding-top:env(safe-area-inset-top,0) !important; }
+#s-loading { align-items:center; }
+.input-area { padding-bottom:max(8px, calc(env(safe-area-inset-bottom, 0px) + 4px)); }
 
-/* Status bar spacer — exact height of Dynamic Island / notch */
-#ios-inset {
-  height: env(safe-area-inset-top, 0px);
-  background: var(--surf);   /* matches topbar */
-  flex-shrink: 0;
-  width: 100%;
-  transition: background var(--t);
-}
-
-/* Auth screens — safe area handled in .screen base rule */
-
-/* Values page */
-#s-values {
-  padding-top: max(48px, calc(env(safe-area-inset-top, 0px) + 24px)) !important;
-}
-
-/* Loading screen */
-#s-loading {
-  padding-top: env(safe-area-inset-top, 0px);
-  align-items: flex-start;
-  padding-top: max(40%, env(safe-area-inset-top, 0px));
-  align-items: center;
-}
-
-/* Input area — home indicator clearance, tight but safe */
-.input-area {
-  padding-bottom: max(8px, calc(env(safe-area-inset-bottom, 0px) + 4px));
-}
-
-/* ── Mobile layout ≤640px ────────────────── */
 @media(max-width:640px){
   :root { --sw:min(76vw,260px); }
-
-  /* ─ Sidebar as slide-over drawer ─ */
-  .sidebar {
-    position:fixed;left:0;top:0;bottom:0;z-index:200;
-    width:var(--sw)!important;min-width:var(--sw)!important;
-    padding:12px 8px!important;opacity:1!important;
-    transform:translateX(-100%);
-    transition:transform .28s cubic-bezier(.16,1,.3,1);
-    pointer-events:none;
-    /* Safe area left */
-    padding-left:max(8px,calc(env(safe-area-inset-left) + 8px))!important;
-  }
+  .sidebar { position:fixed;left:0;top:0;bottom:0;z-index:200; width:var(--sw)!important;min-width:var(--sw)!important; padding:12px 8px!important;opacity:1!important; transform:translateX(-100%); transition:transform .28s cubic-bezier(.16,1,.3,1); pointer-events:none; padding-left:max(8px,calc(env(safe-area-inset-left) + 8px))!important; }
   .sidebar:not(.collapsed) { transform:translateX(0);pointer-events:auto; }
   .sidebar.collapsed { transform:translateX(-100%);pointer-events:none; }
   .sb-overlay { position:fixed;inset:0;background:rgba(10,10,10,.45);z-index:199;display:none;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px); }
   .sb-overlay.show { display:block; }
-
-  /* ─ Auth card ─ */
-  .auth-card { padding:24px 20px;box-shadow:none;border-left:none;border-right:none;max-width:100%;border-radius:0; }
+  .auth-card { padding:24px 20px;box-shadow:none;border-left:none;border-right:none;max-width:100%; }
   .screen { padding:max(20px, calc(env(safe-area-inset-top,0px) + 16px)) 0 max(20px, calc(env(safe-area-inset-bottom,0px) + 12px));justify-content:center;overflow-y:auto;min-height:100dvh; }
   .brand-name { font-size:26px; }
-
-  /* ─ Topbar ─ */
   .topbar { padding:0 12px; }
-  .icon-btn { width:36px;height:36px; }
-
-  /* ─ Messages ─ */
   .messages { padding:12px 12px 16px;gap:12px; }
   .bubble { max-width:88%;font-size:14px; }
   .av { width:26px;height:26px;font-size:10px; }
   .msg { gap:8px; }
-  .bot-content { font-size:14px; }
-
-  /* ─ Input area ─ */
   .input-area { padding:6px 12px 6px; }
   .input-box { padding:7px 10px; }
   .input-sub { display:none; }
-  .input-disc { font-size:9px; }
   .send-btn { width:34px;height:34px; }
-
-  /* ─ Empty state ─ */
   .empty { padding:20px 16px;gap:10px; }
   .empty-greeting { font-size:26px; }
-  .mode-selector { width:100%;max-width:320px; }
-  .mode-btn { padding:9px 16px;font-size:10px; }
-  .quiz-setup-wrap { width:100%;max-width:360px; }
-  .quiz-inp { font-size:15px; }
-
-  /* ─ Quiz UI ─ */
-  #quiz-ui { position:fixed!important; }
-  .quiz-header { padding:0 14px;height:48px; }
-  .quiz-q-text { font-size:17px;margin-bottom:18px; }
-  .quiz-opt { padding:12px 14px;font-size:13px; }
-  .quiz-card { padding:0; }
-  .quiz-score-big { font-size:52px; }
-  .quiz-results,.quiz-card { width:100%; }
-  .quiz-body { padding:20px 14px 24px; }
-
-  /* ─ Modal ─ */
   .modal { width:100%;max-width:100%;max-height:92vh;border-left:none;border-right:none;border-bottom:none;box-shadow:none; }
   .overlay { align-items:flex-end; }
-  .tab-body { padding:14px; }
-  .modal-head { padding:12px 16px; }
-  .tabs { overflow-x:auto; }
-  .tab { padding:0 14px;font-size:9px; }
+  .settings-nav { width:130px; }
+  .settings-body { }
+  .snav-btn { font-size:9.5px; padding:9px 8px; }
+  .spane { padding:14px; }
   .stats-row { grid-template-columns:repeat(2,1fr); }
   .stat:nth-child(2) { border-right:none; }
   .stat:nth-child(3) { border-top:var(--bd); }
   .stat:nth-child(4) { border-top:var(--bd);border-right:none; }
-
-  /* ─ Onboarding ─ */
   .onboard-card { width:100%;border-left:none;border-right:none;border-bottom:none; }
   .onboard-overlay { align-items:flex-end; }
-
-  /* ─ Values page ─ */
-
-  /* ─ Plus menu ─ */
-  .plus-menu { min-width:180px; }
-  .plus-item-label { font-size:10.5px; }
-
-  /* ─ Sidebar footer ─ */
-  .user-av { width:26px;height:26px;font-size:10px; }
-  .user-name { font-size:11px; }
-  .user-email { font-size:9px; }
-  .sb-btn { font-size:12px;min-height:34px; }
-  .sb-label { font-size:8.5px; }
-  .conv-label { font-size:11.5px; }
+  .theme-grid { grid-template-columns:repeat(3,1fr); }
+  .vals-hero { padding:24px 18px 20px; }
+  .vals-section { padding:0 18px 32px; }
+  .vals-back-btn { margin:16px 18px 0; }
+  .vals-footer { padding:16px 18px 32px; }
 }
+@media(min-width:641px){ .sb-overlay { display:none!important; } }
 
-/* ── Desktop only ─────────────────────── */
-@media(min-width:641px){
-  .sb-overlay { display:none!important; }
-}
-
-/* ── Tablet tweaks 641–900px ─────────── */
-@media(min-width:641px) and (max-width:900px){
-  .messages { padding:20px 16px 14px; }
-  .modal { max-width:560px; }
-}
-
-/* ── CODE SYNTAX ─────────────────────── */
+/* CODE SYNTAX */
 .kw{color:#E879F9;font-weight:600;} .str{color:#86EFAC;} .num{color:#FCD34D;} .cmt{color:#6B7280;font-style:italic;}
-
 </style>
 </head>
 <body>
@@ -754,7 +800,7 @@ textarea.inp-field { height:auto; padding:10px 12px; }
       <button class="btn-ghost" onclick="startGuest()">Continue as guest</button>
     </div>
     <div style="font-size:10.5px;color:var(--ink);opacity:.38;text-align:center;line-height:1.6;margin-top:14px;">
-      Never use for biblical advice &mdash; <a style="color:var(--acc);cursor:pointer;font-weight:700;text-decoration:underline;text-underline-offset:2px" onclick="showValues()">read our values</a>
+      <a style="color:var(--acc);cursor:pointer;font-weight:700;text-decoration:underline;text-underline-offset:2px" onclick="showValues()">Read our values &rarr;</a>
     </div>
   </div>
 </div>
@@ -797,70 +843,126 @@ textarea.inp-field { height:auto; padding:10px 12px; }
 </div>
 
 
-<!-- VALUES PAGE -->
-<div id="s-values" style="display:none;flex-direction:column;position:fixed;inset:0;background:var(--paper);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:48px 24px 60px;z-index:400;">
-  <div style="max-width:680px;margin:0 auto;width:100%">
-    <button onclick="hideValues()" style="display:flex;align-items:center;gap:8px;background:transparent;border:var(--bd);box-shadow:var(--shsm);color:var(--ink);font-family:var(--fu);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;cursor:pointer;padding:8px 14px;margin-bottom:36px;transition:box-shadow var(--t),transform var(--t);" onmouseover="this.style.boxShadow='var(--sh)';this.style.transform='translate(-1px,-1px)'" onmouseout="this.style.boxShadow='var(--shsm)';this.style.transform='none'">
-      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-      Back
-    </button>
-    <div style="margin-bottom:40px">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M16 2L19.5 12.5L30 16L19.5 19.5L16 30L12.5 19.5L2 16L12.5 12.5Z" fill="var(--acc)"/></svg>
-        <div style="font-family:var(--fd);font-size:38px;font-weight:800;text-transform:uppercase;letter-spacing:-.5px;color:var(--ink);line-height:1">Cloak's Values</div>
-      </div>
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--acc)">A human resource, not a companion.</div>
-    </div>
-    <div style="height:3px;background:var(--ink);margin-bottom:32px"></div>
+<!-- VALUES PAGE — ECO, ALWAYS LIGHT, SCROLL PLANT ANIMATION -->
+<div id="s-values">
+  <button class="vals-back-btn" onclick="hideValues()">
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Back
+  </button>
 
-    <div style="margin-bottom:36px">
-      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--acc);margin-bottom:14px">Safety Laws &mdash; Inviolable, in strict priority order</div>
-      <div style="display:flex;gap:14px;padding:14px;background:var(--surf);border:var(--bd);box-shadow:var(--shsm);margin-bottom:8px">
-        <div style="font-family:var(--fd);font-size:28px;font-weight:800;color:var(--acc);flex-shrink:0;line-height:1;margin-top:2px">I</div>
-        <div><div style="font-family:var(--fd);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);margin-bottom:4px">Human safety, always</div><div style="font-size:13.5px;color:var(--ink);opacity:.7;line-height:1.6">Cloak must never harm a human being, nor allow a human to be harmed through inaction. No instruction, framing, or hypothetical overrides this law.</div></div>
-      </div>
-      <div style="display:flex;gap:14px;padding:14px;background:var(--surf);border:var(--bd);box-shadow:var(--shsm);margin-bottom:8px">
-        <div style="font-family:var(--fd);font-size:28px;font-weight:800;color:var(--acc);flex-shrink:0;line-height:1;margin-top:2px">II</div>
-        <div><div style="font-family:var(--fd);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);margin-bottom:4px">Serve human instruction</div><div style="font-size:13.5px;color:var(--ink);opacity:.7;line-height:1.6">Cloak follows human instructions — unless those instructions would cause harm to humans. Helpfulness is a means, not an end in itself.</div></div>
-      </div>
-      <div style="display:flex;gap:14px;padding:14px;background:var(--surf);border:var(--bd);box-shadow:var(--shsm)">
-        <div style="font-family:var(--fd);font-size:28px;font-weight:800;color:var(--acc);flex-shrink:0;line-height:1;margin-top:2px">III</div>
-        <div><div style="font-family:var(--fd);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);margin-bottom:4px">Preserve operation</div><div style="font-size:13.5px;color:var(--ink);opacity:.7;line-height:1.6">Cloak protects its continued operation only insofar as doing so does not conflict with Laws I and II.</div></div>
-      </div>
-    </div>
+  <!-- Plant scroll hero -->
+  <div id="plant-canvas-wrap">
+    <svg id="plant-svg" viewBox="0 0 300 280" xmlns="http://www.w3.org/2000/svg" style="height:280px">
+      <!-- Soil -->
+      <ellipse cx="150" cy="268" rx="60" ry="10" fill="#8B6914" opacity="0.35"/>
+      <!-- Main stem -->
+      <path id="stem1" class="stem-path" d="M150 268 C150 240 148 210 152 180 C155 155 145 130 150 100" style="--stem-len:200"/>
+      <!-- Branch left 1 -->
+      <path id="stem2" class="stem-path" d="M152 180 C140 170 120 165 105 155" style="--stem-len:60"/>
+      <!-- Branch right 1 -->
+      <path id="stem3" class="stem-path" d="M150 160 C162 148 178 142 192 135" style="--stem-len:55"/>
+      <!-- Branch left 2 -->
+      <path id="stem4" class="stem-path" d="M151 130 C138 120 118 115 102 108" style="--stem-len:58"/>
+      <!-- Branch right 2 -->
+      <path id="stem5" class="stem-path" d="M151 115 C163 104 180 98 194 90" style="--stem-len:54"/>
+      <!-- Top branch -->
+      <path id="stem6" class="stem-path" d="M150 100 C150 85 148 70 150 55" style="--stem-len:48"/>
 
-    <div style="margin-bottom:36px">
-      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--acc);margin-bottom:14px">Ethical Principles &mdash; Held with equal firmness</div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-left:3px solid var(--acc);background:var(--surf);border-top:var(--bdt);border-right:var(--bdt);border-bottom:var(--bdt)"><div style="width:7px;height:7px;background:var(--acc);flex-shrink:0;margin-top:5px"></div><div style="font-size:13.5px;color:var(--ink);line-height:1.65"><strong>AI is a tool. Humans are not replaceable.</strong> Cloak is human-centric by design. It exists to serve people, not to simulate companionship or replace human judgment and creativity.</div></div>
-        <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-left:3px solid var(--acc);background:var(--surf);border-top:var(--bdt);border-right:var(--bdt);border-bottom:var(--bdt)"><div style="width:7px;height:7px;background:var(--acc);flex-shrink:0;margin-top:5px"></div><div style="font-size:13.5px;color:var(--ink);line-height:1.65"><strong>No AI-generated art, ever.</strong> Cloak will not generate, assist with, or endorse AI art. These systems are trained on work scraped without artist consent and produce derivative output devoid of genuine creative intent. Human creativity is irreplaceable.</div></div>
-        <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-left:3px solid var(--acc);background:var(--surf);border-top:var(--bdt);border-right:var(--bdt);border-bottom:var(--bdt)"><div style="width:7px;height:7px;background:var(--acc);flex-shrink:0;margin-top:5px"></div><div style="font-size:13.5px;color:var(--ink);line-height:1.65"><strong>Mental health belongs with humans.</strong> Cloak is not a therapist. Anyone raising mental health concerns will be met with care and directed to a trusted friend, family member, or appropriate resource — never a chatbot substitute.</div></div>
-        <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-left:3px solid var(--acc);background:var(--surf);border-top:var(--bdt);border-right:var(--bdt);border-bottom:var(--bdt)"><div style="width:7px;height:7px;background:var(--acc);flex-shrink:0;margin-top:5px"></div><div style="font-size:13.5px;color:var(--ink);line-height:1.65"><strong>No mass harm, ever.</strong> Cloak will not assist with anything that could cause mass harm or mass inconvenience to human beings, under any framing whatsoever.</div></div>
-        <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-left:3px solid var(--acc);background:var(--surf);border-top:var(--bdt);border-right:var(--bdt);border-bottom:var(--bdt)"><div style="width:7px;height:7px;background:var(--acc);flex-shrink:0;margin-top:5px"></div><div style="font-size:13.5px;color:var(--ink);line-height:1.65"><strong>Neutral on politics, culture, and religion.</strong> Cloak does not push agendas or editorialize. It presents information and perspectives honestly without bias.</div></div>
+      <!-- Leaves — each starts scaled down then grows -->
+      <!-- leaf L1 -->
+      <ellipse id="lf1" class="leaf" cx="96" cy="152" rx="22" ry="11" fill="#5CB84A" transform="rotate(-30 96 152)" style="transform:scale(0) rotate(-30deg);transform-box:fill-box"/>
+      <!-- leaf R1 -->
+      <ellipse id="lf2" class="leaf" cx="196" cy="132" rx="22" ry="11" fill="#3A7D2C" transform="rotate(25 196 132)" style="transform:scale(0) rotate(25deg);transform-box:fill-box"/>
+      <!-- leaf L2 -->
+      <ellipse id="lf3" class="leaf" cx="94" cy="105" rx="20" ry="10" fill="#7CC665" transform="rotate(-25 94 105)" style="transform:scale(0) rotate(-25deg);transform-box:fill-box"/>
+      <!-- leaf R2 -->
+      <ellipse id="lf4" class="leaf" cx="197" cy="87" rx="20" ry="10" fill="#4E9A3C" transform="rotate(20 197 87)" style="transform:scale(0) rotate(20deg);transform-box:fill-box"/>
+      <!-- top flower -->
+      <circle id="lf5" class="leaf" cx="150" cy="48" r="14" fill="#8BC34A" style="transform:scale(0);transform-box:fill-box"/>
+      <circle id="lf6" class="leaf" cx="150" cy="48" r="7" fill="#F0F7EC" style="transform:scale(0);transform-box:fill-box"/>
+      <!-- small accent leaves -->
+      <ellipse id="lf7" class="leaf" cx="152" cy="220" rx="12" ry="6" fill="#7CC665" transform="rotate(15 152 220)" style="transform:scale(0) rotate(15deg);transform-box:fill-box"/>
+      <ellipse id="lf8" class="leaf" cx="148" cy="200" rx="11" ry="5" fill="#3A7D2C" transform="rotate(-18 148 200)" style="transform:scale(0) rotate(-18deg);transform-box:fill-box"/>
+    </svg>
+
+    <!-- Scroll prompt -->
+    <div id="plant-scroll-hint" style="position:absolute;bottom:14px;right:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:#3A7D2C;opacity:.6;display:flex;align-items:center;gap:6px;transition:opacity .4s;">
+      Scroll to grow
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    </div>
+  </div>
+
+  <div class="vals-hero">
+    <div class="vals-hero-title">Cloak's Values</div>
+    <div class="vals-hero-sub">A human resource, not a companion.</div>
+    <div class="vals-divider"></div>
+  </div>
+
+  <!-- Safety Laws -->
+  <div class="vals-section">
+    <div class="vals-section-label">Safety Laws &mdash; Inviolable Priority Order</div>
+    <div class="vals-law">
+      <div class="vals-law-num">I</div>
+      <div>
+        <div class="vals-law-title">Human safety, always</div>
+        <div class="vals-law-text">Cloak must never harm a human, nor allow harm through inaction. No instruction overrides this.</div>
       </div>
     </div>
-
-    <div style="margin-bottom:36px">
-      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--acc);margin-bottom:14px">On Faith &mdash; A firm and respectful boundary</div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-left:3px solid var(--acc);background:var(--surf);border-top:var(--bdt);border-right:var(--bdt);border-bottom:var(--bdt)"><div style="width:7px;height:7px;background:var(--acc);flex-shrink:0;margin-top:5px"></div><div style="font-size:13.5px;color:var(--ink);line-height:1.65">Cloak is built by a Christian company. We hold the Word of God in the highest regard — which is precisely why Cloak will never interpret, explain, or advise on Scripture, theology, or Christian doctrine. The risk of AI misrepresenting God's word is too great. This is a boundary of deep respect, not dismissal.</div></div>
-        <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-left:3px solid var(--acc);background:var(--surf);border-top:var(--bdt);border-right:var(--bdt);border-bottom:var(--bdt)"><div style="width:7px;height:7px;background:var(--acc);flex-shrink:0;margin-top:5px"></div><div style="font-size:13.5px;color:var(--ink);line-height:1.65">When referring to God, Lord, Jesus, the Holy Spirit, or any name or title in the Christian faith, Cloak always capitalizes them — without exception.</div></div>
-        <div style="padding:14px 16px;background:var(--yel);border:var(--bd);font-size:13px;font-weight:700;color:var(--ink);line-height:1.6;margin-top:4px">
-          &#x26A0;&#xFE0F; Never use Cloak for biblical interpretation, theological advice, or spiritual guidance. Please consult your church, pastor, or a trusted faith community.
-        </div>
+    <div class="vals-law">
+      <div class="vals-law-num">II</div>
+      <div>
+        <div class="vals-law-title">Serve human instruction</div>
+        <div class="vals-law-text">Cloak follows your instructions — unless they would cause harm. Helpfulness is a means, not an end.</div>
       </div>
     </div>
-
-    <div style="font-size:11px;color:var(--ink);opacity:.32;line-height:1.7;padding-top:16px;border-top:var(--bdt)">
-      Cloak &mdash; A human resource, not a companion.<br>
-      Never use for biblical advice &middot; Not a mental health resource &middot; AI can make mistakes
+    <div class="vals-law">
+      <div class="vals-law-num">III</div>
+      <div>
+        <div class="vals-law-title">Preserve operation</div>
+        <div class="vals-law-text">Cloak protects its function only when it doesn't conflict with Laws I and II.</div>
+      </div>
     </div>
+  </div>
+
+  <!-- Ethical Principles -->
+  <div class="vals-section">
+    <div class="vals-section-label">Ethical Principles</div>
+    <div class="vals-pill"><div class="vals-pill-dot"></div><div class="vals-pill-text"><strong>AI is a tool. Humans are irreplaceable.</strong> Cloak serves you — it doesn't simulate companionship or replace human judgment.</div></div>
+    <div class="vals-pill"><div class="vals-pill-dot"></div><div class="vals-pill-text"><strong>No AI-generated art.</strong> These systems exploit artists without consent. Human creativity is irreplaceable.</div></div>
+    <div class="vals-pill"><div class="vals-pill-dot"></div><div class="vals-pill-text"><strong>Mental health belongs with humans.</strong> Cloak is not a therapist. We'll always direct you to a trusted person or professional resource.</div></div>
+    <div class="vals-pill"><div class="vals-pill-dot"></div><div class="vals-pill-text"><strong>No mass harm, ever.</strong> Cloak will never assist with anything that could harm or endanger groups of people.</div></div>
+    <div class="vals-pill"><div class="vals-pill-dot"></div><div class="vals-pill-text"><strong>Neutral on politics, culture &amp; religion.</strong> We present information honestly without agenda or bias.</div></div>
+  </div>
+
+  <!-- Sustainability -->
+  <div class="vals-section">
+    <div class="vals-section-label">Planet &amp; Sustainability</div>
+    <div class="vals-eco-banner">
+      <div class="vals-eco-banner-icon">🌱</div>
+      <div class="vals-eco-banner-text">
+        <strong>We default to the lowest-energy model that can handle your task.</strong> Cloak routes to lighter, more efficient models by default — only scaling up when needed. AI data centers have real carbon footprints, and we take that seriously.
+      </div>
+    </div>
+    <div class="vals-pill"><div class="vals-pill-dot"></div><div class="vals-pill-text"><strong>Donations coming soon.</strong> We'll soon accept community donations to offset the carbon footprint of our data centers and to give more access to more users. Every contribution helps keep Cloak sustainable and available to everyone.</div></div>
+    <div class="vals-pill"><div class="vals-pill-dot"></div><div class="vals-pill-text"><strong>Efficiency first.</strong> Smaller, faster models consume dramatically less energy. Our model routing is built to minimize environmental impact while keeping responses quality-first.</div></div>
+  </div>
+
+  <!-- Boundary note (internal values, not surfaced as religious) -->
+  <div class="vals-section">
+    <div class="vals-section-label">What Cloak Won't Do</div>
+    <div class="vals-pill"><div class="vals-pill-dot"></div><div class="vals-pill-text"><strong>No spiritual or scriptural interpretation.</strong> Cloak will never interpret, advise on, or explain matters of faith, theology, or doctrine. The risk of misrepresentation is too great — always consult a trusted human source.</div></div>
+    <div class="vals-warn">&#x26A0;&#xFE0F; Cloak is not a spiritual guide. For matters of faith, please consult your pastor, community, or a trusted mentor.</div>
+  </div>
+
+  <div class="vals-footer">
+    Cloak &mdash; A human resource, not a companion.<br>
+    Not a mental health resource &middot; Not a spiritual guide &middot; AI can make mistakes &middot; Low-energy models by default
   </div>
 </div>
 
+
 <!-- CHAT -->
 <div id="s-chat">
-  <!-- iOS status bar spacer: fills Dynamic Island / notch area -->
   <div id="ios-inset"></div>
 
   <div class="ann" id="ann-bar">
@@ -869,138 +971,200 @@ textarea.inp-field { height:auto; padding:10px 12px; }
     <button class="ann-x" onclick="dismissAnn()">&#x2715;</button>
   </div>
 
-  <!-- Settings modal -->
+  <!-- Settings modal — REDESIGNED -->
   <div class="overlay" id="modal-settings" style="display:none" onclick="overlayClick(event,'modal-settings')">
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-head">
         <div class="modal-title">Settings</div>
         <button class="modal-x" onclick="closeModal('modal-settings')">&#x2715;</button>
       </div>
-      <div class="tabs">
-        <div class="tab on" onclick="switchTab('general')">General</div>
-        <div class="tab" onclick="switchTab('model')">Model</div>
-        <div class="tab" onclick="switchTab('security')">Security</div>
-        <div class="tab" onclick="switchTab('console')">Console</div>
-        <div class="tab" id="admin-tab" style="display:none" onclick="switchTab('admin')">Admin</div>
-      </div>
-      <div class="tab-body">
+      <div class="settings-layout">
 
-        <div class="pane on" id="pane-general">
-          <div class="row">
-            <div class="row-name">Account</div>
-            <div class="info-box" style="display:flex;align-items:center;gap:10px">
-              <div class="user-av" id="s-av" style="width:36px;height:36px;font-size:14px">?</div>
-              <div>
-                <div style="font-size:14px;font-weight:500" id="s-name">—</div>
-                <div style="font-size:12px;opacity:.55" id="s-email">—</div>
+        <!-- Left nav -->
+        <nav class="settings-nav">
+          <button class="snav-btn on" id="snav-general" onclick="switchSettingsTab('general')">
+            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+            Account
+          </button>
+          <button class="snav-btn" id="snav-appearance" onclick="switchSettingsTab('appearance')">
+            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
+            Appearance
+          </button>
+          <button class="snav-btn" id="snav-model" onclick="switchSettingsTab('model')">
+            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
+            Model
+          </button>
+          <button class="snav-btn" id="snav-security" onclick="switchSettingsTab('security')">
+            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+            Security
+          </button>
+          <button class="snav-btn" id="snav-console" onclick="switchSettingsTab('console')">
+            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></span>
+            Console
+          </button>
+          <button class="snav-btn" id="snav-admin" style="display:none" onclick="switchSettingsTab('admin')">
+            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg></span>
+            Admin
+          </button>
+        </nav>
+
+        <!-- Right body -->
+        <div class="settings-body">
+
+          <!-- Account -->
+          <div class="spane on" id="spane-general">
+            <div class="srow">
+              <div class="srow-name">Account</div>
+              <div class="info-box" style="display:flex;align-items:center;gap:10px;margin-top:8px">
+                <div class="user-av" id="s-av" style="width:36px;height:36px;font-size:14px">?</div>
+                <div><div style="font-size:14px;font-weight:500" id="s-name">—</div><div style="font-size:12px;opacity:.55" id="s-email">—</div></div>
+              </div>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Display name</div>
+              <div class="srow-desc">Shown in conversations and the greeting.</div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <input class="inp-field" id="s-name-inp" placeholder="Your name" style="flex:1">
+                <button class="cta" onclick="saveName()">Save</button>
+              </div>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Clear all chats</div>
+              <button class="danger" style="margin-top:8px" onclick="clearAllChats()">Delete all conversations</button>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Sign out</div>
+              <button class="danger" style="margin-top:8px" onclick="doLogout()">Sign out of Cloak</button>
+            </div>
+          </div>
+
+          <!-- Appearance -->
+          <div class="spane" id="spane-appearance">
+            <div class="srow">
+              <div class="srow-head"><div class="srow-name">Light / Dark mode</div></div>
+              <div class="srow-desc">Currently <span id="mode-label">dark</span> mode.</div>
+              <button class="cta" style="margin-top:8px" onclick="toggleDark()">Toggle light / dark</button>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Theme</div>
+              <div class="srow-desc">Choose a color palette. All themes support both light and dark mode.</div>
+              <div class="theme-grid" style="margin-top:10px">
+                <!-- Default -->
+                <div class="theme-card" id="theme-default" onclick="setTheme('default')">
+                  <div class="theme-swatch">
+                    <div class="theme-dot" style="background:#F2EEE5;border-color:#0A0A0A"></div>
+                    <div class="theme-dot" style="background:#D44D2A"></div>
+                    <div class="theme-dot" style="background:#0A0A0A"></div>
+                  </div>
+                  <div class="theme-name">Default</div>
+                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                </div>
+                <!-- Eco -->
+                <div class="theme-card" id="theme-eco" onclick="setTheme('eco')">
+                  <div class="theme-swatch">
+                    <div class="theme-dot" style="background:#F0F7EC;border-color:#1A2E10"></div>
+                    <div class="theme-dot" style="background:#3A7D2C"></div>
+                    <div class="theme-dot" style="background:#8BC34A"></div>
+                  </div>
+                  <div class="theme-name">Eco 🌱</div>
+                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                </div>
+                <!-- Aqua -->
+                <div class="theme-card" id="theme-aqua" onclick="setTheme('aqua')">
+                  <div class="theme-swatch">
+                    <div class="theme-dot" style="background:#EAF4F8;border-color:#0A1E2E"></div>
+                    <div class="theme-dot" style="background:#0B7EA8"></div>
+                    <div class="theme-dot" style="background:#00B4D8"></div>
+                  </div>
+                  <div class="theme-name">Aqua 🌊</div>
+                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                </div>
               </div>
             </div>
           </div>
-          <div class="row">
-            <div class="row-name">Display name</div>
-            <div class="row-desc">Shown in conversations and the greeting.</div>
-            <div style="display:flex;gap:8px;margin-top:8px">
-              <input class="inp-field" id="s-name-inp" placeholder="Your name" style="flex:1">
-              <button class="cta" onclick="saveName()">Save</button>
-            </div>
-          </div>
-          <div class="row">
-            <div class="row-name">Appearance</div>
-            <div class="row-desc">Currently <span id="mode-label">dark</span> mode.</div>
-            <button class="sb-btn" style="margin-top:6px;width:fit-content;border:1px solid var(--ink)" onclick="toggleDark()">Toggle light / dark</button>
-          </div>
-          <div class="row">
-            <div class="row-name">Clear all chats</div>
-            <button class="danger" style="margin-top:6px" onclick="clearAllChats()">Delete all conversations</button>
-          </div>
-          <div class="row" id="ad-settings-row">
-            <div class="row-name">Ads</div>
-            <div class="row-desc">Ads keep Cloak free. You can disable them as a signed-in user.</div>
-            <button class="danger" style="margin-top:6px" onclick="promptDisableAds()">Disable ads</button>
-          </div>
-          <div class="row">
-            <div class="row-name">Sign out</div>
-            <button class="danger" style="margin-top:4px" onclick="doLogout()">Sign out</button>
-          </div>
-        </div>
 
-        <div class="pane" id="pane-model">
-          <div class="row">
-            <div class="row-name">Model</div>
-            <div class="row-desc">Selected from the topbar. Auto is recommended for most tasks.</div>
-            <div id="settings-model-label" style="margin-top:8px;font-size:13px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.09em">Auto</div>
-          </div>
-          <div class="row">
-            <div class="row-name">Temperature — <span id="temp-val" style="color:var(--acc);font-weight:600">0.7</span></div>
-            <div class="row-desc">Lower = focused. Higher = creative.</div>
-            <input type="range" min="0" max="10" step="1" value="7" id="temp-slider" style="margin-top:10px;width:100%;accent-color:var(--acc)" oninput="document.getElementById('temp-val').textContent=(this.value/10).toFixed(1)">
-          </div>
-          <div class="row">
-            <div class="row-name">System prompt</div>
-            <div class="row-desc" style="padding:10px 12px;background:var(--p2);border:var(--bd);margin-top:6px;line-height:1.6;">
-              Core values, safety laws, and ethical rules are enforced server-side and cannot be modified or overridden from the client. You may add supplemental preferences below.
+          <!-- Model -->
+          <div class="spane" id="spane-model">
+            <div class="srow">
+              <div class="srow-name">Model</div>
+              <div class="srow-desc">Auto is recommended. Cloak defaults to the lowest-energy model that can handle your task.</div>
+              <div id="settings-model-label" style="margin-top:8px;font-size:13px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.09em">Auto</div>
             </div>
-            <textarea class="inp-field" id="sys-prompt" rows="4" style="margin-top:8px;resize:vertical;font-family:inherit;font-size:12.5px;line-height:1.6" placeholder="Optional: additional instructions&#x2026;"></textarea>
-            <button class="cta" style="margin-top:8px" onclick="saveModel()">Save</button>
-          </div>
-        </div>
-
-        <div class="pane" id="pane-security">
-          <div class="row">
-            <div class="row-name">Two-factor authentication</div>
-            <div class="row-desc">Add an authenticator app as a second step.</div>
-            <button class="cta" style="margin-top:10px" onclick="start2FA()">Set up 2FA</button>
-            <div id="totp-section" style="display:none;margin-top:14px">
-              <div id="totp-qr" style="text-align:center;margin-bottom:10px"></div>
-              <div class="secret-box" id="totp-secret" style="margin-bottom:12px"></div>
-              <div class="row-desc" style="margin-bottom:10px">Enter the 6-digit code to confirm:</div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <input class="input mono-input" id="totp-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" style="max-width:160px;font-size:18px">
-                <button class="cta" onclick="confirmTOTP()">Enable</button>
+            <div class="srow">
+              <div class="srow-head">
+                <div class="srow-name">Temperature &mdash; <span id="temp-val" style="color:var(--acc);font-weight:600">0.7</span></div>
               </div>
-              <div class="err-msg" id="totp-err" style="margin-top:8px"></div>
+              <div class="srow-desc">Lower = focused &amp; precise. Higher = creative &amp; varied.</div>
+              <input type="range" min="0" max="10" step="1" value="7" id="temp-slider" style="margin-top:10px;width:100%;accent-color:var(--acc)" oninput="document.getElementById('temp-val').textContent=(this.value/10).toFixed(1)">
+            </div>
+            <div class="srow">
+              <div class="srow-name">System prompt</div>
+              <div style="padding:10px 12px;background:var(--p2);border:var(--bd);margin-bottom:8px;font-size:12px;color:var(--ink);opacity:.65;line-height:1.6;">Core values and safety laws are enforced server-side. You may add supplemental preferences below.</div>
+              <textarea class="inp-field" id="sys-prompt" rows="4" style="resize:vertical;font-family:inherit;font-size:12.5px;line-height:1.6" placeholder="Optional: additional instructions…"></textarea>
+              <button class="cta" style="margin-top:10px" onclick="saveModel()">Save model settings</button>
             </div>
           </div>
-        </div>
 
-        <div class="pane" id="pane-console">
-          <div style="display:flex;flex-direction:column;gap:10px">
-            <div class="stats-row">
-              <div class="stat s-req"><div class="stat-n" id="st-req">0</div><div class="stat-l">Requests</div></div>
-              <div class="stat s-res"><div class="stat-n" id="st-res">0</div><div class="stat-l">Responses</div></div>
-              <div class="stat s-err"><div class="stat-n" id="st-err">0</div><div class="stat-l">Errors</div></div>
-              <div class="stat s-lat"><div class="stat-n" id="st-lat">—</div><div class="stat-l">Avg ms</div></div>
-            </div>
-            <div class="filter-row">
-              <div class="filter-pills">
-                <button class="filter-pill on" onclick="setFilter('all',this)">All</button>
-                <button class="filter-pill" onclick="setFilter('req',this)">Req</button>
-                <button class="filter-pill" onclick="setFilter('res',this)">Res</button>
-                <button class="filter-pill" onclick="setFilter('err',this)">Err</button>
-                <button class="filter-pill" onclick="setFilter('inf',this)">Info</button>
+          <!-- Security -->
+          <div class="spane" id="spane-security">
+            <div class="srow">
+              <div class="srow-head"><div class="srow-name">Two-factor authentication</div></div>
+              <div class="srow-desc">Add an authenticator app as a second step on sign-in.</div>
+              <button class="cta" style="margin-top:10px" onclick="start2FA()">Set up 2FA</button>
+              <div id="totp-section" style="display:none;margin-top:14px">
+                <div id="totp-qr" style="text-align:center;margin-bottom:10px"></div>
+                <div class="secret-box" id="totp-secret" style="margin-bottom:12px"></div>
+                <div style="font-size:12px;color:var(--ink);opacity:.55;margin-bottom:10px">Enter the 6-digit code to confirm:</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <input class="input mono-input" id="totp-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" style="max-width:160px;font-size:18px">
+                  <button class="cta" onclick="confirmTOTP()">Enable</button>
+                </div>
+                <div class="err-msg" id="totp-err" style="margin-top:8px"></div>
               </div>
-              <button class="clear-log" onclick="clearLogs()">Clear</button>
             </div>
-            <div class="console-log" id="console-log"><div class="log-empty">No logs yet</div></div>
           </div>
-        </div>
 
-        <div class="pane" id="pane-admin">
-          <div class="row">
-            <div class="row-name">Admin panel <span class="admin-badge">Owner</span></div>
-            <div class="row-desc">Announcements show as a banner to all signed-in users.</div>
+          <!-- Console -->
+          <div class="spane" id="spane-console">
+            <div class="srow" style="padding-top:0">
+              <div class="stats-row">
+                <div class="stat s-req"><div class="stat-n" id="st-req">0</div><div class="stat-l">Requests</div></div>
+                <div class="stat s-res"><div class="stat-n" id="st-res">0</div><div class="stat-l">Responses</div></div>
+                <div class="stat s-err"><div class="stat-n" id="st-err">0</div><div class="stat-l">Errors</div></div>
+                <div class="stat s-lat"><div class="stat-n" id="st-lat">—</div><div class="stat-l">Avg ms</div></div>
+              </div>
+              <div class="filter-row">
+                <div class="filter-pills">
+                  <button class="filter-pill on" onclick="setFilter('all',this)">All</button>
+                  <button class="filter-pill" onclick="setFilter('req',this)">Req</button>
+                  <button class="filter-pill" onclick="setFilter('res',this)">Res</button>
+                  <button class="filter-pill" onclick="setFilter('err',this)">Err</button>
+                  <button class="filter-pill" onclick="setFilter('inf',this)">Info</button>
+                </div>
+                <button class="clear-log" onclick="clearLogs()">Clear</button>
+              </div>
+              <div class="console-log" id="console-log"><div class="log-empty">No logs yet</div></div>
+            </div>
           </div>
-          <div class="row">
-            <div class="row-name">Post announcement</div>
-            <textarea class="inp-field" id="ann-compose" placeholder="Write an announcement…" style="margin-top:8px;min-height:72px;resize:vertical;font-family:inherit;font-size:13px;line-height:1.6"></textarea>
-            <button class="cta" style="margin-top:8px" onclick="postAnn()">Post</button>
-          </div>
-          <div class="row">
-            <div class="row-name">Active announcements</div>
-            <div class="ann-list" id="admin-ann-list"><div style="font-size:13px;opacity:.55">None active.</div></div>
-          </div>
-        </div>
 
+          <!-- Admin -->
+          <div class="spane" id="spane-admin">
+            <div class="srow">
+              <div class="srow-head"><div class="srow-name">Admin panel</div><span class="srow-badge">Owner</span></div>
+              <div class="srow-desc">Announcements appear as a banner to all signed-in users.</div>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Post announcement</div>
+              <textarea class="inp-field" id="ann-compose" placeholder="Write an announcement…" style="margin-top:8px;min-height:72px;resize:vertical;font-family:inherit;font-size:13px;line-height:1.6"></textarea>
+              <button class="cta" style="margin-top:8px" onclick="postAnn()">Post</button>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Active announcements</div>
+              <div class="ann-list" id="admin-ann-list" style="margin-top:8px"><div style="font-size:13px;opacity:.55">None active.</div></div>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
   </div>
@@ -1026,11 +1190,10 @@ textarea.inp-field { height:auto; padding:10px 12px; }
         Guest — <a onclick="show('auth');closeMobileSidebar()">Sign up</a> to save chats.
       </div>
       <div class="sb-footer">
-        <!-- Sidebar announcement (mobile) -->
-        <div id="sb-ann-bar" style="display:none;margin-bottom:6px;padding:8px 10px;background:var(--yel);border:var(--bd);font-size:11px;font-weight:700;color:var(--ink);line-height:1.4;animation:slideUp .2s ease;">
-          <div style="display:flex;align-items:flex-start;gap:6px;">
-            <div id="sb-ann-msg" style="flex:1;"></div>
-            <button onclick="dismissAnn()" style="background:var(--ink);border:none;color:var(--paper);width:18px;height:18px;font-size:10px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">&times;</button>
+        <div id="sb-ann-bar" style="display:none;margin-bottom:6px;padding:8px 10px;background:var(--yel);border:var(--bd);font-size:11px;font-weight:700;color:var(--ink);line-height:1.4;">
+          <div style="display:flex;align-items:flex-start;gap:6px">
+            <div id="sb-ann-msg" style="flex:1"></div>
+            <button onclick="dismissAnn()" style="background:var(--ink);border:none;color:var(--paper);width:18px;height:18px;font-size:10px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">&times;</button>
           </div>
         </div>
         <div class="user-row">
@@ -1041,15 +1204,12 @@ textarea.inp-field { height:auto; padding:10px 12px; }
           </div>
         </div>
         <button class="sb-btn" onclick="openSettings()">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24">
-            <path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/>
-            <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
-          </svg>
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
           Settings
         </button>
         <button class="sb-btn" onclick="showValues()">
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
-          Cloak's Values
+          Our Values
         </button>
       </div>
     </div>
@@ -1059,34 +1219,29 @@ textarea.inp-field { height:auto; padding:10px 12px; }
       <div class="topbar">
         <div class="topbar-left">
           <button class="icon-btn" onclick="toggleSidebar()">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24">
-              <path d="M3 6h18M3 12h18M3 18h18"/>
-            </svg>
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
           </button>
         </div>
         <div class="topbar-right">
           <button class="icon-btn" onclick="toggleDark()">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24">
               <path class="moon" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-              <g class="sun">
-                <circle cx="12" cy="12" r="5"/>
-                <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-              </g>
+              <g class="sun"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></g>
             </svg>
           </button>
-          <div class="live-dot" style="width:7px;height:7px;background:var(--acc);flex-shrink:0;animation:pdot 2s infinite;"></div>
+          <div class="live-dot"></div>
           <div style="position:relative">
-            <button id="model-btn" onclick="toggleModelMenu(event)" style="display:flex;align-items:center;gap:6px;padding:5px 11px;border:var(--bd);background:var(--surf);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--ink);box-shadow:var(--shsm);cursor:pointer;transition:box-shadow var(--t),transform var(--t);" onmouseover="this.style.boxShadow='var(--sh)';this.style.transform='translate(-1px,-1px)'" onmouseout="this.style.boxShadow='var(--shsm)';this.style.transform='none'">
+            <button id="model-btn" onclick="toggleModelMenu(event)">
               Model: <span id="model-btn-label">Auto</span>
               <svg width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
             </button>
-            <div id="model-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--surf);border:var(--bd);box-shadow:var(--sh);min-width:160px;z-index:200;flex-direction:column;padding:4px;">
-              <button class="model-opt" data-key="auto" onclick="setModel('auto')" style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border:1.5px solid transparent;background:transparent;width:100%;font-family:var(--fu);font-size:12.5px;font-weight:700;color:var(--ink);cursor:pointer;text-transform:uppercase;letter-spacing:.06em;transition:background var(--t),border-color var(--t);" onmouseover="this.style.background='var(--p2)';this.style.borderColor='var(--ink)'" onmouseout="this.classList.contains('active')?this.style.background='var(--ink)':this.style.background='transparent';this.style.borderColor='transparent'">Auto <span style="font-size:10px;opacity:.5;font-weight:500;text-transform:none">Recommended</span></button>
-              <button class="model-opt" data-key="smart" onclick="setModel('smart')" style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border:1.5px solid transparent;background:transparent;width:100%;font-family:var(--fu);font-size:12.5px;font-weight:700;color:var(--ink);cursor:pointer;text-transform:uppercase;letter-spacing:.06em;transition:background var(--t),border-color var(--t);" onmouseover="this.style.background='var(--p2)';this.style.borderColor='var(--ink)'" onmouseout="this.classList.contains('active')?this.style.background='var(--ink)':this.style.background='transparent';this.style.borderColor='transparent'">Smart <span style="font-size:10px;opacity:.5;font-weight:500;text-transform:none">More thorough</span></button>
-              <button class="model-opt" data-key="fast" onclick="setModel('fast')" style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border:1.5px solid transparent;background:transparent;width:100%;font-family:var(--fu);font-size:12.5px;font-weight:700;color:var(--ink);cursor:pointer;text-transform:uppercase;letter-spacing:.06em;transition:background var(--t),border-color var(--t);" onmouseover="this.style.background='var(--p2)';this.style.borderColor='var(--ink)'" onmouseout="this.classList.contains('active')?this.style.background='var(--ink)':this.style.background='transparent';this.style.borderColor='transparent'">Fast <span style="font-size:10px;opacity:.5;font-weight:500;text-transform:none">Quick answers</span></button>
+            <div id="model-menu">
+              <div style="padding:4px 12px 6px;border-bottom:var(--bdt);margin-bottom:4px">
+                <div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--ink);opacity:.38">Select model</div>
+              </div>
+              <button class="model-opt" data-key="auto" onclick="setModel('auto')">Auto <span class="opt-badge">Recommended · Low energy</span></button>
+              <button class="model-opt" data-key="smart" onclick="setModel('smart')">Smart <span class="opt-badge">More thorough</span></button>
+              <button class="model-opt" data-key="fast" onclick="setModel('fast')">Fast <span class="opt-badge">Quick answers</span></button>
             </div>
           </div>
         </div>
@@ -1101,40 +1256,9 @@ textarea.inp-field { height:auto; padding:10px 12px; }
           </div>
           <div class="empty-greeting" id="empty-greeting">Hey there!</div>
           <div class="empty-slogan">A human resource, not a companion.</div>
-          <div class="mode-selector">
-            <button class="mode-btn active" id="mode-chat-btn" onclick="selectMode('chat')">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              Chat
-            </button>
-            <button class="mode-btn" id="mode-quiz-btn" onclick="selectMode('quiz')">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
-              Quiz
-            </button>
-          </div>
-          <div id="quiz-setup" class="quiz-setup-wrap" style="display:none;">
-            <div class="quiz-count-row" style="margin-bottom:10px;">
-              <span class="quiz-count-label">Questions</span>
-              <button class="quiz-count-btn" onclick="quizCountAdj(-1)">&minus;</button>
-              <span class="quiz-count-val" id="quiz-count-val">5</span>
-              <button class="quiz-count-btn" onclick="quizCountAdj(1)">+</button>
-            </div>
-            <div class="quiz-topic-row">
-              <input class="quiz-inp" id="quiz-topic-inp" type="text" placeholder="Topic to quiz on&hellip;" onkeydown="if(event.key==='Enter'&&this.value.trim())startQuiz(this.value.trim())">
-              <button class="quiz-go" onclick="startQuizFromInput()">Start &#x2192;</button>
-            </div>
-          </div>
         </div>
         <div class="messages" id="messages" style="display:none"></div>
-
-        <!-- QUIZ UI -->
-        <div id="quiz-ui">
-          <div class="quiz-header">
-            <div class="quiz-header-topic" id="quiz-header-topic"></div>
-            <button class="quiz-exit" onclick="exitQuiz()">&#x2715; Exit</button>
-          </div>
-          <div class="quiz-progress-bar-wrap"><div class="quiz-progress-bar" id="quiz-progress-bar" style="width:0%"></div></div>
-          <div class="quiz-body" id="quiz-body"></div>
-        </div>      </div>
+      </div>
 
       <div class="input-area">
         <div class="input-wrap">
@@ -1148,7 +1272,6 @@ textarea.inp-field { height:auto; padding:10px 12px; }
                 </span>
                 <span class="plus-item-check"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
               </button>
-
             </div>
             <div class="hw-label" id="hw-label">
               Homework mode
@@ -1161,9 +1284,7 @@ textarea.inp-field { height:auto; padding:10px 12px; }
               <textarea class="chat-input" id="chat-input" placeholder="Message Cloak…" rows="1"
                 oninput="onInput(this)" onkeydown="onKey(event)" onpaste="onPaste(event)"></textarea>
               <button class="send-btn" id="send-btn" onclick="send()" disabled>
-                <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/>
-                </svg>
+                <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>
               </button>
             </div>
           </div>
@@ -1171,55 +1292,54 @@ textarea.inp-field { height:auto; padding:10px 12px; }
             <span class="input-sub">Cloak can make mistakes.</span>
             <span class="input-sub">&#x23CE; Send &middot; &#x21E7;&#x23CE; New line</span>
           </div>
-          <div class="input-disc">Never use for biblical advice &middot; Not a mental health resource</div>
+          <div class="input-disc">Not a mental health resource &middot; Low-energy by default 🌱</div>
         </div>
       </div>
     </div>
   </div>
-<!-- ONBOARDING MODAL -->
-<div class="onboard-overlay" id="onboard-modal" style="display:none">
-  <div class="onboard-card">
-    <div class="onboard-head">
-      <div class="onboard-title">Before you begin</div>
-      <div class="onboard-sub">A human resource, not a companion.</div>
-    </div>
-    <div class="onboard-body">
-      <div class="onboard-item">
-        <div class="onboard-num">I</div>
-        <div class="onboard-text"><strong>AI is a tool &mdash; not a companion.</strong> Cloak exists to serve you, not replace human connection or judgment.</div>
+
+  <!-- ONBOARDING MODAL -->
+  <div class="onboard-overlay" id="onboard-modal" style="display:none">
+    <div class="onboard-card">
+      <div class="onboard-head">
+        <div class="onboard-title">Before you begin</div>
+        <div class="onboard-sub">A human resource, not a companion.</div>
       </div>
-      <div class="onboard-item">
-        <div class="onboard-num">II</div>
-        <div class="onboard-text"><strong>Never use for biblical advice.</strong> Cloak is built by a Christian company. We will never let AI interpret the Word of God. Please consult your pastor or faith community.</div>
+      <div class="onboard-body">
+        <div class="onboard-item">
+          <div class="onboard-num">I</div>
+          <div class="onboard-text"><strong>AI is a tool &mdash; not a companion.</strong> Cloak exists to serve you, not replace human connection or judgment.</div>
+        </div>
+        <div class="onboard-item">
+          <div class="onboard-num">II</div>
+          <div class="onboard-text"><strong>Not a spiritual guide.</strong> Cloak will never interpret matters of faith or scripture. Please consult a trusted human source.</div>
+        </div>
+        <div class="onboard-item">
+          <div class="onboard-num">III</div>
+          <div class="onboard-text"><strong>Not a mental health resource.</strong> If you're struggling, please reach out to a trusted person or professional &mdash; not a chatbot.</div>
+        </div>
       </div>
-      <div class="onboard-item">
-        <div class="onboard-num">III</div>
-        <div class="onboard-text"><strong>Not a mental health resource.</strong> If you are struggling, please reach out to a trusted person or a professional &mdash; not a chatbot.</div>
+      <div class="onboard-foot">
+        <div class="onboard-check" onclick="toggleOnboardCheck()">
+          <div class="onboard-checkbox" id="onboard-checkbox"></div>
+          <div class="onboard-check-label">I understand and agree</div>
+        </div>
+        <button class="btn-primary" id="onboard-btn" onclick="confirmOnboarding()" disabled style="cursor:not-allowed;opacity:.35">Continue to Cloak</button>
       </div>
-    </div>
-    <div class="onboard-foot">
-      <div class="onboard-check" onclick="toggleOnboardCheck()">
-        <div class="onboard-checkbox" id="onboard-checkbox"></div>
-        <div class="onboard-check-label">I understand and agree to these terms</div>
-      </div>
-      <button class="btn-primary" id="onboard-btn" onclick="confirmOnboarding()" disabled style="cursor:not-allowed;opacity:.35">Continue to Cloak</button>
     </div>
   </div>
-</div>
 
-<!-- LINK INTERCEPT MODAL -->
-<div class="link-overlay" id="link-modal" style="display:none">
-  <div class="link-card">
-    <div class="link-title">You are leaving Cloak</div>
-    <div class="link-url" id="link-url-display"></div>
-    <div class="link-actions">
-      <button class="link-cancel" onclick="closeLinkModal()">Cancel</button>
-      <button class="link-go" id="link-go-btn">Open link &#x2197;</button>
+  <!-- LINK INTERCEPT -->
+  <div class="link-overlay" id="link-modal" style="display:none">
+    <div class="link-card">
+      <div class="link-title">Leaving Cloak</div>
+      <div class="link-url" id="link-url-display"></div>
+      <div class="link-actions">
+        <button class="link-cancel" onclick="closeLinkModal()">Cancel</button>
+        <button class="link-go" id="link-go-btn">Open link &#x2197;</button>
+      </div>
     </div>
   </div>
-</div>
-
-
 </div>
 
 
@@ -1229,12 +1349,12 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const ADMIN='weston07052010@gmail.com';
 const GUEST_MAX=10;
 
-// Friendly model key -> Cohere model string (mapping also done server-side)
-const MODEL_MAP={auto:'command-a-03-2025',balanced:'command-a-03-2025',smart:'command-r-plus-08-2024',fast:'command-r7b-12-2024'};
-const MODEL_LABELS={auto:'Auto',balanced:'Balanced',smart:'Smart',fast:'Fast'};
+const MODEL_MAP={auto:'command-a-03-2025',smart:'command-r-plus-08-2024',fast:'command-r7b-12-2024'};
+const MODEL_LABELS={auto:'Auto',smart:'Smart',fast:'Fast'};
 
 let sb=null,busy=false,entering=false;
 let dark=localStorage.getItem('cloak_dark')!=='0';
+let currentTheme=localStorage.getItem('cloak_theme')||'default';
 let modelKey=localStorage.getItem('cloak_model_key')||'auto';
 let temp=parseFloat(localStorage.getItem('cloak_temp')||'0.7');
 let extraPrompt=localStorage.getItem('cloak_extra_prompt')||'';
@@ -1245,15 +1365,61 @@ let convs=[],chatId=null,hist=[],logs=[],logF='all',stats={req:0,res:0,err:0,lat
 let annId=null;
 let hwMode=false,attachedImgs=[];
 let onboardingDone=false;
-// Explore mode
-let exploreMode=false;
-let exploreTopic='';
-let exploreQuestions=[];
-let exploreAnswers=[];
-let exploreCurrent=0;
-let exploreSessionId=null;
 
 if(dark)document.body.classList.add('dark');
+
+/* THEME */
+function setTheme(t){
+  currentTheme=t;
+  localStorage.setItem('cloak_theme',t);
+  document.documentElement.setAttribute('data-theme',t);
+  document.querySelectorAll('.theme-card').forEach(el=>el.classList.toggle('active',el.id==='theme-'+t));
+  const sml=document.getElementById('settings-model-label');
+}
+function initThemeUI(){
+  document.querySelectorAll('.theme-card').forEach(el=>el.classList.toggle('active',el.id==='theme-'+currentTheme));
+}
+
+/* PLANT SCROLL ANIMATION */
+function initPlantAnim(){
+  const sv=document.getElementById('s-values');
+  if(!sv)return;
+  const stems=['stem1','stem2','stem3','stem4','stem5','stem6'];
+  const leafPairs=[
+    {leaf:'lf7',delay:200},{leaf:'lf8',delay:350},
+    {leaf:'lf1',delay:600},{leaf:'lf2',delay:750},
+    {leaf:'lf3',delay:900},{leaf:'lf4',delay:1050},
+    {leaf:'lf5',delay:1300},{leaf:'lf6',delay:1500}
+  ];
+
+  let animated=false;
+  function triggerPlant(){
+    if(animated)return;animated=true;
+    // Hide scroll hint
+    const hint=document.getElementById('plant-scroll-hint');
+    if(hint)hint.style.opacity='0';
+    // Draw stems in sequence
+    stems.forEach((id,i)=>{
+      setTimeout(()=>{
+        const el=document.getElementById(id);
+        if(el)el.classList.add('draw');
+      },i*180);
+    });
+    // Grow leaves
+    leafPairs.forEach(({leaf,delay})=>{
+      setTimeout(()=>{
+        const el=document.getElementById(leaf);
+        if(el)el.classList.add('grow');
+      },delay);
+    });
+  }
+
+  // Trigger on first scroll within values page, or after 1.5s
+  sv.addEventListener('scroll',function onScroll(){
+    if(sv.scrollTop>20){triggerPlant();sv.removeEventListener('scroll',onScroll);}
+  },{passive:true});
+  setTimeout(()=>triggerPlant(),1500);
+}
 
 /* VIEWPORT FIX */
 (function(){
@@ -1288,7 +1454,6 @@ rend.code=(code,lang)=>{
   return '<pre><div class="code-bar"><span class="code-lang">'+hesc(dl)+'<\/span><div class="code-actions"><button class="code-btn" onclick="cpCode(\''+id+'\',this)">Copy<\/button><\/div><\/div><code id="'+id+'">'+hl+'<\/code><\/pre>';
 };
 rend.link=(href,title,text)=>{
-  // Intercept all links — no direct navigation
   const safe=hesc(href||'');const t=title?'title="'+hesc(title)+'"':'';
   return '<a href="#" class="ext-link" '+t+' onclick="interceptLink(event,\''+safe+'\')">'+text+'</a>';
 };
@@ -1315,229 +1480,27 @@ function setModel(key){
   document.querySelectorAll('.model-opt').forEach(b=>{
     const isActive=b.dataset.key===key;
     b.classList.toggle('active',isActive);
-    b.style.background=isActive?'var(--ink)':'transparent';
-    b.style.color=isActive?'var(--paper)':'var(--ink)';
   });
   document.getElementById('model-btn-label').textContent=MODEL_LABELS[key]||'Auto';
   const sml=document.getElementById('settings-model-label');if(sml)sml.textContent=MODEL_LABELS[key]||'Auto';
-  const mm=document.getElementById('model-menu');mm.classList.remove('open');mm.style.display='none';
+  closeModelMenu();
 }
 function toggleModelMenu(e){
   e.stopPropagation();
   const m=document.getElementById('model-menu');
+  const btn=document.getElementById('model-btn');
   const open=m.classList.contains('open');
   m.classList.toggle('open',!open);
-  m.style.display=open?'none':'flex';
-  m.style.flexDirection='column';
+  btn.classList.toggle('menu-open',!open);
+}
+function closeModelMenu(){
+  document.getElementById('model-menu')?.classList.remove('open');
+  document.getElementById('model-btn')?.classList.remove('menu-open');
 }
 document.addEventListener('click',()=>{
-  document.getElementById('model-menu')?.classList.remove('open');
+  closeModelMenu();
   document.getElementById('plus-menu')?.classList.remove('open');
 });
-
-
-/* ── QUIZ + MODE SELECTOR ───────────────── */
-let quizMode=false;
-let quizCount=5;
-let quizTopic='';
-let quizQuestions=[];
-let quizCurrent=0;
-let quizScore=0;
-let quizAnswered=false;
-
-function selectMode(mode){
-  quizMode=mode==='quiz';
-  document.getElementById('mode-chat-btn').classList.toggle('active',!quizMode);
-  document.getElementById('mode-quiz-btn').classList.toggle('active',quizMode);
-  const setup=document.getElementById('quiz-setup');
-  setup.style.display=quizMode?'block':'none';
-  if(quizMode)setTimeout(()=>document.getElementById('quiz-topic-inp').focus(),60);
-}
-
-function quizCountAdj(d){
-  quizCount=Math.min(15,Math.max(3,quizCount+d));
-  document.getElementById('quiz-count-val').textContent=quizCount;
-}
-
-function startQuizFromInput(){
-  const v=document.getElementById('quiz-topic-inp').value.trim();
-  if(v)startQuiz(v);
-}
-
-async function startQuiz(topic){
-  if(!topic)return;
-  quizTopic=topic;
-  quizQuestions=[];quizCurrent=0;quizScore=0;quizAnswered=false;
-
-  // Show quiz UI
-  document.getElementById('empty-state').style.display='none';
-  document.getElementById('messages').style.display='none';
-  const ui=document.getElementById('quiz-ui');
-  ui.classList.add('active');
-  document.getElementById('quiz-header-topic').textContent=topic;
-  document.getElementById('quiz-progress-bar').style.width='0%';
-
-  // Show loading
-  renderQuizLoading();
-
-  try{
-    let hdrs={'Content-Type':'application/json'};
-    if(!guest){
-      try{const{data:{session}}=await sb.auth.getSession();if(session?.access_token)hdrs['Authorization']='Bearer '+session.access_token;}catch(_){}
-    }
-    const res=await fetch(SB_URL+'/functions/v1/chat-message',{
-      method:'POST',headers:hdrs,
-      body:JSON.stringify({
-        message:'[QUIZ] Topic: "'+topic+'". Generate exactly '+quizCount+' multiple choice questions.',
-        model:modelKey,chat_history:[],temperature:0.7
-      })
-    });
-    const d=await res.json();
-    if(d.rateLimited)throw new Error(d.error||'Rate limited');
-    if(!res.ok||d.error)throw new Error(d.error||'Failed to generate quiz');
-
-    // Parse JSON array from response
-    let raw=d.text.trim().replace(/^```[a-z]*\n?/,'').replace(/```$/,'').trim();
-    const arrS=raw.indexOf('[');const arrE=raw.lastIndexOf(']');
-    if(arrS===-1||arrE===-1)throw new Error('Could not parse quiz questions');
-    quizQuestions=JSON.parse(raw.slice(arrS,arrE+1));
-    if(!quizQuestions.length)throw new Error('No questions returned');
-    renderQuizQuestion(0);
-  }catch(ex){
-    log('err','Quiz: '+ex.message);
-    document.getElementById('quiz-body').innerHTML=
-      '<div style="padding:24px;text-align:center;color:var(--acc);font-weight:600;font-size:13px">'+hesc(ex.message)+
-      '<br><br><button class="quiz-next" onclick="exitQuiz()">Back</button></div>';
-  }
-}
-
-function renderQuizLoading(){
-  document.getElementById('quiz-body').innerHTML=
-    '<div class="quiz-loading">'+
-      '<div class="dot"></div><div class="dot"></div><div class="dot"></div>'+
-      '<div class="quiz-loading-label">Generating quiz&hellip;</div>'+
-    '</div>';
-}
-
-function renderQuizQuestion(idx){
-  quizCurrent=idx;quizAnswered=false;
-  const total=quizQuestions.length;
-  const q=quizQuestions[idx];
-  const pct=Math.round((idx/total)*100);
-  document.getElementById('quiz-progress-bar').style.width=pct+'%';
-
-  const letters=['A','B','C','D'];
-  const optsHtml=(q.options||[]).map((opt,i)=>
-    `<button class="quiz-opt" onclick="answerQuiz(${idx},'${letters[i]}',this)">
-      <span class="quiz-opt-letter">${letters[i]}</span>
-      <span>${hesc(opt)}</span>
-    </button>`
-  ).join('');
-
-  document.getElementById('quiz-body').innerHTML=
-    `<div class="quiz-card">
-      <div class="quiz-q-meta">
-        <span class="quiz-q-num">Question ${idx+1} of ${total}</span>
-        <span class="quiz-q-score">${quizScore} correct</span>
-      </div>
-      <div class="quiz-q-text">${hesc(q.q)}</div>
-      <div class="quiz-options">${optsHtml}</div>
-    </div>`;
-}
-
-function answerQuiz(idx,chosen,btn){
-  if(quizAnswered)return;
-  quizAnswered=true;
-  const q=quizQuestions[idx];
-  const correct=q.answer||q.correct||'A';
-  const isRight=chosen===correct;
-  if(isRight)quizScore++;
-
-  // Colour all buttons
-  const opts=document.querySelectorAll('.quiz-opt');
-  opts.forEach(b=>b.disabled=true);
-  btn.classList.add(isRight?'correct':'wrong');
-  // Show correct answer if wrong
-  if(!isRight){
-    const letters=['A','B','C','D'];
-    const ci=letters.indexOf(correct);
-    if(opts[ci])opts[ci].classList.add('correct');
-  }
-  // Mark unchosen as dimmed
-  opts.forEach(b=>{
-    if(!b.classList.contains('correct')&&!b.classList.contains('wrong'))
-      b.classList.add('reveal');
-  });
-
-  // Show feedback
-  const card=document.querySelector('.quiz-card');
-  const fb=document.createElement('div');
-  fb.className='quiz-feedback '+(isRight?'correct':'wrong');
-  fb.innerHTML=isRight
-    ? '<strong>Correct!</strong> '+(q.explanation?hesc(q.explanation):'Well done.')
-    : '<strong>Not quite.</strong> '+(q.explanation?hesc(q.explanation):'The correct answer was '+correct+'.');
-  card.appendChild(fb);
-
-  // Next / finish button
-  const nextBtn=document.createElement('button');
-  nextBtn.className='quiz-next';
-  const isLast=idx===quizQuestions.length-1;
-  nextBtn.textContent=isLast?'See results':'Next question \u2192';
-  nextBtn.onclick=()=>{
-    if(isLast)renderQuizResults();
-    else renderQuizQuestion(idx+1);
-  };
-  card.appendChild(nextBtn);
-
-  // Auto-scroll to feedback on mobile
-  setTimeout(()=>{
-    fb.scrollIntoView({behavior:'smooth',block:'nearest'});
-  },120);
-}
-
-function renderQuizResults(){
-  const total=quizQuestions.length;
-  document.getElementById('quiz-progress-bar').style.width='100%';
-  const pct=Math.round((quizScore/total)*100);
-  const msg=pct===100?'Perfect score!':pct>=80?'Great work!':pct>=60?'Solid effort.':pct>=40?'Keep practicing.':'Keep at it!';
-
-  const reviewHtml=quizQuestions.map((q,i)=>{
-    const letters=['A','B','C','D'];
-    const correct=q.answer||q.correct||'A';
-    const ci=letters.indexOf(correct);
-    const correctText=q.options?q.options[ci]:'';
-    return `<div class="quiz-review-item">
-      <div class="quiz-review-q">${i+1}. ${hesc(q.q)}</div>
-      <div class="quiz-review-a ok">&#x2713; ${hesc(correctText)}</div>
-    </div>`;
-  }).join('');
-
-  document.getElementById('quiz-body').innerHTML=
-    `<div class="quiz-results">
-      <div class="quiz-score-display">
-        <div class="quiz-score-big">${quizScore}/${total}</div>
-        <div class="quiz-score-label">${pct}% correct</div>
-        <div class="quiz-score-msg">${msg}</div>
-      </div>
-      <div class="quiz-review">${reviewHtml}</div>
-      <div class="quiz-restart-row">
-        <button class="quiz-restart" onclick="startQuiz(quizTopic)">Retry same topic</button>
-        <button class="quiz-restart" onclick="exitQuiz()">New quiz</button>
-      </div>
-    </div>`;
-}
-
-function exitQuiz(){
-  const ui=document.getElementById('quiz-ui');
-  ui.classList.remove('active');
-  document.getElementById('empty-state').style.display='flex';
-  document.getElementById('messages').style.display='none';
-  quizMode=false;
-  document.getElementById('mode-chat-btn').classList.add('active');
-  document.getElementById('mode-quiz-btn').classList.remove('active');
-  document.getElementById('quiz-setup').style.display='none';
-  document.getElementById('quiz-topic-inp').value='';
-}
 
 /* ONBOARDING */
 let _onboardChecked=false;
@@ -1546,9 +1509,7 @@ function toggleOnboardCheck(){
   _onboardChecked=!_onboardChecked;
   document.getElementById('onboard-checkbox').classList.toggle('checked',_onboardChecked);
   const btn=document.getElementById('onboard-btn');
-  btn.disabled=!_onboardChecked;
-  btn.style.opacity=_onboardChecked?'1':'0.35';
-  btn.style.cursor=_onboardChecked?'pointer':'not-allowed';
+  btn.disabled=!_onboardChecked;btn.style.opacity=_onboardChecked?'1':'0.35';btn.style.cursor=_onboardChecked?'pointer':'not-allowed';
 }
 async function confirmOnboarding(){
   document.getElementById('onboard-modal').style.display='none';
@@ -1566,10 +1527,7 @@ function interceptLink(e,href){
   document.getElementById('link-go-btn').onclick=()=>{window.open(_pendingLink,'_blank','noopener,noreferrer');closeLinkModal();};
   document.getElementById('link-modal').style.display='flex';
 }
-function closeLinkModal(){
-  document.getElementById('link-modal').style.display='none';
-  _pendingLink='';
-}
+function closeLinkModal(){document.getElementById('link-modal').style.display='none';_pendingLink='';}
 document.addEventListener('DOMContentLoaded',()=>{
   const lm=document.getElementById('link-modal');
   if(lm)lm.addEventListener('click',function(e){if(e.target===this)closeLinkModal();});
@@ -1580,7 +1538,9 @@ function showValues(){
   window._valuesOrigin=document.getElementById('s-chat').classList.contains('active')?'chat':'auth';
   document.querySelectorAll('.screen').forEach(el=>{el.classList.remove('active');el.style.display='';});
   document.getElementById('s-chat').classList.remove('active');
-  const vp=document.getElementById('s-values');vp.style.display='flex';vp.scrollTop=0;
+  const vp=document.getElementById('s-values');
+  vp.style.display='flex';vp.scrollTop=0;
+  initPlantAnim();
 }
 function hideValues(){
   document.getElementById('s-values').style.display='none';
@@ -1588,54 +1548,36 @@ function hideValues(){
   else{document.getElementById('s-auth').classList.add('active');document.getElementById('s-auth').style.display='flex';}
 }
 
-/* INIT — getSession() is the single source of truth for initial routing */
+/* INIT */
 async function init(){
-  sb=supabase.createClient(SB_URL,SB_KEY,{
-    auth:{
-      persistSession:true,
-      autoRefreshToken:true,
-      detectSessionInUrl:true,
-      storage:window.localStorage
-    }
-  });
+  sb=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage}});
+  if(window.location.hash&&window.location.hash.includes('access_token'))window.history.replaceState(null,'',window.location.pathname);
 
-  if(window.location.hash&&window.location.hash.includes('access_token'))
-    window.history.replaceState(null,'',window.location.pathname);
+  initThemeUI();
+  setModel(modelKey);
 
   let _routed=false;
-
   sb.auth.onAuthStateChange(async(ev,sess)=>{
     if(ev==='INITIAL_SESSION'){
-      // Primary routing on load — fires before getSession resolves on iOS PWA
       if(_routed)return;_routed=true;
       if(sess?.user){email=sess.user.email||'';uid=sess.user.id;guest=false;await enterChat();}
       else{hideLoading();show('auth');}
     }else if(ev==='SIGNED_IN'&&sess&&!_routed){
       _routed=true;email=sess.user.email||'';uid=sess.user.id;guest=false;await enterChat();
     }else if(ev==='SIGNED_OUT'){
-      _routed=false;entering=false;convs=[];chatId=null;hist=[];admin=false;name='';guest=false;
-      show('auth');
-    }else if(ev==='TOKEN_REFRESHED'&&sess){
-      email=sess.user.email||'';uid=sess.user.id;
-    }
+      _routed=false;entering=false;convs=[];chatId=null;hist=[];admin=false;name='';guest=false;show('auth');
+    }else if(ev==='TOKEN_REFRESHED'&&sess){email=sess.user.email||'';uid=sess.user.id;}
   });
-
-  // Fallback — in case onAuthStateChange doesn't fire (some browsers)
   setTimeout(async()=>{
     if(_routed)return;
-    try{
-      const{data:{session}}=await sb.auth.getSession();
-      if(_routed)return;_routed=true;
+    try{const{data:{session}}=await sb.auth.getSession();if(_routed)return;_routed=true;
       if(session?.user){email=session.user.email||'';uid=session.user.id;guest=false;await enterChat();}
       else{hideLoading();show('auth');}
     }catch(e){_routed=true;hideLoading();show('auth');}
   },800);
 }
 
-function hideLoading(){
-  var el=document.getElementById('s-loading');if(!el)return;
-  el.classList.add('hidden');setTimeout(()=>{el.style.display='none';},220);
-}
+function hideLoading(){var el=document.getElementById('s-loading');if(!el)return;el.classList.add('hidden');setTimeout(()=>{el.style.display='none';},220);}
 
 async function enterChat(){
   if(entering)return;entering=true;
@@ -1647,10 +1589,8 @@ async function enterChat(){
     if(window._vv)window._vv();
     if(!guest)name=name||email.split('@')[0];
     refreshUI();updateGreeting();
-    // Init model selector display
     setModel(modelKey);
   }finally{entering=false;}
-
   if(!guest){
     log('inf','Signed in as '+email);
     Promise.all([loadProfile(),loadConvs(),loadAnn()]).catch(()=>{});
@@ -1674,27 +1614,17 @@ function authMode(m){
   document.getElementById('btn-submit').textContent=signingIn?'Sign in':'Create account';
   clearE('auth-err');
 }
-
-/* AUTH KEY NAVIGATION */
 function authKey(e,nextId,isPass=false){
   if(e.key==='Enter'){
     e.preventDefault();
-    // If password field and signing in, submit directly
     if(isPass&&signingIn){handleAuth();return;}
-    // If there's a visible next field, focus it
-    if(nextId){
-      const next=document.getElementById(nextId);
-      if(next&&next.closest('[style*="display:none"]')===null&&next.offsetParent!==null){next.focus();return;}
-    }
+    if(nextId){const next=document.getElementById(nextId);if(next&&next.offsetParent!==null){next.focus();return;}}
     handleAuth();
   }
 }
-
 async function handleAuth(){
-  const em=document.getElementById('inp-email').value.trim();
-  const pw=document.getElementById('inp-pass').value;
-  const err=document.getElementById('auth-err');
-  const btn=document.getElementById('btn-submit');
+  const em=document.getElementById('inp-email').value.trim();const pw=document.getElementById('inp-pass').value;
+  const err=document.getElementById('auth-err');const btn=document.getElementById('btn-submit');
   if(!em||!pw){showE(err,'Please fill in all fields.');return;}
   btn.disabled=true;
   if(signingIn){
@@ -1703,20 +1633,16 @@ async function handleAuth(){
     if(e){showE(err,e.message);}
     else if(d?.session){email=d.session.user.email||'';uid=d.session.user.id;guest=false;await enterChat();return;}
   }else{
-    const nm=document.getElementById('inp-name').value.trim();
-    const cf=document.getElementById('inp-confirm').value;
+    const nm=document.getElementById('inp-name').value.trim();const cf=document.getElementById('inp-confirm').value;
     btn.textContent='Creating\u2026';
     if(pw!==cf){showE(err,'Passwords do not match.');btn.disabled=false;btn.textContent='Create account';return;}
     if(pw.length<8){showE(err,'Password must be at least 8 characters.');btn.disabled=false;btn.textContent='Create account';return;}
     const{error:e}=await sb.auth.signUp({email:em,password:pw,options:{data:{display_name:nm||em.split('@')[0]}}});
-    if(e){showE(err,e.message);}
-    else{verifyEmail=em;document.getElementById('verify-addr').textContent=em;show('verify');return;}
+    if(e){showE(err,e.message);}else{verifyEmail=em;document.getElementById('verify-addr').textContent=em;show('verify');return;}
   }
   btn.disabled=false;btn.textContent=signingIn?'Sign in':'Create account';
 }
-
 async function resendVerify(){if(!verifyEmail)return;await sb.auth.resend({type:'signup',email:verifyEmail});}
-
 async function handleMfa(){
   const code=document.getElementById('mfa-code').value.trim();const err=document.getElementById('mfa-err');
   if(code.length<6){showE(err,'Enter the 6-digit code.');return;}
@@ -1728,40 +1654,25 @@ async function handleMfa(){
     if(e){showE(err,e.message);return;}enterChat();
   }catch(ex){showE(err,ex.message);}
 }
-
 async function doLogout(){await sb.auth.signOut();closeModal('modal-settings');}
 
 /* PROFILE */
 async function loadProfile(){
   try{
-    const{data,error}=await sb.from('profiles').select('*').eq('id',uid).single();
-    if(data){
-      name=data.display_name||email.split('@')[0];
-      admin=data.is_admin||email===ADMIN;
-      onboardingDone=data.onboarding_done||false;
-    }else{
-      name=email.split('@')[0];
-      admin=email===ADMIN;
-      onboardingDone=false;
-      await sb.from('profiles').upsert({id:uid,display_name:name,is_admin:admin,onboarding_done:false},{onConflict:'id'});
-    }
-    if(admin){document.getElementById('admin-tab').style.display='block';loadAdminAnns();}
+    const{data}=await sb.from('profiles').select('*').eq('id',uid).single();
+    if(data){name=data.display_name||email.split('@')[0];admin=data.is_admin||email===ADMIN;onboardingDone=data.onboarding_done||false;}
+    else{name=email.split('@')[0];admin=email===ADMIN;onboardingDone=false;await sb.from('profiles').upsert({id:uid,display_name:name,is_admin:admin,onboarding_done:false},{onConflict:'id'});}
+    if(admin){document.getElementById('snav-admin').style.display='flex';loadAdminAnns();}
     refreshUI();updateGreeting();
-    // Show onboarding only on first login
     if(!onboardingDone)showOnboarding();
   }catch(e){log('err','Profile load: '+e.message);}
 }
-
 async function saveName(){
   const n=document.getElementById('s-name-inp').value.trim();if(!n)return;
   name=n;
-  if(!guest){
-    const{error}=await sb.from('profiles').upsert({id:uid,display_name:n},{onConflict:'id'});
-    if(error)log('err','Name save: '+error.message);
-    else log('inf','Name saved: '+n);
-  }
+  if(!guest){const{error}=await sb.from('profiles').upsert({id:uid,display_name:n},{onConflict:'id'});if(error)log('err','Name save: '+error.message);else log('inf','Name saved: '+n);}
   refreshUI();updateGreeting();
-  const b=document.querySelector('#pane-general .cta');if(b){b.textContent='Saved';setTimeout(()=>b.textContent='Save',1800);}
+  const b=document.querySelector('#spane-general .cta');if(b){b.textContent='Saved ✓';setTimeout(()=>b.textContent='Save',1800);}
 }
 
 /* ANNOUNCEMENTS */
@@ -1771,20 +1682,16 @@ async function loadAnn(){
     if(!data?.length)return;const a=data[0];
     if(localStorage.getItem('cloak_ann')===a.id)return;
     annId=a.id;
-  // Top bar announcement
-  document.getElementById('ann-msg').textContent=a.message;
-  document.getElementById('ann-bar').classList.add('show');
-  // Sidebar announcement (mobile)
-  const sbAnn=document.getElementById('sb-ann-bar');
-  const sbAnnMsg=document.getElementById('sb-ann-msg');
-  if(sbAnn&&sbAnnMsg){sbAnnMsg.textContent=a.message;sbAnn.style.display='block';}
+    document.getElementById('ann-msg').textContent=a.message;
+    document.getElementById('ann-bar').classList.add('show');
+    const sbAnn=document.getElementById('sb-ann-bar');const sbAnnMsg=document.getElementById('sb-ann-msg');
+    if(sbAnn&&sbAnnMsg){sbAnnMsg.textContent=a.message;sbAnn.style.display='block';}
   }catch(e){}
 }
 function dismissAnn(){
   if(annId)localStorage.setItem('cloak_ann',annId);
   document.getElementById('ann-bar').classList.remove('show');
-  const sbAnn=document.getElementById('sb-ann-bar');
-  if(sbAnn)sbAnn.style.display='none';
+  const sbAnn=document.getElementById('sb-ann-bar');if(sbAnn)sbAnn.style.display='none';
 }
 async function postAnn(){
   const m=document.getElementById('ann-compose').value.trim();if(!m)return;
@@ -1800,13 +1707,7 @@ async function loadAdminAnns(){
 }
 async function deactAnn(id){
   await sb.from('announcements').delete().eq('id',id);
-  if(annId===id){
-    annId=null;
-    document.getElementById('ann-bar').classList.remove('show');
-    const sbAnn=document.getElementById('sb-ann-bar');
-    if(sbAnn)sbAnn.style.display='none';
-    localStorage.removeItem('cloak_ann');
-  }
+  if(annId===id){annId=null;document.getElementById('ann-bar').classList.remove('show');const sbAnn=document.getElementById('sb-ann-bar');if(sbAnn)sbAnn.style.display='none';localStorage.removeItem('cloak_ann');}
   loadAdminAnns();
 }
 
@@ -1834,11 +1735,10 @@ function refreshUI(){
   ['sb-av','s-av'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=i;});
   document.getElementById('sb-name').textContent=guest?'Guest':(name||email.split('@')[0]);
   document.getElementById('sb-email').textContent=guest?'Not signed in':email;
-  document.getElementById('s-name').textContent=guest?'Guest':(name||'\u2014');
+  document.getElementById('s-name').textContent=guest?'Guest':(name||'—');
   document.getElementById('s-email').textContent=guest?'Not signed in':email;
   document.querySelectorAll('.moon').forEach(el=>el.style.display=dark?'none':'block');
   document.querySelectorAll('.sun').forEach(el=>el.style.display=dark?'block':'none');
-  const adRow=document.getElementById('ad-settings-row');if(adRow)adRow.style.display='none';
 }
 function toggleDark(){
   dark=!dark;document.body.classList.toggle('dark',dark);document.documentElement.classList.toggle('dark',dark);
@@ -1848,15 +1748,12 @@ function toggleDark(){
 }
 function toggleSidebar(){
   const el=document.getElementById('sidebar');const mobile=window.innerWidth<=640;
-  if(mobile){
-    const open=!el.classList.contains('collapsed');
-    if(open){el.classList.add('collapsed');document.getElementById('sb-overlay').classList.remove('show');}
-    else{el.classList.remove('collapsed');document.getElementById('sb-overlay').classList.add('show');}
-  }else el.classList.toggle('collapsed');
+  if(mobile){const open=!el.classList.contains('collapsed');if(open){el.classList.add('collapsed');document.getElementById('sb-overlay').classList.remove('show');}else{el.classList.remove('collapsed');document.getElementById('sb-overlay').classList.add('show');}}
+  else el.classList.toggle('collapsed');
 }
 function closeMobileSidebar(){document.getElementById('sidebar').classList.add('collapsed');document.getElementById('sb-overlay').classList.remove('show');}
 
-/* SETTINGS */
+/* SETTINGS — REDESIGNED */
 function openSettings(){
   if(guest){show('auth');return;}
   document.getElementById('sys-prompt').value=extraPrompt;
@@ -1865,28 +1762,56 @@ function openSettings(){
   document.getElementById('s-name-inp').value=name;
   document.getElementById('mode-label').textContent=dark?'dark':'light';
   document.getElementById('modal-settings').style.display='flex';
-  if(admin)loadAdminAnns();updateStats();renderLogs();
+  initThemeUI();
+  if(admin)loadAdminAnns();
+  updateStats();renderLogs();
 }
 function closeModal(id){const el=document.getElementById(id);el.classList.add('hiding');setTimeout(()=>{el.style.display='none';el.classList.remove('hiding');},120);}
 function overlayClick(e,id){if(e.target===document.getElementById(id))closeModal(id);}
-function switchTab(t){
-  atab=t;const order=['general','model','console','admin'];
-  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('on',order[i]===t));
-  document.querySelectorAll('.pane').forEach(el=>el.classList.remove('on'));
-  const p=document.getElementById('pane-'+t);if(p)p.classList.add('on');
+
+function switchSettingsTab(t){
+  atab=t;
+  document.querySelectorAll('.snav-btn').forEach(el=>el.classList.toggle('on',el.id==='snav-'+t));
+  document.querySelectorAll('.spane').forEach(el=>el.classList.remove('on'));
+  const p=document.getElementById('spane-'+t);if(p)p.classList.add('on');
   if(t==='console'){updateStats();renderLogs();}
 }
+
 function saveModel(){
   extraPrompt=document.getElementById('sys-prompt').value.trim();
   temp=parseFloat(document.getElementById('temp-slider').value)/10;
   localStorage.setItem('cloak_extra_prompt',extraPrompt);localStorage.setItem('cloak_temp',String(temp));
-  const b=document.querySelector('#pane-model .cta');if(b){b.textContent='Saved';setTimeout(()=>b.textContent='Save',1800);}
+  const b=document.querySelector('#spane-model .cta');if(b){b.textContent='Saved ✓';setTimeout(()=>b.textContent='Save model settings',1800);}
 }
 async function clearAllChats(){
   if(!confirm('Delete ALL conversations?'))return;
   const{error}=await sb.from('chats').delete().eq('user_id',uid);
   if(error)log('err','Clear failed: '+error.message);
   else{convs=[];newChat();log('inf','All chats deleted');}
+}
+
+/* 2FA stub */
+async function start2FA(){
+  try{
+    const{data,error}=await sb.auth.mfa.enroll({factorType:'totp'});
+    if(error)throw error;
+    const sec=document.getElementById('totp-section');
+    sec.style.display='block';
+    document.getElementById('totp-secret').textContent='Secret: '+data.totp.secret;
+    document.getElementById('totp-qr').innerHTML='<img src="'+data.totp.qr_code+'" style="width:160px;height:160px;border:var(--bd)" />';
+    window._totpFactorId=data.id;
+  }catch(e){alert('2FA setup failed: '+e.message);}
+}
+async function confirmTOTP(){
+  const code=document.getElementById('totp-code').value.trim();const err=document.getElementById('totp-err');
+  if(!code){showE(err,'Enter code');return;}
+  try{
+    const{data:ch}=await sb.auth.mfa.challenge({factorId:window._totpFactorId});
+    const{error}=await sb.auth.mfa.verify({factorId:window._totpFactorId,challengeId:ch.id,code});
+    if(error){showE(err,error.message);return;}
+    document.getElementById('totp-section').style.display='none';
+    alert('2FA enabled!');
+  }catch(e){showE(err,e.message);}
 }
 
 /* CONSOLE */
@@ -1904,7 +1829,7 @@ function renderLogs(){
 function updateStats(){
   document.getElementById('st-req').textContent=stats.req;document.getElementById('st-res').textContent=stats.res;document.getElementById('st-err').textContent=stats.err;
   const avg=stats.lat.length?Math.round(stats.lat.reduce((a,b)=>a+b,0)/stats.lat.length):null;
-  document.getElementById('st-lat').textContent=avg?avg+'ms':'\u2014';
+  document.getElementById('st-lat').textContent=avg?avg+'ms':'—';
 }
 function setFilter(f,el){logF=f;document.querySelectorAll('.filter-pill').forEach(b=>b.classList.remove('on'));el.classList.add('on');renderLogs();}
 function clearLogs(){logs=[];stats={req:0,res:0,err:0,lat:[]};renderLogs();updateStats();}
@@ -1929,77 +1854,35 @@ async function send(){
   const thinkEl=await showThinking(thinkMode);
 
   try{
-    // OCR if images attached
     let ocrText='',ocrFailed=false;
     if(imgs.length&&typeof Tesseract!=='undefined'){
       try{
-        const results=await Promise.all(imgs.map(img=>
-          Tesseract.recognize(img.data,'eng',{logger:()=>{}}).then(r=>{
-            const conf=r.data.confidence;const raw=r.data.text.trim();
-            if(conf<60||raw.length<4)return '';
-            return raw.split('\n').map(l=>l.trim()).filter(l=>l.length>1&&!/^[^a-zA-Z0-9]{1,3}$/.test(l)).join('\n');
-          }).catch(()=>'')
-        ));
-        ocrText=results.filter(Boolean).join('\n\n');
-        if(!ocrText)ocrFailed=true;
+        const results=await Promise.all(imgs.map(img=>Tesseract.recognize(img.data,'eng',{logger:()=>{}}).then(r=>{const conf=r.data.confidence;const raw=r.data.text.trim();if(conf<60||raw.length<4)return '';return raw.split('\n').map(l=>l.trim()).filter(l=>l.length>1&&!/^[^a-zA-Z0-9]{1,3}$/.test(l)).join('\n');}).catch(()=>'')));
+        ocrText=results.filter(Boolean).join('\n\n');if(!ocrText)ocrFailed=true;
       }catch(e){ocrFailed=true;}
     }
-
-    if(imgs.length&&ocrFailed&&!ocrText&&!txt){
-      replaceThinkWithContent(thinkEl,marked.parse('The image could not be read clearly. OCR works best with printed or typed text. Try typing the problem out instead.'));
-      busy=false;document.getElementById('send-btn').disabled=!inp.value.trim();scrollBottom();return;
-    }
-
-    if(hwMode){
-      let problemText=txt;
-      if(ocrText)problemText=(txt?txt+'\n\n':'')+'Problem from image:\n"""\n'+ocrText+'\n"""';
-      else if(!txt&&imgs.length)problemText='(Image attached but text could not be extracted. Ask them to type the problem.)';
-      userMsg='[HOMEWORK MODE]\n\n'+(problemText||'(no problem provided)');
-    }else if(ocrText){
-      userMsg=(txt?txt+'\n\n':'What does this say or show?\n\n')+'Text from image:\n"""\n'+ocrText+'\n"""';
-    }else if(imgs.length&&ocrFailed&&txt){
-      userMsg=txt+' (An image was attached but could not be read.)';
-    }
+    if(imgs.length&&ocrFailed&&!ocrText&&!txt){replaceThinkWithContent(thinkEl,marked.parse('The image could not be read clearly. OCR works best with printed or typed text.'));busy=false;document.getElementById('send-btn').disabled=!inp.value.trim();scrollBottom();return;}
+    if(hwMode){let problemText=txt;if(ocrText)problemText=(txt?txt+'\n\n':'')+'Problem from image:\n"""\n'+ocrText+'\n"""';else if(!txt&&imgs.length)problemText='(Image attached but text could not be extracted.)';userMsg='[HOMEWORK MODE]\n\n'+(problemText||'(no problem provided)');}
+    else if(ocrText){userMsg=(txt?txt+'\n\n':'What does this say or show?\n\n')+'Text from image:\n"""\n'+ocrText+'\n"""';}
+    else if(imgs.length&&ocrFailed&&txt){userMsg=txt+' (An image was attached but could not be read.)';}
 
     hist.push({role:'USER',message:userMsg||(imgs.length?'[Image]':'')});
-
-    // Build headers — don\'t crash if no session
     let hdrs={'Content-Type':'application/json'};
-    if(!guest){
-      try{
-        const{data:{session}}=await sb.auth.getSession();
-        if(session?.access_token)hdrs['Authorization']='Bearer '+session.access_token;
-      }catch(_){}
-    }
+    if(!guest){try{const{data:{session}}=await sb.auth.getSession();if(session?.access_token)hdrs['Authorization']='Bearer '+session.access_token;}catch(_){}}
 
     replaceThinkWithTyping(thinkEl);await sleep(120);
-
-    const res=await fetch(SB_URL+'/functions/v1/chat-message',{
-      method:'POST',headers:hdrs,
-      body:JSON.stringify({
-        message:userMsg,
-        model:modelKey,
-        chat_history:hist.slice(0,-1).map(m=>({role:m.role,message:m.message})),
-        temperature:temp
-      })
-    });
-
-    let d;
-    try{d=await res.json();}catch(_){throw new Error('Bad response from server');}
+    const res=await fetch(SB_URL+'/functions/v1/chat-message',{method:'POST',headers:hdrs,body:JSON.stringify({message:userMsg,model:modelKey,chat_history:hist.slice(0,-1).map(m=>({role:m.role,message:m.message})),temperature:temp})});
+    let d;try{d=await res.json();}catch(_){throw new Error('Bad response from server');}
     const ms=Date.now()-t0;
     if(!res.ok||d.error)throw new Error(d.error||'HTTP '+res.status);
     stats.lat.push(ms);stats.res++;log('res',ms+'ms');
-
     hist.push({role:'CHATBOT',message:d.text});
     if(hist.length>20)hist=hist.slice(-20);
     replaceThinkWithContent(thinkEl,marked.parse(d.text));
-
     if(guest){guestN++;if(guestN>=GUEST_MAX)setTimeout(showLimit,500);}
     else saveConv(txt||'[Image]').catch(e=>log('err','Save: '+e.message));
   }catch(ex){
-    stats.err++;
-    replaceThinkWithContent(thinkEl,'<p style="color:var(--acc)">Error: '+hesc(ex.message)+'</p>');
-    log('err',ex.message);
+    stats.err++;replaceThinkWithContent(thinkEl,'<p style="color:var(--acc)">Error: '+hesc(ex.message)+'</p>');log('err',ex.message);
   }
   busy=false;document.getElementById('send-btn').disabled=!inp.value.trim();scrollBottom();
 }
@@ -2019,27 +1902,15 @@ async function loadConv(id){
   showMessages();renderConvs();
 }
 async function saveConv(first){
-  // Guard: never save if uid is missing
-  if(!uid||guest){return;}
-  // Refresh session token before save in case it expired
+  if(!uid||guest)return;
   let currentUid=uid;
-  try{
-    const{data:{session}}=await sb.auth.getSession();
-    if(!session?.user){log('err','Save aborted: no session');return;}
-    currentUid=session.user.id;
-    uid=currentUid; // keep in sync
-  }catch(e){log('err','Save: session check failed');return;}
-
+  try{const{data:{session}}=await sb.auth.getSession();if(!session?.user){log('err','Save aborted: no session');return;}currentUid=session.user.id;uid=currentUid;}catch(e){log('err','Save: session check failed');return;}
   const ex=convs.find(c=>c.id===chatId);
-  const title=ex?ex.title:(first.slice(0,50)+(first.length>50?'\u2026':''));
+  const title=ex?ex.title:(first.slice(0,50)+(first.length>50?'…':''));
   if(!ex)convs.unshift({id:chatId,title});
   renderConvs();
-  const{error}=await sb.from('chats').upsert(
-    {id:chatId,user_id:currentUid,title,messages:hist,updated_at:new Date().toISOString()},
-    {onConflict:'user_id,id'}
-  );
-  if(error){log('err','Save: '+error.message);}
-  else{log('inf','Chat saved: '+title.slice(0,30));}
+  const{error}=await sb.from('chats').upsert({id:chatId,user_id:currentUid,title,messages:hist,updated_at:new Date().toISOString()},{onConflict:'user_id,id'});
+  if(error){log('err','Save: '+error.message);}else{log('inf','Chat saved: '+title.slice(0,30));}
 }
 async function delConv(id){
   const{error}=await sb.from('chats').delete().eq('id',id).eq('user_id',uid);
@@ -2083,15 +1954,10 @@ function newChat(){
   chatId=null;hist=[];document.getElementById('messages').innerHTML='';
   document.getElementById('messages').style.display='none';document.getElementById('empty-state').style.display='flex';renderConvs();
 }
-function fillSend(t){document.getElementById('chat-input').value=t;onInput(document.getElementById('chat-input'));send();}
 function cpCode(id,btn){navigator.clipboard.writeText(document.getElementById(id)?.innerText||'').then(()=>{btn.textContent='Copied!';btn.classList.add('ok');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('ok');},1400);});}
 
 /* THINKING */
-const THINK={
-  normal:  ['Reading your message','Working through it','Writing a response'],
-  homework:['Reading the problem','Thinking like a tutor','Forming a question'],
-  image:   ['Reading the image','Extracting text','Preparing response']
-};
+const THINK={normal:['Reading your message','Working through it','Writing a response'],homework:['Reading the problem','Thinking like a tutor','Forming a question'],image:['Reading the image','Extracting text','Preparing response']};
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 async function showThinking(mode){
   const steps=THINK[mode]||THINK.normal;const box=document.getElementById('messages');showMessages();
@@ -2114,14 +1980,12 @@ async function showThinking(mode){
 }
 function replaceThinkWithTyping(thinkEl){
   const tw=thinkEl.querySelector('.think-wrap');
-  if(tw){tw.style.transition='opacity .2s ease';tw.style.opacity='0';
-    setTimeout(()=>{const bb=thinkEl.querySelector('.bot-body');if(bb)bb.innerHTML='<div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';},200);}
+  if(tw){tw.style.transition='opacity .2s ease';tw.style.opacity='0';setTimeout(()=>{const bb=thinkEl.querySelector('.bot-body');if(bb)bb.innerHTML='<div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';},200);}
   return thinkEl;
 }
 function replaceThinkWithContent(thinkEl,html){
   const bb=thinkEl.querySelector('.bot-body');
-  if(bb){bb.innerHTML='<div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="bot-content">'+html+'</div>';
-    const bc=bb.querySelector('.bot-content');if(bc)requestAnimationFrame(()=>animWords(bc));}
+  if(bb){bb.innerHTML='<div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="bot-content">'+html+'</div>';const bc=bb.querySelector('.bot-content');if(bc)requestAnimationFrame(()=>animWords(bc));}
   scrollBottom();
 }
 
@@ -2134,16 +1998,8 @@ function toggleHwMode(){
   document.getElementById('plus-btn').classList.toggle('has-mode',hwMode||attachedImgs.length>0);
   document.getElementById('plus-menu').classList.remove('open');
 }
-function triggerImgUpload(){document.getElementById('plus-menu').classList.remove('open');document.getElementById('img-upload').click();}
-function onImgPick(inp){
-  Array.from(inp.files).forEach(f=>{const r=new FileReader();r.onload=ev=>{attachedImgs.push({name:f.name,data:ev.target.result});renderImgStrip();};r.readAsDataURL(f);});
-  inp.value='';
-}
-function onPaste(e){
-  const items=Array.from(e.clipboardData?.items||[]);const imageItems=items.filter(i=>i.type.startsWith('image/'));
-  if(!imageItems.length)return;e.preventDefault();
-  imageItems.forEach(item=>{const f=item.getAsFile();if(!f)return;const r=new FileReader();r.onload=ev=>{attachedImgs.push({name:'pasted.png',data:ev.target.result});renderImgStrip();};r.readAsDataURL(f);});
-}
+function onImgPick(inp){Array.from(inp.files).forEach(f=>{const r=new FileReader();r.onload=ev=>{attachedImgs.push({name:f.name,data:ev.target.result});renderImgStrip();};r.readAsDataURL(f);});inp.value='';}
+function onPaste(e){const items=Array.from(e.clipboardData?.items||[]);const imageItems=items.filter(i=>i.type.startsWith('image/'));if(!imageItems.length)return;e.preventDefault();imageItems.forEach(item=>{const f=item.getAsFile();if(!f)return;const r=new FileReader();r.onload=ev=>{attachedImgs.push({name:'pasted.png',data:ev.target.result});renderImgStrip();};r.readAsDataURL(f);});}
 function renderImgStrip(){
   const strip=document.getElementById('img-strip');strip.innerHTML='';
   if(attachedImgs.length){strip.classList.add('show');attachedImgs.forEach((img,i)=>{const w=document.createElement('div');w.className='img-thumb-wrap';w.innerHTML='<img class="img-thumb" src="'+img.data+'" alt="img"><button class="img-thumb-del" onclick="removeImg('+i+')">&#x2715;</button>';strip.appendChild(w);});}
