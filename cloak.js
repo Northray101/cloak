@@ -352,8 +352,8 @@ function closeLinkModal(){document.getElementById('link-modal').style.display='n
 document.addEventListener('DOMContentLoaded',()=>{const lm=document.getElementById('link-modal');if(lm)lm.addEventListener('click',function(e){if(e.target===this)closeLinkModal();});});
 
 /* ── VALUES PAGE ── */
-function showValues(){window._valuesOrigin=document.getElementById('s-chat').classList.contains('active')?'chat':'auth';document.querySelectorAll('.screen').forEach(el=>{el.classList.remove('active');el.style.display='';});document.getElementById('s-chat').classList.remove('active');const vp=document.getElementById('s-values');vp.style.display='flex';vp.scrollTop=0;}
-function hideValues(){document.getElementById('s-values').style.display='none';if(window._valuesOrigin==='chat'){document.getElementById('s-chat').classList.add('active');if(window._vv)window._vv();}else{document.getElementById('s-auth').classList.add('active');document.getElementById('s-auth').style.display='flex';}}
+function showValues(){window.location.href='values.html';}
+function hideValues(){window.location.href='index.html';}
 
 /* ── INIT ── */
 async function init(){
