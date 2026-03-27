@@ -107,9 +107,11 @@
 
 <!-- VALUES PAGE -->
 <div id="s-values">
-  <button class="vals-back-btn" onclick="hideValues()">
-    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-    Back
+  <button class="vals-back-btn" onclick="hideValues()" aria-label="Back to previous screen">
+    <span class="vals-back-icon" aria-hidden="true">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    </span>
+    <span>Back</span>
   </button>
 
   <div class="vals-hero-wrap">
@@ -316,8 +318,8 @@
             </div>
             <div class="srow">
               <div class="srow-name">System prompt</div>
-              <div style="padding:10px 12px;background:var(--p2);border:var(--bd);margin-bottom:8px;font-size:12px;color:var(--ink);opacity:.65;line-height:1.6;">Core values and safety rules are enforced server-side. You may add supplemental preferences below.</div>
-              <textarea class="inp-field" id="sys-prompt" rows="4" style="resize:vertical;font-family:inherit;font-size:12.5px;line-height:1.6" placeholder="Optional: additional instructions&hellip;"></textarea>
+              <div style="padding:10px 12px;background:var(--p2);border:var(--bd);margin-bottom:8px;font-size:12px;color:var(--ink);opacity:.65;line-height:1.6;">Core safety rules are enforced server-side. Use this field to add concise response preferences (tone, format, depth, and output style).</div>
+              <textarea class="inp-field" id="sys-prompt" rows="4" style="resize:vertical;font-family:inherit;font-size:12.5px;line-height:1.6" placeholder="Example: Be concise, use clear headings, include bullet summaries, and provide actionable next steps."></textarea>
               <button class="cta" style="margin-top:10px" onclick="saveModel()">Save model settings</button>
             </div>
           </div>
