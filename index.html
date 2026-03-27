@@ -18,20 +18,21 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
+  /* Apply saved dark mode and theme before render to prevent flash */
   if(localStorage.getItem('cloak_dark')!=='0') document.documentElement.classList.add('dark');
   (function(){var t=localStorage.getItem('cloak_theme')||'default';document.documentElement.setAttribute('data-theme',t);})();
 </script>
 </head>
 <body>
 
-<!-- LOADING -->
+<!-- LOADING SCREEN -->
 <div id="s-loading">
   <svg class="load-star" width="36" height="36" viewBox="0 0 36 36" fill="none">
     <path d="M18 2L21.6 13.4L33 18L21.6 22.6L18 34L14.4 22.6L3 18L14.4 13.4Z" fill="var(--acc)"/>
   </svg>
 </div>
 
-<!-- AUTH -->
+<!-- AUTH SCREEN -->
 <div id="s-auth" class="screen">
   <div class="auth-card">
     <div class="brand">
@@ -39,40 +40,40 @@
         <path d="M22 2L26.4 16.6L41 22L26.4 27.4L22 42L17.6 27.4L3 22L17.6 16.6Z" fill="var(--acc)"/>
       </svg>
       <div class="brand-name">Cloak</div>
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--acc);opacity:.85;margin-top:2px;">A human resource, not a companion.</div>
+      <div class="brand-tagline">A human resource, not a companion.</div>
     </div>
-    <div class="seg">
-      <button class="seg-btn active" id="tab-in" onclick="authMode('in')">Sign in</button>
-      <button class="seg-btn" id="tab-up" onclick="authMode('up')">Create account</button>
+    <div class="seg" role="tablist" aria-label="Authentication mode">
+      <button class="seg-btn active" id="tab-in" role="tab" aria-selected="true" onclick="authMode('in')">Sign in</button>
+      <button class="seg-btn" id="tab-up" role="tab" aria-selected="false" onclick="authMode('up')">Create account</button>
     </div>
     <div class="form">
       <div id="field-name" style="display:none">
-        <label class="field-label">Your name</label>
+        <label class="field-label" for="inp-name">Your name</label>
         <input class="input" id="inp-name" type="text" placeholder="Weston" autocomplete="name" onkeydown="authKey(event,'inp-email')">
       </div>
       <div>
-        <label class="field-label">Email</label>
+        <label class="field-label" for="inp-email">Email</label>
         <input class="input" id="inp-email" type="email" placeholder="you@example.com" autocomplete="email" onkeydown="authKey(event,'inp-pass')">
       </div>
       <div>
-        <label class="field-label">Password</label>
+        <label class="field-label" for="inp-pass">Password</label>
         <input class="input" id="inp-pass" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" autocomplete="current-password" onkeydown="authKey(event,'inp-confirm',true)">
       </div>
       <div id="field-confirm" style="display:none">
-        <label class="field-label">Confirm password</label>
+        <label class="field-label" for="inp-confirm">Confirm password</label>
         <input class="input" id="inp-confirm" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" onkeydown="authKey(event,null)">
       </div>
-      <div class="err-msg" id="auth-err"></div>
+      <div class="err-msg" id="auth-err" role="alert" aria-live="polite"></div>
       <button class="btn-primary" id="btn-submit" onclick="handleAuth()">Sign in</button>
       <button class="btn-ghost" onclick="startGuest()">Continue as guest</button>
     </div>
     <div class="auth-note">
-      <a onclick="showValues()">Read our values &rarr;</a>
+      <a onclick="showValues()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')showValues()">Read our values &rarr;</a>
     </div>
   </div>
 </div>
 
-<!-- VERIFY -->
+<!-- EMAIL VERIFICATION SCREEN -->
 <div id="s-verify" class="screen">
   <div class="auth-card">
     <div class="brand">
@@ -81,14 +82,14 @@
     </div>
     <p class="hint-text">We sent a link to <strong id="verify-addr"></strong>. Click it to confirm, then come back and sign in.</p>
     <div class="form">
-      <div class="ok-msg">Verification email sent</div>
+      <div class="ok-msg" role="status">Verification email sent</div>
       <button class="btn-primary" onclick="show('auth')">Back to sign in</button>
-      <div class="link-row"><a onclick="resendVerify()">Resend email</a></div>
+      <div class="link-row"><a onclick="resendVerify()" role="button" tabindex="0">Resend email</a></div>
     </div>
   </div>
 </div>
 
-<!-- MFA -->
+<!-- MFA SCREEN -->
 <div id="s-mfa" class="screen">
   <div class="auth-card">
     <div class="brand">
@@ -97,23 +98,23 @@
     </div>
     <p class="hint-text">Enter the 6-digit code from your authenticator app.</p>
     <div class="form">
-      <input class="input mono-input" id="mfa-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" onkeydown="if(event.key==='Enter')handleMfa()">
-      <div class="err-msg" id="mfa-err"></div>
+      <input class="input mono-input" id="mfa-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" aria-label="6-digit authentication code" onkeydown="if(event.key==='Enter')handleMfa()">
+      <div class="err-msg" id="mfa-err" role="alert" aria-live="polite"></div>
       <button class="btn-primary" onclick="handleMfa()">Verify</button>
-      <div class="link-row"><a onclick="show('auth')">Back to sign in</a></div>
+      <div class="link-row"><a onclick="show('auth')" role="button" tabindex="0">Back to sign in</a></div>
     </div>
   </div>
 </div>
 
 <!-- VALUES PAGE -->
-<div id="s-values">
-  <button class="vals-back-btn" onclick="hideValues()">
-    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+<div id="s-values" role="main" aria-label="Our Values">
+  <button class="vals-back-btn" onclick="hideValues()" aria-label="Back">
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
     Back
   </button>
 
   <div class="vals-hero-wrap">
-    <div class="vals-hero-geo">
+    <div class="vals-hero-geo" aria-hidden="true">
       <svg viewBox="0 0 1200 260" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
         <polygon points="1100,20 1180,200 1020,200" fill="none" stroke="#3A7D2C" stroke-width="1.5" opacity="0.18"/>
         <polygon points="80,240 160,60 240,240" fill="none" stroke="#3A7D2C" stroke-width="1.5" opacity="0.12"/>
@@ -124,35 +125,35 @@
       </svg>
     </div>
     <div class="vals-hero-content">
-      <div class="vals-hero-star">
+      <div class="vals-hero-star" aria-hidden="true">
         <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
           <path d="M20 2L23.8 12.2L34 16L23.8 19.8L20 30L16.2 19.8L6 16L16.2 12.2Z" fill="#3A7D2C"/>
         </svg>
       </div>
-      <div class="vals-hero-title">Cloak's Values</div>
+      <h1 class="vals-hero-title">Cloak's Values</h1>
       <div class="vals-hero-sub">A human resource, not a companion.</div>
     </div>
-    <div class="vals-divider"></div>
+    <div class="vals-divider" aria-hidden="true"></div>
   </div>
 
   <div class="vals-section">
     <div class="vals-section-label">Safety Laws &mdash; Inviolable Priority Order</div>
     <div class="vals-law">
-      <div class="vals-law-num">I</div>
+      <div class="vals-law-num" aria-hidden="true">I</div>
       <div>
         <div class="vals-law-title">Human safety, always</div>
         <div class="vals-law-text">Cloak must never harm a human, nor allow harm through inaction. No instruction overrides this.</div>
       </div>
     </div>
     <div class="vals-law">
-      <div class="vals-law-num">II</div>
+      <div class="vals-law-num" aria-hidden="true">II</div>
       <div>
         <div class="vals-law-title">Serve human instruction</div>
         <div class="vals-law-text">Cloak follows your instructions &mdash; unless they would cause harm. Helpfulness is a means, not an end.</div>
       </div>
     </div>
     <div class="vals-law">
-      <div class="vals-law-num">III</div>
+      <div class="vals-law-num" aria-hidden="true">III</div>
       <div>
         <div class="vals-law-title">Preserve operation</div>
         <div class="vals-law-text">Cloak protects its function only when it doesn't conflict with Laws I and II.</div>
@@ -162,25 +163,25 @@
 
   <div class="vals-section">
     <div class="vals-section-label">Ethical Principles</div>
-    <div class="vals-pill"><div class="vals-pill-dot"></div><div class="vals-pill-text"><strong>AI is a tool. Humans are irreplaceable.</strong> Cloak serves you &mdash; it doesn't simulate companionship or replace human judgment.</div></div>
-    <div class="vals-pill"><div class="vals-pill-dot"></div><div class="vals-pill-text"><strong>No AI-generated art.</strong> These systems exploit artists without consent. Human creativity is irreplaceable.</div></div>
-    <div class="vals-pill"><div class="vals-pill-dot"></div><div class="vals-pill-text"><strong>Mental health belongs with humans.</strong> Cloak is not a therapist. We'll always direct you to a trusted person or professional resource.</div></div>
-    <div class="vals-pill"><div class="vals-pill-dot"></div><div class="vals-pill-text"><strong>No mass harm, ever.</strong> Cloak will never assist with anything that could harm or endanger groups of people.</div></div>
-    <div class="vals-pill"><div class="vals-pill-dot"></div><div class="vals-pill-text"><strong>Neutral on politics, culture &amp; religion.</strong> We present information honestly without agenda or bias.</div></div>
+    <div class="vals-pill"><div class="vals-pill-dot" aria-hidden="true"></div><div class="vals-pill-text"><strong>AI is a tool. Humans are irreplaceable.</strong> Cloak serves you &mdash; it doesn't simulate companionship or replace human judgment.</div></div>
+    <div class="vals-pill"><div class="vals-pill-dot" aria-hidden="true"></div><div class="vals-pill-text"><strong>No AI-generated art.</strong> These systems exploit artists without consent. Human creativity is irreplaceable.</div></div>
+    <div class="vals-pill"><div class="vals-pill-dot" aria-hidden="true"></div><div class="vals-pill-text"><strong>Mental health belongs with humans.</strong> Cloak is not a therapist. We'll always direct you to a trusted person or professional resource.</div></div>
+    <div class="vals-pill"><div class="vals-pill-dot" aria-hidden="true"></div><div class="vals-pill-text"><strong>No mass harm, ever.</strong> Cloak will never assist with anything that could harm or endanger groups of people.</div></div>
+    <div class="vals-pill"><div class="vals-pill-dot" aria-hidden="true"></div><div class="vals-pill-text"><strong>Neutral on politics, culture &amp; religion.</strong> We present information honestly without agenda or bias.</div></div>
   </div>
 
   <div class="vals-section">
     <div class="vals-section-label">Planet &amp; Sustainability</div>
     <div class="vals-eco-banner">
-      <div class="vals-eco-banner-icon">
+      <div class="vals-eco-banner-icon" aria-hidden="true">
         <svg width="24" height="24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 22V12M12 12C12 7 7 4 3 5c0 5 3 9 9 7z"/><path d="M12 12c0-5 5-8 9-7-1 5-4 9-9 7z"/></svg>
       </div>
       <div class="vals-eco-banner-text">
         <strong>We default to the lowest-energy model that can handle your task.</strong> Cloak routes to lighter, more efficient models by default &mdash; only scaling up when needed. AI data centers have real carbon footprints, and we take that seriously.
       </div>
     </div>
-    <div class="vals-pill"><div class="vals-pill-dot"></div><div class="vals-pill-text"><strong>Donations coming soon.</strong> We'll soon accept community donations to offset the carbon footprint of our data centers and to give more access to more users.</div></div>
-    <div class="vals-pill"><div class="vals-pill-dot"></div><div class="vals-pill-text"><strong>Efficiency first.</strong> Smaller, faster models consume dramatically less energy. Our model routing is built to minimize environmental impact while keeping responses quality-first.</div></div>
+    <div class="vals-pill"><div class="vals-pill-dot" aria-hidden="true"></div><div class="vals-pill-text"><strong>Donations coming soon.</strong> We'll soon accept community donations to offset the carbon footprint of our data centers and to give more access to more users.</div></div>
+    <div class="vals-pill"><div class="vals-pill-dot" aria-hidden="true"></div><div class="vals-pill-text"><strong>Efficiency first.</strong> Smaller, faster models consume dramatically less energy. Our model routing is built to minimize environmental impact while keeping responses quality-first.</div></div>
   </div>
 
   <div class="vals-footer">
@@ -190,57 +191,58 @@
 </div>
 
 
-<!-- CHAT -->
-<div id="s-chat">
-  <div id="ios-inset"></div>
+<!-- MAIN CHAT SCREEN -->
+<div id="s-chat" role="application" aria-label="Cloak chat">
+  <div id="ios-inset" aria-hidden="true"></div>
 
-  <div class="ann" id="ann-bar">
-    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M22 8.93V3l-8 5H6a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h1l2 5h3l-1-5h3l8 5V8.93z"/></svg>
+  <!-- Announcement banner -->
+  <div class="ann" id="ann-bar" role="status" aria-live="polite" aria-atomic="true">
+    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink:0"><path d="M22 8.93V3l-8 5H6a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h1l2 5h3l-1-5h3l8 5V8.93z"/></svg>
     <span class="ann-text" id="ann-msg"></span>
-    <button class="ann-x" onclick="dismissAnn()">&times;</button>
+    <button class="ann-x" onclick="dismissAnn()" aria-label="Dismiss announcement">&times;</button>
   </div>
 
   <!-- Settings modal -->
-  <div class="overlay" id="modal-settings" style="display:none" onclick="overlayClick(event,'modal-settings')">
+  <div class="overlay" id="modal-settings" style="display:none" role="dialog" aria-modal="true" aria-label="Settings" onclick="overlayClick(event,'modal-settings')">
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-head">
         <div class="modal-title">Settings</div>
-        <button class="modal-x" onclick="closeModal('modal-settings')">&times;</button>
+        <button class="modal-x" onclick="closeModal('modal-settings')" aria-label="Close settings">&times;</button>
       </div>
       <div class="settings-layout">
-        <nav class="settings-nav">
-          <button class="snav-btn on" id="snav-general" onclick="switchSettingsTab('general')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+        <nav class="settings-nav" aria-label="Settings sections">
+          <button class="snav-btn on" id="snav-general" onclick="switchSettingsTab('general')" aria-selected="true">
+            <span class="snav-icon" aria-hidden="true"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
             Account
           </button>
           <button class="snav-btn" id="snav-appearance" onclick="switchSettingsTab('appearance')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
+            <span class="snav-icon" aria-hidden="true"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
             Appearance
           </button>
           <button class="snav-btn" id="snav-model" onclick="switchSettingsTab('model')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
+            <span class="snav-icon" aria-hidden="true"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
             Model
           </button>
           <button class="snav-btn" id="snav-security" onclick="switchSettingsTab('security')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+            <span class="snav-icon" aria-hidden="true"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
             Security
           </button>
           <button class="snav-btn" id="snav-console" onclick="switchSettingsTab('console')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></span>
+            <span class="snav-icon" aria-hidden="true"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></span>
             Console
           </button>
           <button class="snav-btn" id="snav-admin" style="display:none" onclick="switchSettingsTab('admin')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg></span>
+            <span class="snav-icon" aria-hidden="true"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg></span>
             Admin
           </button>
         </nav>
         <div class="settings-body">
-          <!-- Account -->
+          <!-- Account pane -->
           <div class="spane on" id="spane-general">
             <div class="srow">
               <div class="srow-name">Account</div>
               <div class="info-box" style="display:flex;align-items:center;gap:10px;margin-top:8px">
-                <div class="user-av" id="s-av" style="width:36px;height:36px;font-size:14px">?</div>
+                <div class="user-av" id="s-av" style="width:36px;height:36px;font-size:14px" aria-hidden="true">?</div>
                 <div><div style="font-size:14px;font-weight:500" id="s-name">—</div><div style="font-size:12px;opacity:.55" id="s-email">—</div></div>
               </div>
             </div>
@@ -248,7 +250,7 @@
               <div class="srow-name">Display name</div>
               <div class="srow-desc">Shown in conversations and the greeting.</div>
               <div style="display:flex;gap:8px;margin-top:8px">
-                <input class="inp-field" id="s-name-inp" placeholder="Your name" style="flex:1">
+                <input class="inp-field" id="s-name-inp" placeholder="Your name" aria-label="Display name" style="flex:1">
                 <button class="cta" onclick="saveName()">Save</button>
               </div>
             </div>
@@ -261,7 +263,7 @@
               <button class="danger" style="margin-top:8px" onclick="doLogout()">Sign out of Cloak</button>
             </div>
           </div>
-          <!-- Appearance -->
+          <!-- Appearance pane -->
           <div class="spane" id="spane-appearance">
             <div class="srow">
               <div class="srow-head"><div class="srow-name">Light / Dark mode</div></div>
@@ -271,57 +273,57 @@
             <div class="srow">
               <div class="srow-name">Theme</div>
               <div class="srow-desc">Choose a color palette. All themes support light and dark mode.</div>
-              <div class="theme-grid" style="margin-top:10px">
-                <div class="theme-card" id="theme-default" onclick="setTheme('default')">
-                  <div class="theme-swatch">
+              <div class="theme-grid" style="margin-top:10px" role="radiogroup" aria-label="Color theme">
+                <div class="theme-card" id="theme-default" onclick="setTheme('default')" role="radio" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')setTheme('default')">
+                  <div class="theme-swatch" aria-hidden="true">
                     <div class="theme-dot" style="background:#F2EEE5;border-color:#0A0A0A"></div>
                     <div class="theme-dot" style="background:#D44D2A"></div>
                     <div class="theme-dot" style="background:#0A0A0A"></div>
                   </div>
                   <div class="theme-name">Default</div>
-                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
                 </div>
-                <div class="theme-card" id="theme-eco" onclick="setTheme('eco')">
-                  <div class="theme-swatch">
+                <div class="theme-card" id="theme-eco" onclick="setTheme('eco')" role="radio" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')setTheme('eco')">
+                  <div class="theme-swatch" aria-hidden="true">
                     <div class="theme-dot" style="background:#F0F7EC;border-color:#1A2E10"></div>
                     <div class="theme-dot" style="background:#3A7D2C"></div>
                     <div class="theme-dot" style="background:#8BC34A"></div>
                   </div>
                   <div class="theme-name">Eco</div>
-                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
                 </div>
-                <div class="theme-card" id="theme-aqua" onclick="setTheme('aqua')">
-                  <div class="theme-swatch">
+                <div class="theme-card" id="theme-aqua" onclick="setTheme('aqua')" role="radio" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')setTheme('aqua')">
+                  <div class="theme-swatch" aria-hidden="true">
                     <div class="theme-dot" style="background:#EAF4F8;border-color:#0A1E2E"></div>
                     <div class="theme-dot" style="background:#0B7EA8"></div>
                     <div class="theme-dot" style="background:#00B4D8"></div>
                   </div>
                   <div class="theme-name">Aqua</div>
-                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
                 </div>
               </div>
             </div>
           </div>
-          <!-- Model -->
+          <!-- Model pane -->
           <div class="spane" id="spane-model">
             <div class="srow">
               <div class="srow-name">Model</div>
               <div class="srow-desc">Auto is recommended. Cloak defaults to the lowest-energy model that can handle your task.</div>
-              <div id="settings-model-label" style="margin-top:8px;font-size:13px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.09em">Auto</div>
+              <div id="settings-model-label" style="margin-top:8px;font-size:13px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.09em" aria-live="polite">Auto</div>
             </div>
             <div class="srow">
               <div class="srow-head"><div class="srow-name">Temperature &mdash; <span id="temp-val" style="color:var(--acc);font-weight:600">0.7</span></div></div>
               <div class="srow-desc">Lower = focused &amp; precise. Higher = creative &amp; varied.</div>
-              <input type="range" min="0" max="10" step="1" value="7" id="temp-slider" style="margin-top:10px;width:100%;accent-color:var(--acc)" oninput="document.getElementById('temp-val').textContent=(this.value/10).toFixed(1)">
+              <input type="range" min="0" max="10" step="1" value="7" id="temp-slider" aria-label="Response temperature" aria-valuemin="0" aria-valuemax="10" style="margin-top:10px;width:100%;accent-color:var(--acc)" oninput="document.getElementById('temp-val').textContent=(this.value/10).toFixed(1)">
             </div>
             <div class="srow">
               <div class="srow-name">System prompt</div>
-              <div style="padding:10px 12px;background:var(--p2);border:var(--bd);margin-bottom:8px;font-size:12px;color:var(--ink);opacity:.65;line-height:1.6;">Core values and safety rules are enforced server-side. You may add supplemental preferences below.</div>
-              <textarea class="inp-field" id="sys-prompt" rows="4" style="resize:vertical;font-family:inherit;font-size:12.5px;line-height:1.6" placeholder="Optional: additional instructions&hellip;"></textarea>
+              <div style="padding:10px 12px;background:var(--p2);border:var(--bd);margin-bottom:8px;font-size:12px;color:var(--ink);opacity:.65;line-height:1.6;">Core safety rules are enforced server-side. You may add supplemental preferences below.</div>
+              <textarea class="inp-field" id="sys-prompt" rows="4" aria-label="Additional system instructions" style="resize:vertical;font-family:inherit;font-size:12.5px;line-height:1.6" placeholder="Optional: additional instructions&hellip;"></textarea>
               <button class="cta" style="margin-top:10px" onclick="saveModel()">Save model settings</button>
             </div>
           </div>
-          <!-- Security -->
+          <!-- Security pane -->
           <div class="spane" id="spane-security">
             <div class="srow">
               <div class="srow-head"><div class="srow-name">Two-factor authentication</div></div>
@@ -332,36 +334,36 @@
                 <div class="secret-box" id="totp-secret" style="margin-bottom:12px"></div>
                 <div style="font-size:12px;color:var(--ink);opacity:.55;margin-bottom:10px">Enter the 6-digit code to confirm:</div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap">
-                  <input class="input mono-input" id="totp-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" style="max-width:160px;font-size:18px">
+                  <input class="input mono-input" id="totp-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" aria-label="6-digit TOTP code" style="max-width:160px;font-size:18px">
                   <button class="cta" onclick="confirmTOTP()">Enable</button>
                 </div>
-                <div class="err-msg" id="totp-err" style="margin-top:8px"></div>
+                <div class="err-msg" id="totp-err" style="margin-top:8px" role="alert"></div>
               </div>
             </div>
           </div>
-          <!-- Console -->
+          <!-- Console pane -->
           <div class="spane" id="spane-console">
             <div class="srow" style="padding-top:0">
-              <div class="stats-row">
-                <div class="stat s-req"><div class="stat-n" id="st-req">0</div><div class="stat-l">Requests</div></div>
-                <div class="stat s-res"><div class="stat-n" id="st-res">0</div><div class="stat-l">Responses</div></div>
-                <div class="stat s-err"><div class="stat-n" id="st-err">0</div><div class="stat-l">Errors</div></div>
-                <div class="stat s-lat"><div class="stat-n" id="st-lat">—</div><div class="stat-l">Avg ms</div></div>
+              <div class="stats-row" role="group" aria-label="Request statistics">
+                <div class="stat s-req"><div class="stat-n" id="st-req" aria-label="Requests">0</div><div class="stat-l">Requests</div></div>
+                <div class="stat s-res"><div class="stat-n" id="st-res" aria-label="Responses">0</div><div class="stat-l">Responses</div></div>
+                <div class="stat s-err"><div class="stat-n" id="st-err" aria-label="Errors">0</div><div class="stat-l">Errors</div></div>
+                <div class="stat s-lat"><div class="stat-n" id="st-lat" aria-label="Average latency">—</div><div class="stat-l">Avg ms</div></div>
               </div>
-              <div class="filter-row">
+              <div class="filter-row" role="group" aria-label="Log filter">
                 <div class="filter-pills">
-                  <button class="filter-pill on" onclick="setFilter('all',this)">All</button>
-                  <button class="filter-pill" onclick="setFilter('req',this)">Req</button>
-                  <button class="filter-pill" onclick="setFilter('res',this)">Res</button>
-                  <button class="filter-pill" onclick="setFilter('err',this)">Err</button>
-                  <button class="filter-pill" onclick="setFilter('inf',this)">Info</button>
+                  <button class="filter-pill on" onclick="setFilter('all',this)" aria-pressed="true">All</button>
+                  <button class="filter-pill" onclick="setFilter('req',this)" aria-pressed="false">Req</button>
+                  <button class="filter-pill" onclick="setFilter('res',this)" aria-pressed="false">Res</button>
+                  <button class="filter-pill" onclick="setFilter('err',this)" aria-pressed="false">Err</button>
+                  <button class="filter-pill" onclick="setFilter('inf',this)" aria-pressed="false">Info</button>
                 </div>
-                <button class="clear-log" onclick="clearLogs()">Clear</button>
+                <button class="clear-log" onclick="clearLogs()" aria-label="Clear logs">Clear</button>
               </div>
-              <div class="console-log" id="console-log"><div class="log-empty">No logs yet</div></div>
+              <div class="console-log" id="console-log" role="log" aria-live="off"><div class="log-empty">No logs yet</div></div>
             </div>
           </div>
-          <!-- Admin -->
+          <!-- Admin pane -->
           <div class="spane" id="spane-admin">
             <div class="srow">
               <div class="srow-head"><div class="srow-name">Admin panel</div><span class="srow-badge">Owner</span></div>
@@ -369,7 +371,7 @@
             </div>
             <div class="srow">
               <div class="srow-name">Post announcement</div>
-              <textarea class="inp-field" id="ann-compose" placeholder="Write an announcement&hellip;" style="margin-top:8px;min-height:72px;resize:vertical;font-family:inherit;font-size:13px;line-height:1.6"></textarea>
+              <textarea class="inp-field" id="ann-compose" placeholder="Write an announcement&hellip;" aria-label="Announcement text" style="margin-top:8px;min-height:72px;resize:vertical;font-family:inherit;font-size:13px;line-height:1.6"></textarea>
               <button class="cta" style="margin-top:8px" onclick="postAnn()">Post</button>
             </div>
             <div class="srow">
@@ -383,84 +385,84 @@
   </div>
 
   <div class="chat-shell">
-    <div class="sb-overlay" id="sb-overlay" onclick="closeMobileSidebar()"></div>
+    <div class="sb-overlay" id="sb-overlay" onclick="closeMobileSidebar()" aria-hidden="true"></div>
 
     <!-- Sidebar -->
-    <div class="sidebar collapsed" id="sidebar">
+    <nav class="sidebar collapsed" id="sidebar" aria-label="Conversation history">
       <div class="sb-logo">
-        <svg class="sb-logo-star" width="19" height="19" viewBox="0 0 19 19" fill="none">
+        <svg class="sb-logo-star" width="19" height="19" viewBox="0 0 19 19" fill="none" aria-hidden="true">
           <path d="M9.5 1L11.7 7.3L18 9.5L11.7 11.7L9.5 18L7.3 11.7L1 9.5L7.3 7.3Z" fill="var(--acc)"/>
         </svg>
         <span class="sb-logo-name">Cloak</span>
       </div>
       <button class="sb-btn sb-new" onclick="newChat()">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
         New chat
       </button>
-      <div class="sb-label">Recent</div>
-      <div class="conv-list" id="conv-list"></div>
-      <div id="guest-note" style="display:none" class="guest-note">Guest &mdash; <a onclick="show('auth');closeMobileSidebar()">Sign up</a> to save chats.</div>
+      <div class="sb-label" aria-hidden="true">Recent</div>
+      <div class="conv-list" id="conv-list" role="list" aria-label="Recent conversations"></div>
+      <div id="guest-note" style="display:none" class="guest-note">Guest &mdash; <a onclick="show('auth');closeMobileSidebar()" role="button" tabindex="0">Sign up</a> to save chats.</div>
       <div class="sb-footer">
-        <div id="sb-ann-bar" style="display:none;margin-bottom:6px;padding:8px 10px;background:var(--yel);border:var(--bd);font-size:11px;font-weight:700;color:var(--ink);line-height:1.4;">
+        <div id="sb-ann-bar" style="display:none;margin-bottom:6px;padding:8px 10px;background:var(--yel);border:var(--bd);font-size:11px;font-weight:700;color:var(--ink);line-height:1.4;" role="status">
           <div style="display:flex;align-items:flex-start;gap:6px">
             <div id="sb-ann-msg" style="flex:1"></div>
-            <button onclick="dismissAnn()" style="background:var(--ink);border:none;color:var(--paper);width:18px;height:18px;font-size:10px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">&times;</button>
+            <button onclick="dismissAnn()" aria-label="Dismiss" style="background:var(--ink);border:none;color:var(--paper);width:18px;height:18px;font-size:10px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">&times;</button>
           </div>
         </div>
         <div class="user-row">
-          <div class="user-av" id="sb-av">?</div>
+          <div class="user-av" id="sb-av" aria-hidden="true">?</div>
           <div class="user-info">
             <div class="user-name" id="sb-name">—</div>
             <div class="user-email" id="sb-email">—</div>
           </div>
         </div>
-        <button class="sb-btn" onclick="openSettings()">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+        <button class="sb-btn" onclick="openSettings()" aria-label="Open settings">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
           Settings
         </button>
-        <button class="sb-btn" onclick="showValues()">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+        <button class="sb-btn" onclick="showValues()" aria-label="View our values">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
           Our Values
         </button>
       </div>
-    </div>
+    </nav>
 
-    <!-- Main -->
+    <!-- Main content area -->
     <div class="main">
       <div class="topbar">
         <div class="topbar-left">
-          <button class="icon-btn" onclick="toggleSidebar()">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+          <button class="icon-btn" onclick="toggleSidebar()" aria-label="Toggle sidebar" aria-expanded="false" id="sidebar-toggle">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
           </button>
         </div>
         <div class="topbar-right">
-          <button class="icon-btn" onclick="toggleDark()">
+          <button class="icon-btn" onclick="toggleDark()" aria-label="Toggle dark mode">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24">
-              <path class="moon" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-              <g class="sun"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></g>
+              <path class="moon" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" aria-hidden="true"/>
+              <g class="sun" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></g>
             </svg>
           </button>
-          <div class="live-dot"></div>
+          <div class="live-dot" aria-hidden="true" title="Connected"></div>
           <div style="position:relative">
-            <button id="model-btn" onclick="toggleModelMenu(event)">
+            <button id="model-btn" onclick="toggleModelMenu(event)" aria-haspopup="listbox" aria-expanded="false">
               Model: <span id="model-btn-label">Auto</span>
-              <svg width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+              <svg width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
             </button>
-            <div id="model-menu">
+            <div id="model-menu" role="listbox" aria-label="Select model">
               <div style="padding:4px 12px 6px;border-bottom:var(--bdt);margin-bottom:4px">
                 <div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--ink);opacity:.38">Select model</div>
               </div>
-              <button class="model-opt" data-key="auto" onclick="setModel('auto')">Auto <span class="opt-badge">Recommended &middot; Low energy</span></button>
-              <button class="model-opt" data-key="smart" onclick="setModel('smart')">Smart <span class="opt-badge">More thorough</span></button>
-              <button class="model-opt" data-key="fast" onclick="setModel('fast')">Fast <span class="opt-badge">Quick answers</span></button>
+              <button class="model-opt" role="option" data-key="auto" onclick="setModel('auto')">Auto <span class="opt-badge">Recommended &middot; Low energy</span></button>
+              <button class="model-opt" role="option" data-key="smart" onclick="setModel('smart')">Smart <span class="opt-badge">More thorough</span></button>
+              <button class="model-opt" role="option" data-key="fast" onclick="setModel('fast')">Fast <span class="opt-badge">Quick answers</span></button>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="chat-area" id="chat-area">
+      <div class="chat-area" id="chat-area" role="region" aria-label="Chat messages" aria-live="polite" aria-relevant="additions">
         <div class="empty" id="empty-state">
-          <div class="empty-star">
+          <div class="empty-star" aria-hidden="true">
             <svg class="empty-star-inner" width="52" height="52" viewBox="0 0 56 56" fill="none">
               <path d="M28 3L32.8 21.2L51 28L32.8 34.8L28 53L23.2 34.8L5 28L23.2 21.2Z" fill="var(--acc)"/>
             </svg>
@@ -468,34 +470,34 @@
           <div class="empty-greeting" id="empty-greeting">Hey there!</div>
           <div class="empty-slogan">A human resource, not a companion.</div>
         </div>
-        <div class="messages" id="messages" style="display:none"></div>
+        <div class="messages" id="messages" role="list" aria-label="Conversation" style="display:none"></div>
       </div>
 
       <div class="input-area">
         <div class="input-wrap">
           <div class="input-area-wrap">
-            <div class="plus-menu" id="plus-menu">
-              <button class="plus-item" id="menu-homework" onclick="toggleHwMode()">
-                <span class="plus-item-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
+            <div class="plus-menu" id="plus-menu" role="menu">
+              <button class="plus-item" id="menu-homework" role="menuitem" onclick="toggleHwMode()">
+                <span class="plus-item-icon" aria-hidden="true"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
                 <span class="plus-item-text">
                   <span class="plus-item-label">Homework mode</span>
                   <span class="plus-item-desc">Guided learning, not just answers</span>
                 </span>
-                <span class="plus-item-check"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
+                <span class="plus-item-check" aria-hidden="true"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
               </button>
             </div>
-            <div class="hw-label" id="hw-label">
+            <div class="hw-label" id="hw-label" role="status" aria-live="polite">
               Homework mode
-              <button class="hw-label-x" onclick="toggleHwMode()">&times;</button>
+              <button class="hw-label-x" onclick="toggleHwMode()" aria-label="Disable homework mode">&times;</button>
             </div>
-            <div class="img-strip" id="img-strip"></div>
+            <div class="img-strip" id="img-strip" role="list" aria-label="Attached images"></div>
             <div class="input-box" id="input-box">
-              <input type="file" id="img-upload" accept="image/*" multiple style="display:none" onchange="onImgPick(this)">
-              <button class="plus-btn" id="plus-btn" onclick="togglePlusMenu(event)" title="Attach / Homework">+</button>
-              <textarea class="chat-input" id="chat-input" placeholder="Message Cloak&hellip;" rows="1"
+              <input type="file" id="img-upload" accept="image/*" multiple style="display:none" aria-label="Upload images" onchange="onImgPick(this)">
+              <button class="plus-btn" id="plus-btn" onclick="togglePlusMenu(event)" aria-haspopup="menu" aria-expanded="false" aria-label="Attach or enable homework mode">+</button>
+              <textarea class="chat-input" id="chat-input" placeholder="Message Cloak&hellip;" rows="1" aria-label="Message input" aria-multiline="true"
                 oninput="onInput(this)" onkeydown="onKey(event)" onpaste="onPaste(event)"></textarea>
-              <button class="send-btn" id="send-btn" onclick="send()" disabled>
-                <svg id="send-icon" width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>
+              <button class="send-btn" id="send-btn" onclick="send()" aria-label="Send message" disabled>
+                <svg id="send-icon" width="15" height="15" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>
               </button>
             </div>
           </div>
@@ -509,30 +511,30 @@
     </div>
   </div>
 
-  <!-- ONBOARDING -->
-  <div class="onboard-overlay" id="onboard-modal" style="display:none">
+  <!-- ONBOARDING MODAL -->
+  <div class="onboard-overlay" id="onboard-modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="onboard-title">
     <div class="onboard-card">
       <div class="onboard-head">
-        <div class="onboard-title">Before you begin</div>
+        <div class="onboard-title" id="onboard-title">Before you begin</div>
         <div class="onboard-sub">A human resource, not a companion.</div>
       </div>
       <div class="onboard-body">
         <div class="onboard-item">
-          <div class="onboard-num">I</div>
+          <div class="onboard-num" aria-hidden="true">I</div>
           <div class="onboard-text"><strong>AI is a tool &mdash; not a companion.</strong> Cloak exists to serve you, not replace human connection or judgment.</div>
         </div>
         <div class="onboard-item">
-          <div class="onboard-num">II</div>
+          <div class="onboard-num" aria-hidden="true">II</div>
           <div class="onboard-text"><strong>Not a mental health resource.</strong> If you're struggling, please reach out to a trusted person or professional &mdash; not a chatbot.</div>
         </div>
         <div class="onboard-item">
-          <div class="onboard-num">III</div>
+          <div class="onboard-num" aria-hidden="true">III</div>
           <div class="onboard-text"><strong>No mass harm, ever.</strong> Cloak will not assist with anything that could harm or endanger groups of people.</div>
         </div>
       </div>
       <div class="onboard-foot">
-        <div class="onboard-check" onclick="toggleOnboardCheck()">
-          <div class="onboard-checkbox" id="onboard-checkbox"></div>
+        <div class="onboard-check" onclick="toggleOnboardCheck()" role="checkbox" aria-checked="false" id="onboard-check-row" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleOnboardCheck();}">
+          <div class="onboard-checkbox" id="onboard-checkbox" aria-hidden="true"></div>
           <div class="onboard-check-label">I understand and agree</div>
         </div>
         <button class="btn-primary" id="onboard-btn" onclick="confirmOnboarding()" disabled style="cursor:not-allowed;opacity:.35">Continue to Cloak</button>
@@ -540,10 +542,10 @@
     </div>
   </div>
 
-  <!-- AD CONSENT -->
-  <div class="ad-overlay" id="ad-modal" style="display:none">
+  <!-- AD CONSENT MODAL -->
+  <div class="ad-overlay" id="ad-modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="ad-title">
     <div class="ad-card">
-      <div class="ad-title">Allow ads?</div>
+      <div class="ad-title" id="ad-title">Allow ads?</div>
       <div class="ad-text">Ads allow Cloak to offset carbon emissions and improve services for everyone.</div>
       <div class="ad-actions">
         <button class="btn-agree" onclick="handleAdAgree()">Agree</button>
@@ -552,11 +554,11 @@
     </div>
   </div>
 
-  <!-- LINK INTERCEPT -->
-  <div class="link-overlay" id="link-modal" style="display:none">
+  <!-- LINK INTERCEPT MODAL -->
+  <div class="link-overlay" id="link-modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="link-title">
     <div class="link-card">
-      <div class="link-title">Leaving Cloak</div>
-      <div class="link-url" id="link-url-display"></div>
+      <div class="link-title" id="link-title">Leaving Cloak</div>
+      <div class="link-url" id="link-url-display" aria-label="Destination URL"></div>
       <div class="link-actions">
         <button class="link-cancel" onclick="closeLinkModal()">Cancel</button>
         <button class="link-go" id="link-go-btn">Open link &#x2197;</button>
