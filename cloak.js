@@ -23,6 +23,14 @@ let _streamAbort=false;
 
 if(dark)document.body.classList.add('dark');
 
+let _domReady=document.readyState!=='loading';
+function whenDomReady(){
+  if(_domReady)return Promise.resolve();
+  return new Promise(resolve=>{
+    document.addEventListener('DOMContentLoaded',()=>{_domReady=true;resolve();},{once:true});
+  });
+}
+
 /* ── THEME ── */
 function setTheme(t){
   currentTheme=t;localStorage.setItem('cloak_theme',t);
@@ -375,10 +383,12 @@ function hideLoading(){var el=document.getElementById('s-loading');if(!el)return
 async function enterChat(){
   if(entering)return;entering=true;
   try{
+    await whenDomReady();
     hideLoading();
     document.querySelectorAll('.screen').forEach(el=>{el.classList.remove('active');el.style.display='';});
-    document.getElementById('s-values').style.display='none';
-    document.getElementById('s-chat').classList.add('active');
+    const valuesEl=document.getElementById('s-values');if(valuesEl)valuesEl.style.display='none';
+    const chatEl=document.getElementById('s-chat');if(!chatEl)return;
+    chatEl.classList.add('active');
     if(window._vv)window._vv();
     if(!guest)name=name||email.split('@')[0];
     refreshUI();updateGreeting();setModel(modelKey);
@@ -452,7 +462,7 @@ function goSignUp(){const d=document.getElementById('limit-modal');if(d)d.remove
 function dismissLimit(){const d=document.getElementById('limit-modal');if(d)d.remove();}
 
 /* ── UI HELPERS ── */
-function show(id){hideLoading();document.querySelectorAll('.screen').forEach(el=>{el.classList.remove('active');el.style.display='';});document.getElementById('s-chat').classList.remove('active');document.getElementById('s-values').style.display='none';var el=document.getElementById('s-'+id);if(!el)return;el.classList.add('active');if(id!=='chat')el.style.display='flex';}
+function show(id){hideLoading();document.querySelectorAll('.screen').forEach(el=>{el.classList.remove('active');el.style.display='';});const chatEl=document.getElementById('s-chat');if(chatEl)chatEl.classList.remove('active');const valuesEl=document.getElementById('s-values');if(valuesEl)valuesEl.style.display='none';var el=document.getElementById('s-'+id);if(!el)return;el.classList.add('active');if(id!=='chat')el.style.display='flex';}
 function refreshUI(){
   const i=name?name[0].toUpperCase():email?email[0].toUpperCase():'G';
   ['sb-av','s-av'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=i;});
@@ -559,6 +569,5 @@ async function send(){
   }
 }
 
-(function(){if(window.innerWidth<=640)document.getElementById('sidebar').classList.add('collapsed');})();
-checkAdConsent();
-init();
+(function(){const sb=document.getElementById('sidebar');if(window.innerWidth<=640&&sb)sb.classList.add('collapsed');})();
+whenDomReady().then(()=>{checkAdConsent();init();});
