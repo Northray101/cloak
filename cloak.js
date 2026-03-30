@@ -524,8 +524,8 @@ async function send(){
 
     hist.push({role:'USER',message:userMsg||(imgs.length?'[Image]':'')});
 
-    // Build headers and body for both guest and authed users
-    let hdrs={'Content-Type':'application/json','apikey':SB_KEY};
+    // Build request headers and body
+    let hdrs={'Content-Type':'application/json'};
     let bodyObj={
       message: userMsg,
       model: MODEL_MAP[modelKey] || MODEL_MAP.auto,
@@ -534,24 +534,13 @@ async function send(){
     };
 
     if(guest){
-      // Guest: no JWT, just flag in body
       bodyObj.guest=true;
     }else{
-      // Authed: get session with retry in case it hasn't rehydrated yet
-      let token=null;
-      for(let attempt=0;attempt<3;attempt++){
-        try{
-          const{data:{session}}=await sb.auth.getSession();
-          if(session?.access_token){token=session.access_token;break;}
-        }catch(_){}
-        if(attempt<2)await sleep(300);
-      }
-      if(token){
-        hdrs['Authorization']='Bearer '+token;
-      }else{
-        // Session truly missing — surface a clear error rather than a cryptic 401
-        throw new Error('Not signed in. Please refresh and sign in again.');
-      }
+      // Attach JWT if available - edge function uses it to identify user but never blocks on it
+      try{
+        const{data:{session}}=await sb.auth.getSession();
+        if(session?.access_token)hdrs['Authorization']='Bearer '+session.access_token;
+      }catch(_){}
     }
 
     replaceThinkWithTyping(thinkEl);await sleep(120);
