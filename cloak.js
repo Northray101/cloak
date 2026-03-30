@@ -2,7 +2,9 @@ const SB_URL='https://kdawsqrrmwirilyhcolk.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYXdzcXJybXdpcmlseWhjb2xrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NjUxNjAsImV4cCI6MjA4OTU0MTE2MH0.cMN9V51J3042DrdaDmL7-ro-AMaw-IU47wQLnW2NMBE';
 const ADMIN='weston07052010@gmail.com';
 const GUEST_MAX=10;
-const MODEL_MAP={auto:'command-a-03-2025',smart:'command-r-plus-08-2024',fast:'command-r7b-12-2024'};
+
+// ── FIX 1: OpenRouter model IDs (was Cohere model names) ──
+const MODEL_MAP={auto:'openai/gpt-4o-mini',smart:'openai/gpt-4o',fast:'meta-llama/llama-3.1-8b-instruct:free'};
 const MODEL_LABELS={auto:'Auto',smart:'Smart',fast:'Fast'};
 
 let sb=null,busy=false,entering=false;
@@ -71,13 +73,11 @@ rend.link=(href,title,text)=>{
 marked.use({renderer:rend,mangle:false,headerIds:false});
 
 /* ── STREAM ANIMATION ── */
-// Simulates ChatGPT/Claude/Gemini style: variable speed, natural bursts, markdown-aware
 function streamContent(container, rawText, onComplete) {
   _streamAbort=false;
   let pos=0;
   const total=rawText.length;
 
-  // Render partial text: complete blocks as markdown, trailing text as plain
   function renderPartial(text){
     if(!text){container.innerHTML='<span class="sc"></span>';return;}
     const lastBlock=text.lastIndexOf('\n\n');
@@ -97,7 +97,6 @@ function streamContent(container, rawText, onComplete) {
 
   function tick(){
     if(_streamAbort||pos>=total){
-      // Final render
       container.innerHTML=marked.parse(rawText);
       postProcessBotEl(container.closest('.msg'),rawText);
       scrollBottom();
@@ -108,7 +107,6 @@ function streamContent(container, rawText, onComplete) {
     const prevChar=pos>0?rawText[pos-1]:'';
     let chunk,delay;
 
-    // Pause after sentence-ending punctuation
     if('.!?'.includes(prevChar)&&rawText[pos]===' '){
       chunk=1;delay=55+Math.random()*75;
     } else if(',;'.includes(prevChar)){
@@ -116,12 +114,11 @@ function streamContent(container, rawText, onComplete) {
     } else if(prevChar==='\n'){
       chunk=1;delay=25+Math.random()*40;
     } else {
-      // Variable-speed burst pattern
       const r=Math.random();
-      if(r<0.08){chunk=1;delay=40+Math.random()*30;}       // rare slow
-      else if(r<0.25){chunk=1;delay=12+Math.random()*10;}  // medium
-      else if(r<0.65){chunk=Math.floor(2+Math.random()*3);delay=8+Math.random()*6;} // fast
-      else{chunk=Math.floor(4+Math.random()*6);delay=4+Math.random()*4;} // burst
+      if(r<0.08){chunk=1;delay=40+Math.random()*30;}
+      else if(r<0.25){chunk=1;delay=12+Math.random()*10;}
+      else if(r<0.65){chunk=Math.floor(2+Math.random()*3);delay=8+Math.random()*6;}
+      else{chunk=Math.floor(4+Math.random()*6);delay=4+Math.random()*4;}
     }
 
     pos=Math.min(pos+chunk,total);
@@ -152,13 +149,12 @@ function animWords(el){
   walk(el);
 }
 
-/* ── POST-PROCESS BOT MESSAGE (add copy button) ── */
+/* ── POST-PROCESS BOT MESSAGE ── */
 function postProcessBotEl(msgEl, rawText){
   if(!msgEl||msgEl.querySelector('.msg-actions'))return;
   const botBody=msgEl.querySelector('.bot-body');if(!botBody)return;
   const actions=document.createElement('div');
   actions.className='msg-actions';
-  // Copy button
   const copyBtn=document.createElement('button');
   copyBtn.className='msg-action-btn';
   copyBtn.title='Copy response';
@@ -186,9 +182,7 @@ function addMsg(role,content,noAnim=false,imgs=[]){
     let imgHtml='';
     if(imgs.length){imgHtml='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">';imgs.forEach(img=>{imgHtml+='<img src="'+img.data+'" style="width:80px;height:80px;object-fit:cover;border:2px solid var(--ink)" alt="img">';});imgHtml+='</div>';}
     d.innerHTML='<div class="av av-user">'+i+'</div><div class="msg-wrap"><div class="bubble">'+imgHtml+(content?'<div>'+hesc(content)+'</div>':'')+'</div></div>';
-    // Store raw text for edit
     if(content)d.dataset.raw=content;
-    // Edit action
     const actions=document.createElement('div');
     actions.className='msg-actions user-msg-actions';
     const editBtn=document.createElement('button');
@@ -217,13 +211,10 @@ function editMessage(msgEl){
   const msgs=Array.from(box.children);
   const idx=msgs.indexOf(msgEl);
   if(idx===-1)return;
-  // Remove from DOM
   const removed=msgs.slice(idx);
   removed.forEach(el=>el.remove());
-  // Trim hist
   const toRemove=removed.length;
   hist=hist.slice(0,Math.max(0,hist.length-toRemove));
-  // Put text in input
   const inp=document.getElementById('chat-input');
   inp.value=rawText;inp.focus();onInput(inp);
   if(!hist.length){document.getElementById('messages').style.display='none';document.getElementById('empty-state').style.display='flex';}
@@ -292,7 +283,7 @@ function replaceThinkWithContent(thinkEl, rawText){
   scrollBottom();
 }
 
-/* ── BUSY STATE (transforms send<->stop) ── */
+/* ── BUSY STATE ── */
 function setBusy(b){
   busy=b;
   const btn=document.getElementById('send-btn');
@@ -532,14 +523,38 @@ async function send(){
     else if(imgs.length&&ocrFailed&&txt){userMsg=txt+' (An image was attached but could not be read.)';}
 
     hist.push({role:'USER',message:userMsg||(imgs.length?'[Image]':'')});
+
+    // ── FIX 2: Build headers and body correctly for both guest and authed users ──
     let hdrs={'Content-Type':'application/json'};
-    if(!guest){try{const{data:{session}}=await sb.auth.getSession();if(session?.access_token)hdrs['Authorization']='Bearer '+session.access_token;}catch(_){}}
+    let bodyObj={
+      message: userMsg,
+      model: MODEL_MAP[modelKey] || MODEL_MAP.auto,  // FIX 3: send full OpenRouter model ID, not key
+      chat_history: hist.slice(0,-1).map(m=>({role:m.role,message:m.message})),
+      temperature: temp
+    };
+
+    if(guest){
+      // Guest: no Authorization header, pass guest flag in body
+      bodyObj.guest=true;
+    }else{
+      // Authed user: attach Supabase JWT
+      try{
+        const{data:{session}}=await sb.auth.getSession();
+        if(session?.access_token)hdrs['Authorization']='Bearer '+session.access_token;
+      }catch(_){}
+    }
 
     replaceThinkWithTyping(thinkEl);await sleep(120);
 
     _fetchController=new AbortController();
-    const res=await fetch(SB_URL+'/functions/v1/chat-message',{method:'POST',headers:hdrs,signal:_fetchController.signal,body:JSON.stringify({message:userMsg,model:modelKey,chat_history:hist.slice(0,-1).map(m=>({role:m.role,message:m.message})),temperature:temp})});
+    const res=await fetch(SB_URL+'/functions/v1/chat-message',{
+      method:'POST',
+      headers:hdrs,
+      signal:_fetchController.signal,
+      body:JSON.stringify(bodyObj)
+    });
     _fetchController=null;
+
     let d;try{d=await res.json();}catch(_){throw new Error('Bad response from server');}
     const ms=Date.now()-t0;
     if(!res.ok||d.error)throw new Error(d.error||'HTTP '+res.status);
@@ -547,7 +562,6 @@ async function send(){
     hist.push({role:'CHATBOT',message:d.text});
     if(hist.length>20)hist=hist.slice(-20);
 
-    // Stream the response (setBusy(false) is called inside streamContent's onComplete)
     replaceThinkWithContent(thinkEl, d.text);
 
     if(guest){guestN++;if(guestN>=GUEST_MAX)setTimeout(showLimit,500);}
@@ -555,10 +569,8 @@ async function send(){
   }catch(ex){
     _fetchController=null;
     if(ex.name==='AbortError'){
-      // User stopped - clean removal of thinking element
       thinkEl.remove();
       if(!hist.length||hist[hist.length-1].role!=='CHATBOT'){
-        // Remove last USER entry if no response was stored
         if(hist.length&&hist[hist.length-1].role==='USER')hist.pop();
       }
     }else{
