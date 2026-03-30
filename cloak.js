@@ -524,24 +524,34 @@ async function send(){
 
     hist.push({role:'USER',message:userMsg||(imgs.length?'[Image]':'')});
 
-    // ── FIX 2: Build headers and body correctly for both guest and authed users ──
-    let hdrs={'Content-Type':'application/json'};
+    // Build headers and body for both guest and authed users
+    let hdrs={'Content-Type':'application/json','apikey':SB_KEY};
     let bodyObj={
       message: userMsg,
-      model: MODEL_MAP[modelKey] || MODEL_MAP.auto,  // FIX 3: send full OpenRouter model ID, not key
+      model: MODEL_MAP[modelKey] || MODEL_MAP.auto,
       chat_history: hist.slice(0,-1).map(m=>({role:m.role,message:m.message})),
       temperature: temp
     };
 
     if(guest){
-      // Guest: no Authorization header, pass guest flag in body
+      // Guest: no JWT, just flag in body
       bodyObj.guest=true;
     }else{
-      // Authed user: attach Supabase JWT
-      try{
-        const{data:{session}}=await sb.auth.getSession();
-        if(session?.access_token)hdrs['Authorization']='Bearer '+session.access_token;
-      }catch(_){}
+      // Authed: get session with retry in case it hasn't rehydrated yet
+      let token=null;
+      for(let attempt=0;attempt<3;attempt++){
+        try{
+          const{data:{session}}=await sb.auth.getSession();
+          if(session?.access_token){token=session.access_token;break;}
+        }catch(_){}
+        if(attempt<2)await sleep(300);
+      }
+      if(token){
+        hdrs['Authorization']='Bearer '+token;
+      }else{
+        // Session truly missing — surface a clear error rather than a cryptic 401
+        throw new Error('Not signed in. Please refresh and sign in again.');
+      }
     }
 
     replaceThinkWithTyping(thinkEl);await sleep(120);
