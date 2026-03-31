@@ -3,7 +3,6 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const ADMIN='weston07052010@gmail.com';
 const GUEST_MAX=10;
 
-// ── FIX 1: OpenRouter model IDs (was Cohere model names) ──
 const MODEL_MAP={auto:'openai/gpt-4o-mini',smart:'openai/gpt-4o',fast:'meta-llama/llama-3.1-8b-instruct:free'};
 const MODEL_LABELS={auto:'Auto',smart:'Smart',fast:'Fast'};
 
@@ -22,6 +21,14 @@ let hwMode=false,attachedImgs=[];
 let onboardingDone=false;
 let _fetchController=null;
 let _streamAbort=false;
+
+/* Voice Mode Variables */
+let voiceMode = false;
+let voiceState = 'idle'; // idle, listening, thinking, speaking
+let asciiInterval = null;
+let asciiFrame = 0;
+let recognition = null;
+let synth = window.speechSynthesis;
 
 if(dark)document.body.classList.add('dark');
 
@@ -155,6 +162,7 @@ function postProcessBotEl(msgEl, rawText){
   const botBody=msgEl.querySelector('.bot-body');if(!botBody)return;
   const actions=document.createElement('div');
   actions.className='msg-actions';
+  
   const copyBtn=document.createElement('button');
   copyBtn.className='msg-action-btn';
   copyBtn.title='Copy response';
@@ -167,6 +175,22 @@ function postProcessBotEl(msgEl, rawText){
       setTimeout(()=>{copyBtn.classList.remove('copied');copyBtn.innerHTML='<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';},1600);
     }).catch(()=>{});
   });
+
+  const canvasBtn = document.createElement('button');
+  canvasBtn.className = 'msg-action-btn';
+  canvasBtn.title = 'Open in Canvas';
+  canvasBtn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
+  canvasBtn.addEventListener('click', () => {
+    document.getElementById('canvas-panel').classList.add('open');
+    const editor = document.getElementById('canvas-editor');
+    if (editor.value.trim() !== '') {
+       editor.value += '\n\n' + rawText;
+    } else {
+       editor.value = rawText;
+    }
+  });
+
+  actions.appendChild(canvasBtn);
   actions.appendChild(copyBtn);
   botBody.appendChild(actions);
 }
@@ -226,6 +250,123 @@ function onInput(el){el.style.height='auto';el.style.height=Math.min(el.scrollHe
 function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(!document.getElementById('send-btn').disabled&&!busy)send();else if(busy){stopStream();}}}
 function showE(el,msg){el.textContent=msg;el.classList.add('show');}
 function clearE(id){const el=document.getElementById(id);if(el){el.textContent='';el.classList.remove('show');}}
+
+/* ── CANVAS TOGGLE ── */
+function toggleCanvas() {
+  document.getElementById('canvas-panel').classList.toggle('open');
+}
+
+/* ── VOICE MODE ── */
+function initVoice() {
+  const SpRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpRec) return false;
+  
+  recognition = new SpRec();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  
+  recognition.onstart = () => { 
+    if(voiceMode && voiceState !== 'thinking' && voiceState !== 'speaking') {
+      voiceState = 'listening'; 
+    }
+  };
+  
+  recognition.onresult = (e) => {
+    let interim = ''; let final = '';
+    for(let i=e.resultIndex; i<e.results.length; ++i) {
+      if(e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    document.getElementById('voice-transcript').textContent = final || interim;
+    
+    if(final) {
+      document.getElementById('chat-input').value = final;
+      send(); 
+    }
+  };
+  
+  recognition.onend = () => {
+    if(voiceMode && voiceState === 'idle') {
+      try { recognition.start(); } catch(e){}
+    }
+  };
+  return true;
+}
+
+function startVoiceMode() {
+  if(!recognition) {
+    const supported = initVoice();
+    if(!supported) { alert("Voice dictation is not supported in your browser."); return; }
+  }
+  voiceMode = true;
+  voiceState = 'idle';
+  document.getElementById('voice-overlay').classList.add('active');
+  document.getElementById('voice-transcript').textContent = 'Listening...';
+  startAsciiAnim();
+  try { recognition.start(); } catch(e){}
+}
+
+function stopVoiceMode() {
+  voiceMode = false;
+  document.getElementById('voice-overlay').classList.remove('active');
+  stopAsciiAnim();
+  if(recognition) recognition.stop();
+  synth.cancel();
+}
+
+function startAsciiAnim() {
+   if(asciiInterval) clearInterval(asciiInterval);
+   asciiInterval = setInterval(() => {
+     asciiFrame++;
+     let art = "";
+     let stat = "";
+     
+     if(voiceState === 'listening') {
+       const frames = ["[ = - - - - - ]", "[ - = - - - - ]", "[ - - = - - - ]", "[ - - - = - - ]", "[ - - - - = - ]", "[ - - - - - = ]", "[ - - - - = - ]", "[ - - - = - - ]", "[ - - = - - - ]", "[ - = - - - - ]"];
+       art = frames[asciiFrame % frames.length];
+       stat = "Listening";
+     } else if(voiceState === 'thinking') {
+       const frames = ["[ .           ]", "[ . .         ]", "[ . . .       ]", "[ . . . .     ]", "[ . . . . .   ]", "[ . . . . . . ]", "[   . . . . . ]", "[     . . . . ]", "[       . . . ]", "[         . . ]", "[           . ]", "[             ]"];
+       art = frames[asciiFrame % frames.length];
+       stat = "Thinking";
+     } else if(voiceState === 'speaking') {
+       const frames = ["[ | | | | | | ]", "[ / / / / / / ]", "[ - - - - - - ]", "[ \\ \\ \\ \\ \\ \\ ]"];
+       art = frames[asciiFrame % frames.length];
+       stat = "Speaking";
+     } else {
+       art = "[ - - - - - - ]";
+       stat = "Idle";
+     }
+     document.getElementById('voice-ascii').textContent = art;
+     document.getElementById('voice-status').textContent = stat;
+   }, 150);
+}
+
+function stopAsciiAnim() { clearInterval(asciiInterval); }
+
+function stripMD(text) {
+  return text.replace(/[#*`_~]/g, '').replace(/\[.*?\]\(.*?\)/g, '').trim();
+}
+
+function playVoice(text) {
+   if(recognition) recognition.stop();
+   voiceState = 'speaking';
+   const cleanText = stripMD(text);
+   const u = new SpeechSynthesisUtterance(cleanText);
+   
+   u.onend = () => {
+      if(!voiceMode) return;
+      voiceState = 'idle';
+      document.getElementById('voice-transcript').textContent = 'Listening...';
+      try { recognition.start(); } catch(e){}
+   };
+   u.onerror = () => {
+      if(!voiceMode) return;
+      voiceState = 'idle';
+      try { recognition.start(); } catch(e){}
+   };
+   synth.speak(u);
+}
 
 function renderConvs(){
   const list=document.getElementById('conv-list');list.innerHTML='';
@@ -499,6 +640,13 @@ async function send(){
   if((!txt&&!attachedImgs.length)||busy)return;
   if(guest&&guestN>=GUEST_MAX){showLimit();return;}
   if(!chatId){chatId=Date.now().toString();hist=[];}
+  
+  // Enter thinking state if voice mode is active
+  if(voiceMode) {
+     voiceState = 'thinking';
+     if(recognition) recognition.stop();
+  }
+
   const imgs=[...attachedImgs];attachedImgs=[];renderImgStrip();
   const thinkMode=imgs.length?'image':hwMode?'homework':'normal';
   let userMsg=txt;
@@ -517,7 +665,13 @@ async function send(){
         ocrText=results.filter(Boolean).join('\n\n');if(!ocrText)ocrFailed=true;
       }catch(e){ocrFailed=true;}
     }
-    if(imgs.length&&ocrFailed&&!ocrText&&!txt){replaceThinkWithContent(thinkEl,'The image could not be read clearly. OCR works best with printed or typed text.');hist.push({role:'CHATBOT',message:'The image could not be read clearly. OCR works best with printed or typed text.'});setBusy(false);scrollBottom();return;}
+    if(imgs.length&&ocrFailed&&!ocrText&&!txt){
+      replaceThinkWithContent(thinkEl,'The image could not be read clearly. OCR works best with printed or typed text.');
+      hist.push({role:'CHATBOT',message:'The image could not be read clearly. OCR works best with printed or typed text.'});
+      setBusy(false);scrollBottom();
+      if(voiceMode) playVoice('The image could not be read clearly.');
+      return;
+    }
     if(hwMode){let pt=txt;if(ocrText)pt=(txt?txt+'\n\n':'')+'Problem from image:\n"""\n'+ocrText+'\n"""';else if(!txt&&imgs.length)pt='(Image attached but text could not be extracted.)';userMsg='[HOMEWORK MODE]\n\n'+(pt||'(no problem provided)');}
     else if(ocrText){userMsg=(txt?txt+'\n\n':'What does this say or show?\n\n')+'Text from image:\n"""\n'+ocrText+'\n"""';}
     else if(imgs.length&&ocrFailed&&txt){userMsg=txt+' (An image was attached but could not be read.)';}
@@ -569,6 +723,11 @@ async function send(){
     if(hist.length>20)hist=hist.slice(-20);
 
     replaceThinkWithContent(thinkEl, d.text);
+    
+    // Play voice if enabled
+    if(voiceMode) {
+       playVoice(d.text);
+    }
 
     if(guest){guestN++;if(guestN>=GUEST_MAX)setTimeout(showLimit,500);}
     else saveConv(txt||'[Image]').catch(e=>log('err','Save: '+e.message));
@@ -583,6 +742,7 @@ async function send(){
       stats.err++;
       log('err',`${ex.message} | model=${MODEL_MAP[modelKey]} | guest=${guest}`);
       replaceThinkWithContent(thinkEl,'Error: '+hesc(ex.message));
+      if(voiceMode) playVoice("Sorry, I ran into an error.");
     }
     setBusy(false);
   }
