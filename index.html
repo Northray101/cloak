@@ -24,14 +24,12 @@
 </head>
 <body>
 
-<!-- LOADING -->
 <div id="s-loading">
   <svg class="load-star" width="36" height="36" viewBox="0 0 36 36" fill="none">
     <path d="M18 2L21.6 13.4L33 18L21.6 22.6L18 34L14.4 22.6L3 18L14.4 13.4Z" fill="var(--acc)"/>
   </svg>
 </div>
 
-<!-- AUTH -->
 <div id="s-auth" class="screen">
   <div class="auth-card">
     <div class="brand">
@@ -72,7 +70,6 @@
   </div>
 </div>
 
-<!-- VERIFY -->
 <div id="s-verify" class="screen">
   <div class="auth-card">
     <div class="brand">
@@ -88,7 +85,6 @@
   </div>
 </div>
 
-<!-- MFA -->
 <div id="s-mfa" class="screen">
   <div class="auth-card">
     <div class="brand">
@@ -105,7 +101,6 @@
   </div>
 </div>
 
-<!-- CHAT -->
 <div id="s-chat">
   <div id="ios-inset"></div>
 
@@ -115,7 +110,6 @@
     <button class="ann-x" onclick="dismissAnn()">&times;</button>
   </div>
 
-  <!-- Settings modal -->
   <div class="overlay" id="modal-settings" style="display:none" onclick="overlayClick(event,'modal-settings')">
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-head">
@@ -132,10 +126,6 @@
             <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
             Appearance
           </button>
-          <button class="snav-btn" id="snav-model" onclick="switchSettingsTab('model')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
-            Model
-          </button>
           <button class="snav-btn" id="snav-security" onclick="switchSettingsTab('security')">
             <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
             Security
@@ -150,7 +140,6 @@
           </button>
         </nav>
         <div class="settings-body">
-          <!-- Account -->
           <div class="spane on" id="spane-general">
             <div class="srow">
               <div class="srow-name">Account</div>
@@ -176,7 +165,6 @@
               <button class="danger" style="margin-top:8px" onclick="doLogout()">Sign out of Cloak</button>
             </div>
           </div>
-          <!-- Appearance -->
           <div class="spane" id="spane-appearance">
             <div class="srow">
               <div class="srow-head"><div class="srow-name">Light / Dark mode</div></div>
@@ -217,26 +205,6 @@
               </div>
             </div>
           </div>
-          <!-- Model -->
-          <div class="spane" id="spane-model">
-            <div class="srow">
-              <div class="srow-name">Model</div>
-              <div class="srow-desc">Auto is recommended. Cloak defaults to the lowest-energy model that can handle your task.</div>
-              <div id="settings-model-label" style="margin-top:8px;font-size:13px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.09em">Auto</div>
-            </div>
-            <div class="srow">
-              <div class="srow-head"><div class="srow-name">Temperature &mdash; <span id="temp-val" style="color:var(--acc);font-weight:600">0.7</span></div></div>
-              <div class="srow-desc">Lower = focused &amp; precise. Higher = creative &amp; varied.</div>
-              <input type="range" min="0" max="10" step="1" value="7" id="temp-slider" style="margin-top:10px;width:100%;accent-color:var(--acc)" oninput="document.getElementById('temp-val').textContent=(this.value/10).toFixed(1)">
-            </div>
-            <div class="srow">
-              <div class="srow-name">System prompt</div>
-              <div style="padding:10px 12px;background:var(--p2);border:var(--bd);margin-bottom:8px;font-size:12px;color:var(--ink);opacity:.65;line-height:1.6;">Core values and safety rules are enforced server-side. You may add supplemental preferences below.</div>
-              <textarea class="inp-field" id="sys-prompt" rows="4" style="resize:vertical;font-family:inherit;font-size:12.5px;line-height:1.6" placeholder="Optional: additional instructions&hellip;"></textarea>
-              <button class="cta" style="margin-top:10px" onclick="saveModel()">Save model settings</button>
-            </div>
-          </div>
-          <!-- Security -->
           <div class="spane" id="spane-security">
             <div class="srow">
               <div class="srow-head"><div class="srow-name">Two-factor authentication</div></div>
@@ -254,7 +222,6 @@
               </div>
             </div>
           </div>
-          <!-- Console -->
           <div class="spane" id="spane-console">
             <div class="srow" style="padding-top:0">
               <div class="stats-row">
@@ -276,7 +243,6 @@
               <div class="console-log" id="console-log"><div class="log-empty">No logs yet</div></div>
             </div>
           </div>
-          <!-- Admin -->
           <div class="spane" id="spane-admin">
             <div class="srow">
               <div class="srow-head"><div class="srow-name">Admin panel</div><span class="srow-badge">Owner</span></div>
@@ -300,7 +266,6 @@
   <div class="chat-shell">
     <div class="sb-overlay" id="sb-overlay" onclick="closeMobileSidebar()"></div>
 
-    <!-- Sidebar -->
     <div class="sidebar collapsed" id="sidebar">
       <div class="sb-logo">
         <svg class="sb-logo-star" width="19" height="19" viewBox="0 0 19 19" fill="none">
@@ -340,7 +305,6 @@
       </div>
     </div>
 
-    <!-- Main -->
     <div class="main">
       <div class="topbar">
         <div class="topbar-left">
@@ -361,18 +325,9 @@
           </button>
 
           <div class="live-dot"></div>
-          <div style="position:relative">
-            <button id="model-btn" onclick="toggleModelMenu(event)">
-              Model: <span id="model-btn-label">Auto</span>
-              <svg width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
-            </button>
-            <div id="model-menu">
-              <div style="padding:4px 12px 6px;border-bottom:var(--bdt);margin-bottom:4px">
-                <div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--ink);opacity:.38">Select model</div>
-              </div>
-              <button class="model-opt" data-key="auto" onclick="setModel('auto')">Auto <span class="opt-badge">Recommended &middot; Low energy</span></button>
-              <button class="model-opt" data-key="smart" onclick="setModel('smart')">Smart <span class="opt-badge">More thorough</span></button>
-              <button class="model-opt" data-key="fast" onclick="setModel('fast')">Fast <span class="opt-badge">Quick answers</span></button>
+          <div>
+            <div id="model-btn" style="cursor:default; box-shadow:none; transform:none; border-color:var(--acc);">
+              Mode: <span id="model-btn-label" style="color:var(--acc);">Dynamic</span>
             </div>
           </div>
         </div>
@@ -416,7 +371,6 @@
               <textarea class="chat-input" id="chat-input" placeholder="Message Cloak&hellip;" rows="1"
                 oninput="onInput(this)" onkeydown="onKey(event)" onpaste="onPaste(event)"></textarea>
 
-              <!-- Voice Toggle Button -->
               <button class="send-btn" id="mic-btn" style="background:var(--surf); color:var(--ink); border:var(--bd);" onclick="startVoiceMode()" title="Start Voice Mode">
                 <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
               </button>
@@ -435,7 +389,6 @@
       </div>
     </div>
 
-    <!-- CANVAS PANEL -->
     <div class="canvas-panel" id="canvas-panel">
       <div class="canvas-head">
         <div class="canvas-title">Canvas</div>
@@ -446,7 +399,6 @@
 
   </div>
 
-  <!-- VOICE MODE OVERLAY -->
   <div class="voice-overlay" id="voice-overlay">
     <button class="voice-close" onclick="stopVoiceMode()" title="Exit Voice Mode">&times;</button>
     <div class="voice-ascii" id="voice-ascii">[ - - - - - ]</div>
@@ -454,7 +406,6 @@
     <div class="voice-transcript" id="voice-transcript">Say something...</div>
   </div>
 
-  <!-- ONBOARDING -->
   <div class="onboard-overlay" id="onboard-modal" style="display:none">
     <div class="onboard-card">
       <div class="onboard-head">
@@ -485,7 +436,6 @@
     </div>
   </div>
 
-  <!-- AD CONSENT -->
   <div class="ad-overlay" id="ad-modal" style="display:none">
     <div class="ad-card">
       <div class="ad-title">Allow ads?</div>
@@ -497,7 +447,6 @@
     </div>
   </div>
 
-  <!-- LINK INTERCEPT -->
   <div class="link-overlay" id="link-modal" style="display:none">
     <div class="link-card">
       <div class="link-title">Leaving Cloak</div>
