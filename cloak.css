@@ -128,9 +128,9 @@ body{font-family:var(--fu);font-size:14px;background:var(--paper);color:var(--in
 .chat-shell{flex:1;display:flex;overflow:hidden;min-height:0;position:relative;}
 
 /* ── SIDEBAR ── */
-.sidebar{width:var(--sw);flex-shrink:0;background:var(--p2);border-right:var(--bd);display:flex;flex-direction:column;padding:12px 8px;gap:2px;overflow:hidden;transition:width var(--tm),opacity var(--tm),padding var(--tm);}
+.sidebar{width:var(--sw);flex-shrink:0;background:var(--p2);border-right:var(--bd);display:flex;flex-direction:column;padding:0 8px 12px;gap:2px;overflow:hidden;transition:width var(--tm),opacity var(--tm),padding var(--tm);}
 .sidebar.collapsed{width:0;padding:0;opacity:0;pointer-events:none;}
-.sb-logo{display:flex;align-items:center;gap:9px;padding:6px 8px 12px;white-space:nowrap;border-bottom:var(--bd);margin-bottom:6px;}
+.sb-logo{display:flex;align-items:center;gap:9px;padding:0 16px;white-space:nowrap;border-bottom:var(--bd);margin:0 -8px 12px -8px;height:50px;}
 .sb-logo-star{flex-shrink:0;cursor:default;transition:transform .2s ease;}
 .sb-logo-star:hover{transform:rotate(16deg) scale(1.12);}
 .sb-logo-name{font-family:var(--fd);font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--ink);}
@@ -200,7 +200,7 @@ body{font-family:var(--fu);font-size:14px;background:var(--paper);color:var(--in
 .av{width:28px;height:28px;border:var(--bd);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--fd);}
 .av-user{background:var(--ink);color:var(--paper);}
 .av-bot{background:var(--acc);color:#fff;}
-.bubble{background:var(--p2);border:var(--bd);box-shadow:var(--shsm);padding:10px 14px;max-width:78%;font-size:14px;font-weight:500;line-height:1.6;color:var(--ink);word-break:break-word;}
+.bubble{background:var(--p2);border:var(--bd);box-shadow:var(--shsm);padding:10px 14px;max-width:100%;font-size:14px;font-weight:500;line-height:1.6;color:var(--ink);overflow-wrap:break-word;word-break:normal;}
 .msg-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:4px;max-width:78%;}
 
 /* ── BOT MESSAGE ── */
