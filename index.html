@@ -349,12 +349,17 @@
           </button>
         </div>
         <div class="topbar-right">
-          <button class="icon-btn" onclick="toggleDark()">
+          <button class="icon-btn" onclick="toggleDark()" title="Toggle Theme">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24">
               <path class="moon" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
               <g class="sun"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></g>
             </svg>
           </button>
+          
+          <button class="icon-btn" onclick="toggleCanvas()" title="Canvas Mode">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </button>
+
           <div class="live-dot"></div>
           <div style="position:relative">
             <button id="model-btn" onclick="toggleModelMenu(event)">
@@ -407,8 +412,15 @@
             <div class="input-box" id="input-box">
               <input type="file" id="img-upload" accept="image/*" multiple style="display:none" onchange="onImgPick(this)">
               <button class="plus-btn" id="plus-btn" onclick="togglePlusMenu(event)" title="Attach / Homework">+</button>
+              
               <textarea class="chat-input" id="chat-input" placeholder="Message Cloak&hellip;" rows="1"
                 oninput="onInput(this)" onkeydown="onKey(event)" onpaste="onPaste(event)"></textarea>
+
+              <!-- Voice Toggle Button -->
+              <button class="send-btn" id="mic-btn" style="background:var(--surf); color:var(--ink); border:var(--bd);" onclick="startVoiceMode()" title="Start Voice Mode">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
+              </button>
+              
               <button class="send-btn" id="send-btn" onclick="send()" disabled>
                 <svg id="send-icon" width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>
               </button>
@@ -422,6 +434,24 @@
         </div>
       </div>
     </div>
+
+    <!-- CANVAS PANEL -->
+    <div class="canvas-panel" id="canvas-panel">
+      <div class="canvas-head">
+        <div class="canvas-title">Canvas</div>
+        <button class="icon-btn" style="width:28px; height:28px" onclick="toggleCanvas()">&times;</button>
+      </div>
+      <textarea class="canvas-editor" id="canvas-editor" placeholder="Start typing or send an AI response here..."></textarea>
+    </div>
+
+  </div>
+
+  <!-- VOICE MODE OVERLAY -->
+  <div class="voice-overlay" id="voice-overlay">
+    <button class="voice-close" onclick="stopVoiceMode()" title="Exit Voice Mode">&times;</button>
+    <div class="voice-ascii" id="voice-ascii">[ - - - - - ]</div>
+    <div class="voice-status" id="voice-status">Idle</div>
+    <div class="voice-transcript" id="voice-transcript">Say something...</div>
   </div>
 
   <!-- ONBOARDING -->
