@@ -3,13 +3,9 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const ADMIN='weston07052010@gmail.com';
 const GUEST_MAX=10;
 
-const MODEL_MAP={auto:'openai/gpt-4o-mini',smart:'openai/gpt-4o',fast:'meta-llama/llama-3.1-8b-instruct:free'};
-const MODEL_LABELS={auto:'Auto',smart:'Smart',fast:'Fast'};
-
 let sb=null,busy=false,entering=false;
 let dark=localStorage.getItem('cloak_dark')!=='0';
 let currentTheme=localStorage.getItem('cloak_theme')||'default';
-let modelKey=localStorage.getItem('cloak_model_key')||'auto';
 let temp=parseFloat(localStorage.getItem('cloak_temp')||'0.7');
 let extraPrompt=localStorage.getItem('cloak_extra_prompt')||'';
 let email='',uid='',name='',admin=false;
@@ -21,6 +17,10 @@ let hwMode=false,attachedImgs=[];
 let onboardingDone=false;
 let _fetchController=null;
 let _streamAbort=false;
+
+/* Dynamic Model Variables */
+let dynamicModels = ['google/gemini-3-flash-preview', 'cohere/command-r-plus-08-2024'];
+let modelCycleIndex = 0;
 
 /* Voice Mode Variables */
 let voiceMode = false;
@@ -38,6 +38,19 @@ function whenDomReady(){
   return new Promise(resolve=>{
     document.addEventListener('DOMContentLoaded',()=>{_domReady=true;resolve();},{once:true});
   });
+}
+
+/* ── CONFIG ── */
+async function loadAppConfig() {
+  try {
+    const { data, error } = await sb.from('app_config').select('value').eq('key', 'model_list').single();
+    if (data && data.value) {
+      dynamicModels = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
+      log('inf', 'Loaded dynamic models: ' + dynamicModels.join(', '));
+    }
+  } catch(e) { 
+    log('err', 'Config load failed, using fallbacks: ' + e.message); 
+  }
 }
 
 /* ── THEME ── */
@@ -460,17 +473,8 @@ function renderImgStrip(){
 }
 function removeImg(i){attachedImgs.splice(i,1);renderImgStrip();}
 
-/* ── MODEL SELECTOR ── */
-function setModel(key){
-  modelKey=key;localStorage.setItem('cloak_model_key',key);
-  document.querySelectorAll('.model-opt').forEach(b=>b.classList.toggle('active',b.dataset.key===key));
-  document.getElementById('model-btn-label').textContent=MODEL_LABELS[key]||'Auto';
-  const sml=document.getElementById('settings-model-label');if(sml)sml.textContent=MODEL_LABELS[key]||'Auto';
-  closeModelMenu();
-}
-function toggleModelMenu(e){e.stopPropagation();const m=document.getElementById('model-menu');const btn=document.getElementById('model-btn');const open=m.classList.contains('open');m.classList.toggle('open',!open);btn.classList.toggle('menu-open',!open);}
-function closeModelMenu(){document.getElementById('model-menu')?.classList.remove('open');document.getElementById('model-btn')?.classList.remove('menu-open');}
-document.addEventListener('click',()=>{closeModelMenu();document.getElementById('plus-menu')?.classList.remove('open');});
+/* ── REMOVED UI CLICKS ── */
+document.addEventListener('click',()=>{document.getElementById('plus-menu')?.classList.remove('open');});
 
 /* ── ONBOARDING ── */
 let _onboardChecked=false;
@@ -498,8 +502,9 @@ function hideValues(){window.location.href='index.html';}
 /* ── INIT ── */
 async function init(){
   sb=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage}});
+  await loadAppConfig();
   if(window.location.hash&&window.location.hash.includes('access_token'))window.history.replaceState(null,'',window.location.pathname);
-  initThemeUI();setModel(modelKey);
+  initThemeUI();
   let _routed=false;
   sb.auth.onAuthStateChange(async(ev,sess)=>{
     if(ev==='INITIAL_SESSION'){if(_routed)return;_routed=true;if(sess?.user){email=sess.user.email||'';uid=sess.user.id;guest=false;await enterChat();}else{hideLoading();show('auth');}}
@@ -523,7 +528,7 @@ async function enterChat(){
     chatEl.classList.add('active');
     if(window._vv)window._vv();
     if(!guest)name=name||email.split('@')[0];
-    refreshUI();updateGreeting();setModel(modelKey);
+    refreshUI();updateGreeting();
     if(!guest)Promise.all([loadProfile(),loadConvs(),loadAnn()]).catch(()=>{});
     else{try{document.getElementById('guest-note').style.display='block';}catch(e){}log('inf','Guest mode');}
   }finally{entering=false;}
@@ -654,7 +659,14 @@ async function send(){
   setBusy(true);
   addMsg('user',txt,false,imgs);
   const t0=Date.now();
-  stats.req++;log('req',`"${(txt||'[image]').slice(0,60)}" model=${MODEL_MAP[modelKey]} guest=${guest} hwMode=${hwMode} imgs=${imgs.length}`);
+
+  // CYCLE THE MODEL 
+  let currentModel = dynamicModels.length > 0 ? dynamicModels[modelCycleIndex] : 'google/gemini-3-flash-preview';
+  if (dynamicModels.length > 0) {
+      modelCycleIndex = (modelCycleIndex + 1) % dynamicModels.length; 
+  }
+
+  stats.req++;log('req',`"${(txt||'[image]').slice(0,60)}" model=${currentModel} guest=${guest} hwMode=${hwMode} imgs=${imgs.length}`);
   const thinkEl=await showThinking(thinkMode);
 
   try{
@@ -682,7 +694,7 @@ async function send(){
     let hdrs={'Content-Type':'application/json'};
     let bodyObj={
       message: userMsg,
-      model: MODEL_MAP[modelKey] || MODEL_MAP.auto,
+      model: currentModel,
       chat_history: hist.slice(0,-1).map(m=>({role:m.role,message:m.message})),
       temperature: temp
     };
@@ -718,7 +730,7 @@ async function send(){
     let d;try{d=await res.json();}catch(_){throw new Error('Bad response from server');}
     const ms=Date.now()-t0;
     if(!res.ok||d.error)throw new Error(d.error||'HTTP '+res.status);
-    stats.lat.push(ms);stats.res++;log('res',`${ms}ms | model=${MODEL_MAP[modelKey]} | replyLen=${d.text?.length??0} | uid=${d.userId??'?'}`);
+    stats.lat.push(ms);stats.res++;log('res',`${ms}ms | model=${currentModel} | replyLen=${d.text?.length??0} | uid=${d.userId??'?'}`);
     hist.push({role:'CHATBOT',message:d.text});
     if(hist.length>20)hist=hist.slice(-20);
 
@@ -740,7 +752,7 @@ async function send(){
       }
     }else{
       stats.err++;
-      log('err',`${ex.message} | model=${MODEL_MAP[modelKey]} | guest=${guest}`);
+      log('err',`${ex.message} | model=${currentModel} | guest=${guest}`);
       replaceThinkWithContent(thinkEl,'Error: '+hesc(ex.message));
       if(voiceMode) playVoice("Sorry, I ran into an error.");
     }
