@@ -506,7 +506,7 @@ async function send(){
   setBusy(true);
   addMsg('user',txt,false,imgs);
   const t0=Date.now();
-  stats.req++;log('req','\u201c'+(txt||'[image]').slice(0,60)+'\u201d ['+MODEL_LABELS[modelKey]+(hwMode?' HW':'')+']');
+  stats.req++;log('req',`"${(txt||'[image]').slice(0,60)}" model=${MODEL_MAP[modelKey]} guest=${guest} hwMode=${hwMode} imgs=${imgs.length}`);
   const thinkEl=await showThinking(thinkMode);
 
   try{
@@ -535,12 +535,19 @@ async function send(){
 
     if(guest){
       bodyObj.guest=true;
+      log('inf','send: guest mode');
     }else{
-      // Attach JWT if available - edge function uses it to identify user but never blocks on it
       try{
         const{data:{session}}=await sb.auth.getSession();
-        if(session?.access_token)hdrs['Authorization']='Bearer '+session.access_token;
-      }catch(_){}
+        if(session?.access_token){
+          hdrs['Authorization']='Bearer '+session.access_token;
+          log('inf',`send: authed uid=${session.user?.id?.slice(0,8)} exp=${new Date((session.expires_at||0)*1000).toISOString()}`);
+        }else{
+          log('err','send: getSession() returned no token');
+        }
+      }catch(ex){
+        log('err','send: getSession() threw — '+ex.message);
+      }
     }
 
     replaceThinkWithTyping(thinkEl);await sleep(120);
@@ -557,7 +564,7 @@ async function send(){
     let d;try{d=await res.json();}catch(_){throw new Error('Bad response from server');}
     const ms=Date.now()-t0;
     if(!res.ok||d.error)throw new Error(d.error||'HTTP '+res.status);
-    stats.lat.push(ms);stats.res++;log('res',ms+'ms');
+    stats.lat.push(ms);stats.res++;log('res',`${ms}ms | model=${MODEL_MAP[modelKey]} | replyLen=${d.text?.length??0} | uid=${d.userId??'?'}`);
     hist.push({role:'CHATBOT',message:d.text});
     if(hist.length>20)hist=hist.slice(-20);
 
@@ -574,6 +581,7 @@ async function send(){
       }
     }else{
       stats.err++;
+      log('err',`${ex.message} | model=${MODEL_MAP[modelKey]} | guest=${guest}`);
       replaceThinkWithContent(thinkEl,'Error: '+hesc(ex.message));
     }
     setBusy(false);
