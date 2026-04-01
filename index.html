@@ -346,6 +346,14 @@
         <div class="input-wrap">
           <div class="input-area-wrap">
             <div class="plus-menu" id="plus-menu">
+              <button class="plus-item" id="menu-think" onclick="toggleThinkMode()">
+                <span class="plus-item-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path></svg></span>
+                <span class="plus-item-text">
+                  <span class="plus-item-label">Think mode</span>
+                  <span class="plus-item-desc">Deep reasoning and outlines</span>
+                </span>
+                <span class="plus-item-check"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
+              </button>
               <button class="plus-item" id="menu-homework" onclick="toggleHwMode()">
                 <span class="plus-item-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
                 <span class="plus-item-text">
@@ -355,14 +363,20 @@
                 <span class="plus-item-check"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
               </button>
             </div>
-            <div class="hw-label" id="hw-label">
-              Homework mode
-              <button class="hw-label-x" onclick="toggleHwMode()">&times;</button>
+            <div style="display: flex; gap: 6px;">
+              <div class="hw-label" id="think-label">
+                Think mode
+                <button class="hw-label-x" onclick="toggleThinkMode()">&times;</button>
+              </div>
+              <div class="hw-label" id="hw-label">
+                Homework mode
+                <button class="hw-label-x" onclick="toggleHwMode()">&times;</button>
+              </div>
             </div>
             <div class="img-strip" id="img-strip"></div>
             <div class="input-box" id="input-box">
               <input type="file" id="img-upload" accept="image/*" multiple style="display:none" onchange="onImgPick(this)">
-              <button class="plus-btn" id="plus-btn" onclick="togglePlusMenu(event)" title="Attach / Homework">+</button>
+              <button class="plus-btn" id="plus-btn" onclick="togglePlusMenu(event)" title="Attach / Modes">+</button>
               
               <textarea class="chat-input" id="chat-input" placeholder="Message Cloak&hellip;" rows="1"
                 oninput="onInput(this)" onkeydown="onKey(event)" onpaste="onPaste(event)"></textarea>
