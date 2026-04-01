@@ -88,10 +88,14 @@ rend.code=(code,lang)=>{
 };
 rend.link=(href,title,text)=>{
   const safe=hesc(href||'');const t=title?'title="'+hesc(title)+'"':'';
+  // Check if link text is a number or [number] for citation bubbles
+  if (/^\[?\d+\]?$/.test(text)) {
+    const num = text.replace(/[\[\]]/g, '');
+    return '<a href="#" class="cit-bubble" '+t+' onclick="interceptLink(event,\''+safe+'\')">'+num+'</a>';
+  }
   return '<a href="#" class="ext-link" '+t+' onclick="interceptLink(event,\''+safe+'\')">'+text+'</a>';
 };
 marked.use({renderer:rend,mangle:false,headerIds:false});
-
 /* ── STREAM ANIMATION ── */
 function streamContent(container, rawText, onComplete) {
   _streamAbort=false;
