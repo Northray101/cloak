@@ -30,7 +30,6 @@
   </svg>
 </div>
 
-<!-- ── AUTH ── -->
 <div id="s-auth" class="screen">
   <div class="auth-card">
     <div class="brand">
@@ -71,7 +70,6 @@
   </div>
 </div>
 
-<!-- ── VERIFY ── -->
 <div id="s-verify" class="screen">
   <div class="auth-card">
     <div class="brand">
@@ -87,7 +85,6 @@
   </div>
 </div>
 
-<!-- ── MFA ── -->
 <div id="s-mfa" class="screen">
   <div class="auth-card">
     <div class="brand">
@@ -104,18 +101,15 @@
   </div>
 </div>
 
-<!-- ── CHAT ── -->
 <div id="s-chat">
   <div id="ios-inset"></div>
 
-  <!-- Announcement bar -->
   <div class="ann" id="ann-bar">
     <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M22 8.93V3l-8 5H6a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h1l2 5h3l-1-5h3l8 5V8.93z"/></svg>
     <span class="ann-text" id="ann-msg"></span>
     <button class="ann-x" onclick="dismissAnn()">&times;</button>
   </div>
 
-  <!-- Settings Modal -->
   <div class="overlay" id="modal-settings" style="display:none" onclick="overlayClick(event,'modal-settings')">
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-head">
@@ -146,7 +140,6 @@
           </button>
         </nav>
         <div class="settings-body">
-          <!-- General -->
           <div class="spane on" id="spane-general">
             <div class="srow">
               <div class="srow-name">Account</div>
@@ -172,8 +165,6 @@
               <button class="danger" style="margin-top:8px" onclick="doLogout()">Sign out of Cloak</button>
             </div>
           </div>
-
-          <!-- Appearance -->
           <div class="spane" id="spane-appearance">
             <div class="srow">
               <div class="srow-head"><div class="srow-name">Light / Dark mode</div></div>
@@ -214,8 +205,6 @@
               </div>
             </div>
           </div>
-
-          <!-- Security -->
           <div class="spane" id="spane-security">
             <div class="srow">
               <div class="srow-head"><div class="srow-name">Two-factor authentication</div></div>
@@ -233,8 +222,6 @@
               </div>
             </div>
           </div>
-
-          <!-- Console -->
           <div class="spane" id="spane-console">
             <div class="srow" style="padding-top:0">
               <div class="stats-row">
@@ -256,8 +243,6 @@
               <div class="console-log" id="console-log"><div class="log-empty">No logs yet</div></div>
             </div>
           </div>
-
-          <!-- Admin -->
           <div class="spane" id="spane-admin">
             <div class="srow">
               <div class="srow-head"><div class="srow-name">Admin panel</div><span class="srow-badge">Owner</span></div>
@@ -278,11 +263,9 @@
     </div>
   </div>
 
-  <!-- Chat shell -->
   <div class="chat-shell">
     <div class="sb-overlay" id="sb-overlay" onclick="closeMobileSidebar()"></div>
 
-    <!-- Sidebar -->
     <div class="sidebar collapsed" id="sidebar">
       <div class="sb-logo">
         <svg class="sb-logo-star" width="19" height="19" viewBox="0 0 19 19" fill="none">
@@ -322,7 +305,6 @@
       </div>
     </div>
 
-    <!-- Main chat -->
     <div class="main">
       <div class="topbar">
         <div class="topbar-left">
@@ -331,22 +313,18 @@
           </button>
         </div>
         <div class="topbar-right">
-          <button class="icon-btn" onclick="toggleDark()" title="Toggle theme">
+          <button class="icon-btn" onclick="toggleDark()" title="Toggle Theme">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24">
               <path class="moon" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
               <g class="sun"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></g>
             </svg>
           </button>
-
-          <!-- Canvas toggle -->
-          <button class="icon-btn" onclick="toggleCanvas()" title="Open Canvas" id="canvas-toggle-btn">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          </button>
-
+          
           <div class="live-dot"></div>
-          <!-- Removed the right-side border by removing the border-right on the model btn wrapper -->
-          <div id="model-btn" style="cursor:default;box-shadow:none;transform:none;border-color:var(--acc);">
-            Mode: <span id="model-btn-label" style="color:var(--acc);">Dynamic</span>
+          <div>
+            <div id="model-btn" style="cursor:default; box-shadow:none; transform:none; border-color:var(--acc);">
+              Mode: <span id="model-btn-label" style="color:var(--acc);">Dynamic</span>
+            </div>
           </div>
         </div>
       </div>
@@ -385,14 +363,14 @@
             <div class="input-box" id="input-box">
               <input type="file" id="img-upload" accept="image/*" multiple style="display:none" onchange="onImgPick(this)">
               <button class="plus-btn" id="plus-btn" onclick="togglePlusMenu(event)" title="Attach / Homework">+</button>
-
+              
               <textarea class="chat-input" id="chat-input" placeholder="Message Cloak&hellip;" rows="1"
                 oninput="onInput(this)" onkeydown="onKey(event)" onpaste="onPaste(event)"></textarea>
 
-              <button class="send-btn" id="mic-btn" style="background:var(--surf);color:var(--ink);border:var(--bd);" onclick="startVoiceMode()" title="Voice mode">
+              <button class="send-btn" id="mic-btn" style="background:var(--surf); color:var(--ink); border:var(--bd);" onclick="startVoiceMode()" title="Start Voice Mode">
                 <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
               </button>
-
+              
               <button class="send-btn" id="send-btn" onclick="send()" disabled>
                 <svg id="send-icon" width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>
               </button>
@@ -406,73 +384,8 @@
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- ══ CANVAS PANEL ══ -->
-    <div class="canvas-panel" id="canvas-panel">
-
-      <!-- Canvas AI writing indicator -->
-      <div class="canvas-ai-bar" id="canvas-ai-bar">
-        <div class="canvas-ai-spinner"></div>
-        <span>Cloak is writing&hellip;</span>
-      </div>
-
-      <!-- Canvas header -->
-      <div class="canvas-head">
-        <div class="canvas-title">Canvas</div>
-
-        <!-- Edit / Preview toggle -->
-        <div class="canvas-mode-seg">
-          <button class="canvas-mode-btn active" id="canvas-edit-btn" onclick="setCanvasMode('edit')">Edit</button>
-          <button class="canvas-mode-btn" id="canvas-prev-btn" onclick="setCanvasMode('preview')">Preview</button>
-        </div>
-
-        <button class="icon-btn" style="width:28px;height:28px;box-shadow:none;" onclick="closeCanvas()" title="Close canvas">&times;</button>
-      </div>
-
-      <!-- Toolbar -->
-      <div class="canvas-toolbar">
-        <!-- Text formatting -->
-        <button class="ct-btn" onclick="canvasAction('bold')" title="Bold"><b>B</b></button>
-        <button class="ct-btn" onclick="canvasAction('italic')" title="Italic"><i>I</i></button>
-        <div class="ct-sep"></div>
-        <button class="ct-btn" onclick="canvasAction('h1')" title="Heading 1">H1</button>
-        <button class="ct-btn" onclick="canvasAction('h2')" title="Heading 2">H2</button>
-        <div class="ct-sep"></div>
-        <button class="ct-btn" onclick="canvasAction('ul')" title="Bullet list">&#8226; List</button>
-        <button class="ct-btn" onclick="canvasAction('ol')" title="Numbered list">1. List</button>
-        <button class="ct-btn" onclick="canvasAction('quote')" title="Blockquote">&ldquo; Quote</button>
-        <div class="ct-sep"></div>
-        <button class="ct-btn" onclick="canvasAction('code')" title="Inline code">&lt;/&gt;</button>
-        <button class="ct-btn" onclick="canvasAction('codeblock')" title="Code block">Block</button>
-        <button class="ct-btn" onclick="canvasAction('hr')" title="Divider">&#x2014;</button>
-        <div class="ct-sep"></div>
-        <!-- AI actions -->
-        <button class="ct-btn ct-accent" onclick="canvasAiWrite()" title="AI: Write or extend">&#10022; Write</button>
-        <button class="ct-btn ct-accent" onclick="canvasAiEdit()" title="AI: Edit selection">&#10022; Edit</button>
-        <div class="ct-sep"></div>
-        <!-- Utility -->
-        <button class="ct-btn" id="canvas-copy-btn" onclick="canvasAction('copy')" title="Copy all">Copy</button>
-        <button class="ct-btn" onclick="canvasAction('clear')" title="Clear canvas" style="opacity:.55;">Clear</button>
-      </div>
-
-      <!-- Editor body -->
-      <div class="canvas-body">
-        <textarea class="canvas-editor" id="canvas-editor" placeholder="Start writing here, or click ✦ Write to let Cloak draft something for you.&#10;&#10;Select text to see formatting and AI options.&#10;&#10;Markdown is supported — toggle Preview to see it rendered."></textarea>
-        <div class="canvas-preview" id="canvas-preview"></div>
-      </div>
-
-      <!-- Status bar -->
-      <div class="canvas-status">
-        <span id="canvas-status-text">0 words · 0 chars · 0 lines</span>
-        <span>Markdown</span>
-      </div>
-
-    </div>
-    <!-- ══ /CANVAS PANEL ══ -->
-
-  </div><!-- /chat-shell -->
-
-  <!-- Voice overlay -->
   <div class="voice-overlay" id="voice-overlay">
     <button class="voice-close" onclick="stopVoiceMode()" title="Exit Voice Mode">&times;</button>
     <div class="voice-ascii" id="voice-ascii">[ - - - - - ]</div>
@@ -480,7 +393,6 @@
     <div class="voice-transcript" id="voice-transcript">Say something...</div>
   </div>
 
-  <!-- Onboarding -->
   <div class="onboard-overlay" id="onboard-modal" style="display:none">
     <div class="onboard-card">
       <div class="onboard-head">
@@ -511,7 +423,6 @@
     </div>
   </div>
 
-  <!-- Ad consent -->
   <div class="ad-overlay" id="ad-modal" style="display:none">
     <div class="ad-card">
       <div class="ad-title">Allow ads?</div>
@@ -523,7 +434,6 @@
     </div>
   </div>
 
-  <!-- Link intercept -->
   <div class="link-overlay" id="link-modal" style="display:none">
     <div class="link-card">
       <div class="link-title">Leaving Cloak</div>
@@ -534,8 +444,7 @@
       </div>
     </div>
   </div>
-
-</div><!-- /s-chat -->
+</div>
 
 <script src="cloak.js" defer></script>
 </body>
