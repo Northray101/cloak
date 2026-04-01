@@ -250,7 +250,7 @@
             </div>
             <div class="srow">
               <div class="srow-name">Post announcement</div>
-              <textarea class="inp-field" id="ann-compose" placeholder="Write an announcement..." style="margin-top:8px;min-height:72px;resize:vertical;font-family:inherit;font-size:13px;line-height:1.6"></textarea>
+              <textarea class="inp-field" id="ann-compose" placeholder="Write an announcement&hellip;" style="margin-top:8px;min-height:72px;resize:vertical;font-family:inherit;font-size:13px;line-height:1.6"></textarea>
               <button class="cta" style="margin-top:8px" onclick="postAnn()">Post</button>
             </div>
             <div class="srow">
@@ -368,7 +368,7 @@
               <input type="file" id="img-upload" accept="image/*" multiple style="display:none" onchange="onImgPick(this)">
               <button class="plus-btn" id="plus-btn" onclick="togglePlusMenu(event)" title="Attach / Homework">+</button>
               
-              <textarea class="chat-input" id="chat-input" placeholder="Message Cloak..." rows="1"
+              <textarea class="chat-input" id="chat-input" placeholder="Message Cloak&hellip;" rows="1"
                 oninput="onInput(this)" onkeydown="onKey(event)" onpaste="onPaste(event)"></textarea>
 
               <button class="send-btn" id="mic-btn" style="background:var(--surf); color:var(--ink); border:var(--bd);" onclick="startVoiceMode()" title="Start Voice Mode">
@@ -392,16 +392,9 @@
     <div class="canvas-panel" id="canvas-panel">
       <div class="canvas-head">
         <div class="canvas-title">Canvas</div>
-        <div class="canvas-toolbar" id="canvas-toolbar">
-          <button class="format-btn" onclick="formatText('bold')" title="Bold" style="font-weight:900">B</button>
-          <button class="format-btn" onclick="formatText('italic')" title="Italic" style="font-style:italic">I</button>
-          <button class="format-btn" onclick="formatText('underline')" title="Underline" style="text-decoration:underline">U</button>
-          <button class="format-btn" onclick="formatText('insertUnorderedList')" title="Bullet List">&bull;</button>
-          <button class="format-btn" onclick="formatText('formatBlock', 'H2')" title="Heading">H</button>
-        </div>
         <button class="icon-btn" style="width:28px; height:28px" onclick="toggleCanvas()">&times;</button>
       </div>
-      <div class="canvas-editor" id="canvas-editor" contenteditable="true" placeholder="Start typing or let Cloak write here..."></div>
+      <textarea class="canvas-editor" id="canvas-editor" placeholder="Start typing or send an AI response here..."></textarea>
     </div>
 
   </div>

@@ -100,25 +100,13 @@ function streamContent(container, rawText, onComplete) {
 
   function renderPartial(text){
     if(!text){container.innerHTML='<span class="sc"></span>';return;}
-    
-    let displayTxt = text;
-    // Intercept AI Canvas Tool tags
-    const cvsMatch = text.match(/<canvas>([\s\S]*?)(<\/canvas>|$)/i);
-    if(cvsMatch){
-       displayTxt = text.replace(/<canvas>[\s\S]*?(<\/canvas>|$)/i, '\n\n<span style="color:var(--acc);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.08em">[WRITING TO CANVAS...]</span>\n\n');
-       document.getElementById('canvas-editor').innerHTML = marked.parse(cvsMatch[1]);
-       if(!document.getElementById('canvas-panel').classList.contains('open')) {
-           document.getElementById('canvas-panel').classList.add('open');
-       }
-    }
-
-    const lastBlock=displayTxt.lastIndexOf('\n\n');
+    const lastBlock=text.lastIndexOf('\n\n');
     let html;
     if(lastBlock===-1){
-      html='<p>'+hesc(displayTxt)+'<span class="sc"></span></p>';
+      html='<p>'+hesc(text)+'<span class="sc"></span></p>';
     }else{
-      const complete=displayTxt.slice(0,lastBlock+2);
-      const trailing=displayTxt.slice(lastBlock+2);
+      const complete=text.slice(0,lastBlock+2);
+      const trailing=text.slice(lastBlock+2);
       html=marked.parse(complete);
       if(trailing)html+='<p>'+hesc(trailing)+'<span class="sc"></span></p>';
       else html+='<span class="sc"></span>';
@@ -129,7 +117,7 @@ function streamContent(container, rawText, onComplete) {
 
   function tick(){
     if(_streamAbort||pos>=total){
-      renderPartial(rawText);
+      container.innerHTML=marked.parse(rawText);
       postProcessBotEl(container.closest('.msg'),rawText);
       scrollBottom();
       if(onComplete)onComplete();
@@ -208,10 +196,10 @@ function postProcessBotEl(msgEl, rawText){
   canvasBtn.addEventListener('click', () => {
     document.getElementById('canvas-panel').classList.add('open');
     const editor = document.getElementById('canvas-editor');
-    if (editor.innerHTML.trim() !== '') {
-       editor.innerHTML += '<br><br>' + marked.parse(rawText);
+    if (editor.value.trim() !== '') {
+       editor.value += '\n\n' + rawText;
     } else {
-       editor.innerHTML = marked.parse(rawText);
+       editor.value = rawText;
     }
   });
 
@@ -242,13 +230,7 @@ function addMsg(role,content,noAnim=false,imgs=[]){
     actions.appendChild(editBtn);
     const wrap=d.querySelector('.msg-wrap');if(wrap)wrap.appendChild(actions);
   }else{
-    let displayTxt = content;
-    const cvsMatch = content.match(/<canvas>([\s\S]*?)(<\/canvas>|$)/i);
-    if(cvsMatch){
-       displayTxt = content.replace(/<canvas>[\s\S]*?(<\/canvas>|$)/i, '\n\n<span style="color:var(--acc);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.08em">[WRITING TO CANVAS...]</span>\n\n');
-    }
-
-    const html=noAnim?marked.parse(displayTxt):'';
+    const html=noAnim?marked.parse(content):'';
     d.innerHTML='<div class="av av-bot"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1L7.4 4.6L11 6L7.4 7.4L6 11L4.6 7.4L1 6L4.6 4.6Z" fill="#fff"/></svg></div><div class="bot-body"><div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="bot-content">'+html+'</div></div>';
     if(noAnim){
       const bc=d.querySelector('.bot-content');
@@ -282,14 +264,9 @@ function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(!docume
 function showE(el,msg){el.textContent=msg;el.classList.add('show');}
 function clearE(id){const el=document.getElementById(id);if(el){el.textContent='';el.classList.remove('show');}}
 
-/* ── CANVAS TOGGLE & FORMAT ── */
+/* ── CANVAS TOGGLE ── */
 function toggleCanvas() {
   document.getElementById('canvas-panel').classList.toggle('open');
-}
-
-function formatText(cmd, val=null) {
-  document.execCommand(cmd, false, val);
-  document.getElementById('canvas-editor').focus();
 }
 
 /* ── VOICE MODE ── */
@@ -418,7 +395,7 @@ function newChat(){
   chatId=null;hist=[];document.getElementById('messages').innerHTML='';
   document.getElementById('messages').style.display='none';document.getElementById('empty-state').style.display='flex';renderConvs();
 }
-function cpCode(id,btn){navigator.clipboard.writeText(document.getElementById(id)?.innerText||'').then(()=>{btn.textContent='Copied';btn.classList.add('ok');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('ok');},1400);});}
+function cpCode(id,btn){navigator.clipboard.writeText(document.getElementById(id)?.innerText||'').then(()=>{btn.textContent='Copied!';btn.classList.add('ok');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('ok');},1400);});}
 
 /* ── THINKING ── */
 const THINK={normal:['Reading your message','Working through it','Writing a response'],homework:['Reading the problem','Thinking like a tutor','Forming a question'],image:['Reading the image','Extracting text','Preparing response']};
@@ -570,12 +547,12 @@ async function handleAuth(){
   if(!em||!pw){showE(err,'Please fill in all fields.');return;}
   btn.disabled=true;
   if(signingIn){
-    btn.textContent='Signing in...';
+    btn.textContent='Signing in\u2026';
     const{data:d,error:e}=await sb.auth.signInWithPassword({email:em,password:pw});
     if(e){showE(err,e.message);}else if(d?.session){email=d.session.user.email||'';uid=d.session.user.id;guest=false;await enterChat();return;}
   }else{
     const nm=document.getElementById('inp-name').value.trim();const cf=document.getElementById('inp-confirm').value;
-    btn.textContent='Creating...';
+    btn.textContent='Creating\u2026';
     if(pw!==cf){showE(err,'Passwords do not match.');btn.disabled=false;btn.textContent='Create account';return;}
     if(pw.length<8){showE(err,'Password must be at least 8 characters.');btn.disabled=false;btn.textContent='Create account';return;}
     const{error:e}=await sb.auth.signUp({email:em,password:pw,options:{data:{display_name:nm||em.split('@')[0]}}});
@@ -659,7 +636,7 @@ function clearLogs(){logs=[];stats={req:0,res:0,err:0,lat:[]};renderLogs();updat
 /* ── STORAGE ── */
 async function loadConvs(){const{data,error}=await sb.from('chats').select('id,title,updated_at').eq('user_id',uid).order('updated_at',{ascending:false});if(error){log('err','Load convs: '+error.message);return;}convs=(data||[]).map(r=>({id:r.id,title:r.title}));renderConvs();log('inf','Loaded '+convs.length+' chat(s)');}
 async function loadConv(id){const{data,error}=await sb.from('chats').select('*').eq('id',id).single();if(error){log('err','Load chat: '+error.message);return;}chatId=id;hist=data.messages||[];document.getElementById('messages').innerHTML='';hist.forEach(m=>addMsg(m.role==='CHATBOT'?'bot':'user',m.message,true));showMessages();renderConvs();}
-async function saveConv(first){if(!uid||guest)return;let currentUid=uid;try{const{data:{session}}=await sb.auth.getSession();if(!session?.user){log('err','Save aborted: no session');return;}currentUid=session.user.id;uid=currentUid;}catch(e){log('err','Save: session check failed');return;}const ex=convs.find(c=>c.id===chatId);const title=ex?ex.title:(first.slice(0,50)+(first.length>50?'...':''));if(!ex)convs.unshift({id:chatId,title});renderConvs();const{error}=await sb.from('chats').upsert({id:chatId,user_id:currentUid,title,messages:hist,updated_at:new Date().toISOString()},{onConflict:'user_id,id'});if(error){log('err','Save: '+error.message);}else{log('inf','Chat saved: '+title.slice(0,30));}}
+async function saveConv(first){if(!uid||guest)return;let currentUid=uid;try{const{data:{session}}=await sb.auth.getSession();if(!session?.user){log('err','Save aborted: no session');return;}currentUid=session.user.id;uid=currentUid;}catch(e){log('err','Save: session check failed');return;}const ex=convs.find(c=>c.id===chatId);const title=ex?ex.title:(first.slice(0,50)+(first.length>50?'\u2026':''));if(!ex)convs.unshift({id:chatId,title});renderConvs();const{error}=await sb.from('chats').upsert({id:chatId,user_id:currentUid,title,messages:hist,updated_at:new Date().toISOString()},{onConflict:'user_id,id'});if(error){log('err','Save: '+error.message);}else{log('inf','Chat saved: '+title.slice(0,30));}}
 async function delConv(id){const{error}=await sb.from('chats').delete().eq('id',id).eq('user_id',uid);if(error){log('err','Delete: '+error.message);return;}convs=convs.filter(c=>c.id!==id);if(chatId===id)newChat();else renderConvs();}
 
 /* ── SEND ── */
@@ -669,6 +646,7 @@ async function send(){
   if(guest&&guestN>=GUEST_MAX){showLimit();return;}
   if(!chatId){chatId=Date.now().toString();hist=[];}
   
+  // Enter thinking state if voice mode is active
   if(voiceMode) {
      voiceState = 'thinking';
      if(recognition) recognition.stop();
@@ -682,6 +660,7 @@ async function send(){
   addMsg('user',txt,false,imgs);
   const t0=Date.now();
 
+  // CYCLE THE MODEL 
   let currentModel = dynamicModels.length > 0 ? dynamicModels[modelCycleIndex] : 'google/gemini-3-flash-preview';
   if (dynamicModels.length > 0) {
       modelCycleIndex = (modelCycleIndex + 1) % dynamicModels.length; 
@@ -711,17 +690,10 @@ async function send(){
 
     hist.push({role:'USER',message:userMsg||(imgs.length?'[Image]':'')});
 
-    // --- CANVAS TOOL INJECTION ---
-    let finalPayloadMsg = userMsg;
-    const isCanvasOpen = document.getElementById('canvas-panel').classList.contains('open');
-    if (isCanvasOpen) {
-        const cText = document.getElementById('canvas-editor').innerText.trim();
-        finalPayloadMsg += `\n\n[SYSTEM: The user has the Canvas tool open. Current Canvas content: """${cText}""". If you are writing, generating, or editing an essay, article, or code block, output your FULL replacement text wrapped exactly inside <canvas> and </canvas> tags to update the document. For normal conversation, reply normally without tags. Do not use emojis anywhere in your response.]`;
-    }
-
+    // Build request headers and body
     let hdrs={'Content-Type':'application/json'};
     let bodyObj={
-      message: finalPayloadMsg,
+      message: userMsg,
       model: currentModel,
       chat_history: hist.slice(0,-1).map(m=>({role:m.role,message:m.message})),
       temperature: temp
@@ -764,6 +736,7 @@ async function send(){
 
     replaceThinkWithContent(thinkEl, d.text);
     
+    // Play voice if enabled
     if(voiceMode) {
        playVoice(d.text);
     }
