@@ -189,21 +189,6 @@ function postProcessBotEl(msgEl, rawText){
     }).catch(()=>{});
   });
 
-  const canvasBtn = document.createElement('button');
-  canvasBtn.className = 'msg-action-btn';
-  canvasBtn.title = 'Open in Canvas';
-  canvasBtn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
-  canvasBtn.addEventListener('click', () => {
-    document.getElementById('canvas-panel').classList.add('open');
-    const editor = document.getElementById('canvas-editor');
-    if (editor.value.trim() !== '') {
-       editor.value += '\n\n' + rawText;
-    } else {
-       editor.value = rawText;
-    }
-  });
-
-  actions.appendChild(canvasBtn);
   actions.appendChild(copyBtn);
   botBody.appendChild(actions);
 }
@@ -264,10 +249,6 @@ function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(!docume
 function showE(el,msg){el.textContent=msg;el.classList.add('show');}
 function clearE(id){const el=document.getElementById(id);if(el){el.textContent='';el.classList.remove('show');}}
 
-/* ── CANVAS TOGGLE ── */
-function toggleCanvas() {
-  document.getElementById('canvas-panel').classList.toggle('open');
-}
 
 /* ── VOICE MODE ── */
 function initVoice() {
