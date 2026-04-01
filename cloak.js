@@ -18,8 +18,8 @@ let onboardingDone=false;
 let _fetchController=null;
 let _streamAbort=false;
 
-/* Dynamic Model Variables */
-let dynamicModels = ['google/gemini-3-flash-preview', 'cohere/command-r-plus-08-2024'];
+/* Dynamic Model Variables - Cohere Primary, Gemini Secondary */
+let dynamicModels = ['cohere/command-r-plus-08-2024', 'google/gemini-2.5-flash'];
 let modelCycleIndex = 0;
 
 /* Voice Mode Variables */
@@ -377,7 +377,7 @@ function newChat(){
 }
 function cpCode(id,btn){navigator.clipboard.writeText(document.getElementById(id)?.innerText||'').then(()=>{btn.textContent='Copied!';btn.classList.add('ok');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('ok');},1400);});}
 
-/* ── BUSY STATE ── */
+/* ── BUSY STATE / TYPING BUBBLE ── */
 function setBusy(b){
   busy=b;
   const btn=document.getElementById('send-btn');
@@ -426,19 +426,29 @@ function replaceThinkWithContent(thinkEl, rawText) {
 
 /* ── PLUS MENU / MODES / IMAGE ── */
 function togglePlusMenu(e){e.stopPropagation();document.getElementById('plus-menu').classList.toggle('open');}
+
 function toggleHwMode(){
   hwMode=!hwMode;
-  document.getElementById('menu-homework').classList.toggle('active-mode',hwMode);
-  document.getElementById('hw-label').classList.toggle('show',hwMode);
-  document.getElementById('plus-btn').classList.toggle('has-mode',hwMode||thinkModeActive||attachedImgs.length>0);
-  document.getElementById('plus-menu').classList.remove('open');
+  const hm = document.getElementById('menu-homework');
+  if (hm) hm.classList.toggle('active-mode', hwMode);
+  const hl = document.getElementById('hw-label');
+  if (hl) hl.classList.toggle('show', hwMode);
+  const pb = document.getElementById('plus-btn');
+  if (pb) pb.classList.toggle('has-mode', hwMode||thinkModeActive||attachedImgs.length>0);
+  const pm = document.getElementById('plus-menu');
+  if (pm) pm.classList.remove('open');
 }
+
 function toggleThinkMode() {
   thinkModeActive = !thinkModeActive;
-  document.getElementById('menu-think').classList.toggle('active-mode', thinkModeActive);
-  document.getElementById('think-label').classList.toggle('show', thinkModeActive);
-  document.getElementById('plus-btn').classList.toggle('has-mode', hwMode||thinkModeActive||attachedImgs.length>0);
-  document.getElementById('plus-menu').classList.remove('open');
+  const mt = document.getElementById('menu-think');
+  if (mt) mt.classList.toggle('active-mode', thinkModeActive);
+  const tl = document.getElementById('think-label');
+  if (tl) tl.classList.toggle('show', thinkModeActive);
+  const pb = document.getElementById('plus-btn');
+  if (pb) pb.classList.toggle('has-mode', hwMode||thinkModeActive||attachedImgs.length>0);
+  const pm = document.getElementById('plus-menu');
+  if (pm) pm.classList.remove('open');
 }
 
 function onImgPick(inp){Array.from(inp.files).forEach(f=>{const r=new FileReader();r.onload=ev=>{attachedImgs.push({name:f.name,data:ev.target.result});renderImgStrip();};r.readAsDataURL(f);});inp.value='';}
@@ -447,7 +457,8 @@ function renderImgStrip(){
   const strip=document.getElementById('img-strip');strip.innerHTML='';
   if(attachedImgs.length){strip.classList.add('show');attachedImgs.forEach((img,i)=>{const w=document.createElement('div');w.className='img-thumb-wrap';w.innerHTML='<img class="img-thumb" src="'+img.data+'" alt="img"><button class="img-thumb-del" onclick="removeImg('+i+')">&times;</button>';strip.appendChild(w);});}
   else strip.classList.remove('show');
-  document.getElementById('plus-btn').classList.toggle('has-mode',hwMode||thinkModeActive||attachedImgs.length>0);
+  const pb = document.getElementById('plus-btn');
+  if(pb) pb.classList.toggle('has-mode',hwMode||thinkModeActive||attachedImgs.length>0);
 }
 function removeImg(i){attachedImgs.splice(i,1);renderImgStrip();}
 
@@ -664,7 +675,7 @@ async function send(){
   addMsg('user',txt,false,imgs);
   const t0=Date.now();
 
-  let currentModel = dynamicModels.length > 0 ? dynamicModels[modelCycleIndex] : 'google/gemini-3-flash-preview';
+  let currentModel = dynamicModels.length > 0 ? dynamicModels[modelCycleIndex] : 'cohere/command-r-plus-08-2024';
   if (dynamicModels.length > 0) { modelCycleIndex = (modelCycleIndex + 1) % dynamicModels.length; }
 
   stats.req++;log('req',`"${(txt||'[image]').slice(0,60)}" model=${currentModel} guest=${guest} hwMode=${hwMode} thinkMode=${thinkModeActive} imgs=${imgs.length}`);
@@ -701,14 +712,16 @@ async function send(){
          };
          if(guest) preBodyObj.guest = true;
          
-         let hdrs={'Content-Type':'application/json'};
+         let preHdrs={'Content-Type':'application/json'};
          if(!guest) {
-            const {data:{session}} = await sb.auth.getSession();
-            if(session?.access_token) hdrs['Authorization']='Bearer '+session.access_token;
+            try {
+               const {data:{session}} = await sb.auth.getSession();
+               if(session?.access_token) preHdrs['Authorization']='Bearer '+session.access_token;
+            } catch(e){}
          }
 
          const outlineRes = await fetch(SB_URL+'/functions/v1/chat-message',{
-            method:'POST', headers:hdrs, body:JSON.stringify(preBodyObj)
+            method:'POST', headers:preHdrs, body:JSON.stringify(preBodyObj)
          });
 
          if(outlineRes.ok) {
@@ -738,8 +751,10 @@ async function send(){
                 scrollBottom();
             }
             await sleep(600);
-            botContent.querySelector('.think-title').textContent = "Thought process complete";
-            botContent.querySelector('.think-dropdown').removeAttribute('open');
+            const thinkTitle = botContent.querySelector('.think-title');
+            if (thinkTitle) thinkTitle.textContent = "Thought process complete";
+            const dropdown = botContent.querySelector('.think-dropdown');
+            if (dropdown) dropdown.removeAttribute('open');
          }
       } catch(e) {
          console.error("Think mode pre-request failed", e);
@@ -754,15 +769,25 @@ async function send(){
       message: userMsg,
       model: currentModel,
       chat_history: hist.slice(0,-1).map(m=>({role:m.role,message:m.message})),
-      temperature: temp
+      temperature: temp,
+      think_mode: thinkModeActive // <--- TELLS BACKEND TO TRIGGER WEB SEARCH
     };
 
-    if(guest) bodyObj.guest=true;
-    else {
+    if(guest){
+      bodyObj.guest=true;
+      log('inf','send: guest mode');
+    }else{
       try{
         const{data:{session}}=await sb.auth.getSession();
-        if(session?.access_token) hdrs['Authorization']='Bearer '+session.access_token;
-      }catch(ex){}
+        if(session?.access_token){
+          hdrs['Authorization']='Bearer '+session.access_token;
+          log('inf',`send: authed uid=${session.user?.id?.slice(0,8)} exp=${new Date((session.expires_at||0)*1000).toISOString()}`);
+        }else{
+          log('err','send: getSession() returned no token');
+        }
+      }catch(ex){
+        log('err','send: getSession() threw — '+ex.message);
+      }
     }
 
     _fetchController=new AbortController();
