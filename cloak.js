@@ -13,7 +13,7 @@ let guest=false,guestN=0;
 let verifyEmail='';
 let convs=[],chatId=null,hist=[],logs=[],logF='all',stats={req:0,res:0,err:0,lat:[]},atab='general';
 let annId=null;
-let hwMode=false,attachedImgs=[];
+let hwMode=false, thinkModeActive=false, attachedImgs=[];
 let onboardingDone=false;
 let _fetchController=null;
 let _streamAbort=false;
@@ -249,7 +249,6 @@ function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(!docume
 function showE(el,msg){el.textContent=msg;el.classList.add('show');}
 function clearE(id){const el=document.getElementById(id);if(el){el.textContent='';el.classList.remove('show');}}
 
-
 /* ── VOICE MODE ── */
 function initVoice() {
   const SpRec = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -378,46 +377,6 @@ function newChat(){
 }
 function cpCode(id,btn){navigator.clipboard.writeText(document.getElementById(id)?.innerText||'').then(()=>{btn.textContent='Copied!';btn.classList.add('ok');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('ok');},1400);});}
 
-/* ── THINKING ── */
-const THINK={normal:['Reading your message','Working through it','Writing a response'],homework:['Reading the problem','Thinking like a tutor','Forming a question'],image:['Reading the image','Extracting text','Preparing response']};
-function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
-
-async function showThinking(mode){
-  const steps=THINK[mode]||THINK.normal;const box=document.getElementById('messages');showMessages();
-  const wrap=document.createElement('div');wrap.className='msg bot';
-  wrap.innerHTML='<div class="av av-bot"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1L7.4 4.6L11 6L7.4 7.4L6 11L4.6 7.4L1 6L4.6 4.6Z" fill="#fff"/></svg></div><div class="bot-body"><div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="think-wrap" id="active-think"><div class="think-header"><div class="think-spinner"></div><span class="think-header-text">Thinking</span></div><div id="think-nodes"></div></div></div>';
-  box.appendChild(wrap);scrollBottom();
-  const nodesEl=document.getElementById('think-nodes');
-  for(let i=0;i<steps.length;i++){
-    await sleep(i===0?280:580);
-    const row=document.createElement('div');
-    row.innerHTML='<div class="think-node-row" style="gap:10px"><div class="think-dot"></div><div class="think-step">'+steps[i]+'\u2026</div></div>'+(i<steps.length-1?'<div class="think-connector"></div>':'');
-    nodesEl.appendChild(row);await sleep(20);
-    const nr=row.querySelector('.think-node-row');if(nr)nr.classList.add('show');
-    if(i<steps.length-1){await sleep(220);const conn=row.querySelector('.think-connector');if(conn)conn.style.height='18px';}
-  }
-  await sleep(350);
-  const tw=document.getElementById('active-think');
-  if(tw){const hdr=tw.querySelector('.think-header-text');if(hdr)hdr.textContent='Done';tw.classList.add('think-done');}
-  await sleep(180);return wrap;
-}
-
-function replaceThinkWithTyping(thinkEl){
-  const tw=thinkEl.querySelector('.think-wrap');
-  if(tw){tw.style.transition='opacity .2s ease';tw.style.opacity='0';setTimeout(()=>{const bb=thinkEl.querySelector('.bot-body');if(bb)bb.innerHTML='<div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';},200);}
-  return thinkEl;
-}
-
-function replaceThinkWithContent(thinkEl, rawText){
-  const bb=thinkEl.querySelector('.bot-body');
-  if(bb){
-    bb.innerHTML='<div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="bot-content"></div>';
-    const bc=bb.querySelector('.bot-content');
-    if(bc) streamContent(bc, rawText, ()=>{setBusy(false);});
-  }
-  scrollBottom();
-}
-
 /* ── BUSY STATE ── */
 function setBusy(b){
   busy=b;
@@ -435,22 +394,60 @@ function setBusy(b){
   }
 }
 
-/* ── PLUS MENU / HOMEWORK / IMAGE ── */
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+function insertTypingBubble() {
+  const box = document.getElementById('messages');
+  showMessages();
+  const wrap = document.createElement('div');
+  wrap.className = 'msg bot';
+  wrap.innerHTML = '<div class="av av-bot"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1L7.4 4.6L11 6L7.4 7.4L6 11L4.6 7.4L1 6L4.6 4.6Z" fill="#fff"/></svg></div><div class="bot-body"><div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="bot-content"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>';
+  box.appendChild(wrap);
+  scrollBottom();
+  return wrap;
+}
+
+function replaceThinkWithContent(thinkEl, rawText) {
+  let postTyping = thinkEl.querySelector('.think-post-typing');
+  if (postTyping) {
+    const finalContent = document.createElement('div');
+    finalContent.className = 'bot-content-final';
+    postTyping.parentNode.replaceChild(finalContent, postTyping);
+    streamContent(finalContent, rawText, () => { setBusy(false); });
+  } else {
+    let bc = thinkEl.querySelector('.bot-content');
+    if (bc) {
+      bc.innerHTML = '';
+      streamContent(bc, rawText, () => { setBusy(false); });
+    }
+  }
+  scrollBottom();
+}
+
+/* ── PLUS MENU / MODES / IMAGE ── */
 function togglePlusMenu(e){e.stopPropagation();document.getElementById('plus-menu').classList.toggle('open');}
 function toggleHwMode(){
   hwMode=!hwMode;
   document.getElementById('menu-homework').classList.toggle('active-mode',hwMode);
   document.getElementById('hw-label').classList.toggle('show',hwMode);
-  document.getElementById('plus-btn').classList.toggle('has-mode',hwMode||attachedImgs.length>0);
+  document.getElementById('plus-btn').classList.toggle('has-mode',hwMode||thinkModeActive||attachedImgs.length>0);
   document.getElementById('plus-menu').classList.remove('open');
 }
+function toggleThinkMode() {
+  thinkModeActive = !thinkModeActive;
+  document.getElementById('menu-think').classList.toggle('active-mode', thinkModeActive);
+  document.getElementById('think-label').classList.toggle('show', thinkModeActive);
+  document.getElementById('plus-btn').classList.toggle('has-mode', hwMode||thinkModeActive||attachedImgs.length>0);
+  document.getElementById('plus-menu').classList.remove('open');
+}
+
 function onImgPick(inp){Array.from(inp.files).forEach(f=>{const r=new FileReader();r.onload=ev=>{attachedImgs.push({name:f.name,data:ev.target.result});renderImgStrip();};r.readAsDataURL(f);});inp.value='';}
 function onPaste(e){const items=Array.from(e.clipboardData?.items||[]);const imageItems=items.filter(i=>i.type.startsWith('image/'));if(!imageItems.length)return;e.preventDefault();imageItems.forEach(item=>{const f=item.getAsFile();if(!f)return;const r=new FileReader();r.onload=ev=>{attachedImgs.push({name:'pasted.png',data:ev.target.result});renderImgStrip();};r.readAsDataURL(f);});}
 function renderImgStrip(){
   const strip=document.getElementById('img-strip');strip.innerHTML='';
   if(attachedImgs.length){strip.classList.add('show');attachedImgs.forEach((img,i)=>{const w=document.createElement('div');w.className='img-thumb-wrap';w.innerHTML='<img class="img-thumb" src="'+img.data+'" alt="img"><button class="img-thumb-del" onclick="removeImg('+i+')">&times;</button>';strip.appendChild(w);});}
   else strip.classList.remove('show');
-  document.getElementById('plus-btn').classList.toggle('has-mode',hwMode||attachedImgs.length>0);
+  document.getElementById('plus-btn').classList.toggle('has-mode',hwMode||thinkModeActive||attachedImgs.length>0);
 }
 function removeImg(i){attachedImgs.splice(i,1);renderImgStrip();}
 
@@ -655,28 +652,24 @@ async function send(){
   if(guest&&guestN>=GUEST_MAX){showLimit();return;}
   if(!chatId){chatId=Date.now().toString();hist=[];}
   
-  // Enter thinking state if voice mode is active
   if(voiceMode) {
      voiceState = 'thinking';
      if(recognition) recognition.stop();
   }
 
   const imgs=[...attachedImgs];attachedImgs=[];renderImgStrip();
-  const thinkMode=imgs.length?'image':hwMode?'homework':'normal';
   let userMsg=txt;
   inp.value='';inp.style.height='auto';
   setBusy(true);
   addMsg('user',txt,false,imgs);
   const t0=Date.now();
 
-  // CYCLE THE MODEL 
   let currentModel = dynamicModels.length > 0 ? dynamicModels[modelCycleIndex] : 'google/gemini-3-flash-preview';
-  if (dynamicModels.length > 0) {
-      modelCycleIndex = (modelCycleIndex + 1) % dynamicModels.length; 
-  }
+  if (dynamicModels.length > 0) { modelCycleIndex = (modelCycleIndex + 1) % dynamicModels.length; }
 
-  stats.req++;log('req',`"${(txt||'[image]').slice(0,60)}" model=${currentModel} guest=${guest} hwMode=${hwMode} imgs=${imgs.length}`);
-  const thinkEl=await showThinking(thinkMode);
+  stats.req++;log('req',`"${(txt||'[image]').slice(0,60)}" model=${currentModel} guest=${guest} hwMode=${hwMode} thinkMode=${thinkModeActive} imgs=${imgs.length}`);
+  
+  const thinkEl = insertTypingBubble();
 
   try{
     let ocrText='',ocrFailed=false;
@@ -689,7 +682,7 @@ async function send(){
     if(imgs.length&&ocrFailed&&!ocrText&&!txt){
       replaceThinkWithContent(thinkEl,'The image could not be read clearly. OCR works best with printed or typed text.');
       hist.push({role:'CHATBOT',message:'The image could not be read clearly. OCR works best with printed or typed text.'});
-      setBusy(false);scrollBottom();
+      setBusy(false);
       if(voiceMode) playVoice('The image could not be read clearly.');
       return;
     }
@@ -697,9 +690,65 @@ async function send(){
     else if(ocrText){userMsg=(txt?txt+'\n\n':'What does this say or show?\n\n')+'Text from image:\n"""\n'+ocrText+'\n"""';}
     else if(imgs.length&&ocrFailed&&txt){userMsg=txt+' (An image was attached but could not be read.)';}
 
+    // -- THINK MODE PRE-REQUEST --
+    if(thinkModeActive) {
+      try {
+         let preBodyObj = {
+            message: "Analyze the following request and provide a 3-step thinking process outline. Outline how you will approach reasoning and use tools. Return STRICTLY a JSON array of 3 short strings. Request: " + userMsg,
+            model: currentModel,
+            chat_history: hist.slice(0,-1).map(m=>({role:m.role,message:m.message})),
+            temperature: 0.2
+         };
+         if(guest) preBodyObj.guest = true;
+         
+         let hdrs={'Content-Type':'application/json'};
+         if(!guest) {
+            const {data:{session}} = await sb.auth.getSession();
+            if(session?.access_token) hdrs['Authorization']='Bearer '+session.access_token;
+         }
+
+         const outlineRes = await fetch(SB_URL+'/functions/v1/chat-message',{
+            method:'POST', headers:hdrs, body:JSON.stringify(preBodyObj)
+         });
+
+         if(outlineRes.ok) {
+            const outData = await outlineRes.json();
+            let text = outData.text.replace(/```json/g, '').replace(/```/g, '').trim();
+            let steps = ["Analyzing request", "Formulating strategy", "Drafting response"];
+            try {
+               let parsed = JSON.parse(text);
+               if(Array.isArray(parsed) && parsed.length > 0) steps = parsed.slice(0, 3);
+            } catch(e){}
+
+            const botContent = thinkEl.querySelector('.bot-content');
+            botContent.innerHTML = `
+              <details class="think-dropdown" open>
+                <summary class="think-summary"><span class="think-title">Thinking...</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+                <div class="think-steps" id="think-steps-container"></div>
+              </details>
+              <div class="think-post-typing"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
+            `;
+            const stepsContainer = botContent.querySelector('#think-steps-container');
+            for (let i = 0; i < steps.length; i++) {
+                await sleep(600 + Math.random() * 800);
+                const stepEl = document.createElement('div');
+                stepEl.className = 'think-step-item';
+                stepEl.innerHTML = `<span class="think-step-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span><span style="flex:1">${hesc(steps[i])}</span>`;
+                stepsContainer.appendChild(stepEl);
+                scrollBottom();
+            }
+            await sleep(600);
+            botContent.querySelector('.think-title').textContent = "Thought process complete";
+            botContent.querySelector('.think-dropdown').removeAttribute('open');
+         }
+      } catch(e) {
+         console.error("Think mode pre-request failed", e);
+      }
+    }
+
     hist.push({role:'USER',message:userMsg||(imgs.length?'[Image]':'')});
 
-    // Build request headers and body
+    // -- ACTUAL REQUEST --
     let hdrs={'Content-Type':'application/json'};
     let bodyObj={
       message: userMsg,
@@ -708,24 +757,13 @@ async function send(){
       temperature: temp
     };
 
-    if(guest){
-      bodyObj.guest=true;
-      log('inf','send: guest mode');
-    }else{
+    if(guest) bodyObj.guest=true;
+    else {
       try{
         const{data:{session}}=await sb.auth.getSession();
-        if(session?.access_token){
-          hdrs['Authorization']='Bearer '+session.access_token;
-          log('inf',`send: authed uid=${session.user?.id?.slice(0,8)} exp=${new Date((session.expires_at||0)*1000).toISOString()}`);
-        }else{
-          log('err','send: getSession() returned no token');
-        }
-      }catch(ex){
-        log('err','send: getSession() threw — '+ex.message);
-      }
+        if(session?.access_token) hdrs['Authorization']='Bearer '+session.access_token;
+      }catch(ex){}
     }
-
-    replaceThinkWithTyping(thinkEl);await sleep(120);
 
     _fetchController=new AbortController();
     const res=await fetch(SB_URL+'/functions/v1/chat-message',{
@@ -745,10 +783,7 @@ async function send(){
 
     replaceThinkWithContent(thinkEl, d.text);
     
-    // Play voice if enabled
-    if(voiceMode) {
-       playVoice(d.text);
-    }
+    if(voiceMode) playVoice(d.text);
 
     if(guest){guestN++;if(guestN>=GUEST_MAX)setTimeout(showLimit,500);}
     else saveConv(txt||'[Image]').catch(e=>log('err','Save: '+e.message));
