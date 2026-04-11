@@ -30,6 +30,7 @@
   </svg>
 </div>
 
+<!-- ── AUTH ── -->
 <div id="s-auth" class="screen">
   <div class="auth-card">
     <div class="brand">
@@ -70,6 +71,7 @@
   </div>
 </div>
 
+<!-- ── VERIFY ── -->
 <div id="s-verify" class="screen">
   <div class="auth-card">
     <div class="brand">
@@ -85,6 +87,7 @@
   </div>
 </div>
 
+<!-- ── MFA ── -->
 <div id="s-mfa" class="screen">
   <div class="auth-card">
     <div class="brand">
@@ -101,6 +104,7 @@
   </div>
 </div>
 
+<!-- ── CHAT ── -->
 <div id="s-chat">
   <div id="ios-inset"></div>
 
@@ -110,6 +114,7 @@
     <button class="ann-x" onclick="dismissAnn()">&times;</button>
   </div>
 
+  <!-- SETTINGS MODAL -->
   <div class="overlay" id="modal-settings" style="display:none" onclick="overlayClick(event,'modal-settings')">
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-head">
@@ -266,6 +271,7 @@
   <div class="chat-shell">
     <div class="sb-overlay" id="sb-overlay" onclick="closeMobileSidebar()"></div>
 
+    <!-- SIDEBAR -->
     <div class="sidebar collapsed" id="sidebar">
       <div class="sb-logo">
         <svg class="sb-logo-star" width="19" height="19" viewBox="0 0 19 19" fill="none">
@@ -280,6 +286,7 @@
       <div class="sb-label">Recent</div>
       <div class="conv-list" id="conv-list"></div>
       <div id="guest-note" style="display:none" class="guest-note">Guest &mdash; <a onclick="show('auth');closeMobileSidebar()">Sign up</a> to save chats.</div>
+
       <div class="sb-footer">
         <div id="sb-ann-bar" style="display:none;margin-bottom:6px;padding:8px 10px;background:var(--yel);border:var(--bd);font-size:11px;font-weight:700;color:var(--ink);line-height:1.4;">
           <div style="display:flex;align-items:flex-start;gap:6px">
@@ -287,6 +294,13 @@
             <button onclick="dismissAnn()" style="background:var(--ink);border:none;color:var(--paper);width:18px;height:18px;font-size:10px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">&times;</button>
           </div>
         </div>
+        <div class="sb-label" style="margin-bottom:2px">Tools</div>
+        <a class="sb-btn" href="agents.html" style="text-decoration:none;color:inherit;">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4"/><circle cx="17" cy="17" r="4"/><path d="M21 17h-8M17 13v8"/></svg>
+          Agent Office
+          <span style="margin-left:auto;font-size:8px;font-weight:800;padding:1px 5px;background:var(--yel);border:1px solid var(--ink);color:var(--ink);text-transform:uppercase;letter-spacing:.06em;">Beta</span>
+        </a>
+        <div class="sb-label" style="margin-bottom:2px">Account</div>
         <div class="user-row">
           <div class="user-av" id="sb-av">?</div>
           <div class="user-info">
@@ -305,6 +319,7 @@
       </div>
     </div>
 
+    <!-- MAIN AREA -->
     <div class="main">
       <div class="topbar">
         <div class="topbar-left">
@@ -319,12 +334,9 @@
               <g class="sun"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></g>
             </svg>
           </button>
-          
           <div class="live-dot"></div>
-          <div>
-            <div id="model-btn" style="cursor:default; box-shadow:none; transform:none; border-color:var(--acc);">
-              Mode: <span id="model-btn-label" style="color:var(--acc);">Dynamic</span>
-            </div>
+          <div id="model-btn" style="cursor:default;box-shadow:none;transform:none;border-color:var(--acc);">
+            Mode: <span id="model-btn-label" style="color:var(--acc);">Dynamic</span>
           </div>
         </div>
       </div>
@@ -362,8 +374,16 @@
                 </span>
                 <span class="plus-item-check"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
               </button>
+              <div style="height:1px;background:var(--bdt);margin:2px 0;"></div>
+              <a class="plus-item" href="agents.html" style="text-decoration:none;">
+                <span class="plus-item-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4"/><circle cx="17" cy="17" r="4"/><path d="M21 17h-8M17 13v8"/></svg></span>
+                <span class="plus-item-text">
+                  <span class="plus-item-label">Agent Office</span>
+                  <span class="plus-item-desc">Multi-agent task delegation</span>
+                </span>
+              </a>
             </div>
-            <div style="display: flex; gap: 6px;">
+            <div style="display:flex;gap:6px;">
               <div class="hw-label" id="think-label">
                 Think mode
                 <button class="hw-label-x" onclick="toggleThinkMode()">&times;</button>
@@ -376,17 +396,14 @@
             <div class="img-strip" id="img-strip"></div>
             <div class="input-box" id="input-box">
               <input type="file" id="img-upload" accept="image/*" multiple style="display:none" onchange="onImgPick(this)">
-              <button class="plus-btn" id="plus-btn" onclick="togglePlusMenu(event)" title="Attach / Modes">+</button>
-              
+              <button class="plus-btn" id="plus-btn" onclick="togglePlusMenu(event)" title="Modes & Tools">+</button>
               <textarea class="chat-input" id="chat-input" placeholder="Message Cloak&hellip;" rows="1"
                 oninput="onInput(this)" onkeydown="onKey(event)" onpaste="onPaste(event)"></textarea>
-
-              <button class="send-btn" id="mic-btn" style="background:var(--surf); color:var(--ink); border:var(--bd);" onclick="startVoiceMode()" title="Start Voice Mode">
+              <button class="send-btn" id="mic-btn" style="background:var(--surf);color:var(--ink);border:var(--bd);" onclick="startVoiceMode()" title="Voice mode">
                 <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
               </button>
-              
               <button class="send-btn" id="send-btn" onclick="send()" disabled>
-                <svg id="send-icon" width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>
+                <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>
               </button>
             </div>
           </div>
@@ -400,6 +417,7 @@
     </div>
   </div>
 
+  <!-- VOICE OVERLAY -->
   <div class="voice-overlay" id="voice-overlay">
     <button class="voice-close" onclick="stopVoiceMode()" title="Exit Voice Mode">&times;</button>
     <div class="voice-ascii" id="voice-ascii">[ - - - - - ]</div>
@@ -407,6 +425,7 @@
     <div class="voice-transcript" id="voice-transcript">Say something...</div>
   </div>
 
+  <!-- ONBOARDING -->
   <div class="onboard-overlay" id="onboard-modal" style="display:none">
     <div class="onboard-card">
       <div class="onboard-head">
@@ -437,6 +456,7 @@
     </div>
   </div>
 
+  <!-- AD CONSENT -->
   <div class="ad-overlay" id="ad-modal" style="display:none">
     <div class="ad-card">
       <div class="ad-title">Allow ads?</div>
@@ -448,6 +468,7 @@
     </div>
   </div>
 
+  <!-- LINK INTERCEPT -->
   <div class="link-overlay" id="link-modal" style="display:none">
     <div class="link-card">
       <div class="link-title">Leaving Cloak</div>

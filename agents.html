@@ -9,252 +9,301 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+  if(localStorage.getItem('cloak_dark')!=='0') document.documentElement.classList.add('dark');
+  (function(){var t=localStorage.getItem('cloak_theme')||'default';document.documentElement.setAttribute('data-theme',t);})();
+</script>
 <style>
+/* ── RESET & ROOT ── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-:root{
+html,body{height:100%;overflow:hidden;}
+
+/* ── THEMES (mirrors cloak.css exactly) ── */
+:root,[data-theme="default"]{
   --ink:#0A0A0A;--paper:#F2EEE5;--p2:#E8E3D8;--p3:#DDD8CC;--surf:#FAFAF7;
   --acc:#D44D2A;--acc2:#B83B1D;--yel:#F5C842;--grn:#4ade80;
   --bd:2px solid #0A0A0A;--bdt:1px solid rgba(10,10,10,.13);
   --sh:3px 3px 0 #0A0A0A;--shlg:5px 5px 0 #0A0A0A;--shsm:2px 2px 0 #0A0A0A;
   --t:120ms ease;--fu:'Space Grotesk',sans-serif;--fd:'Syne',sans-serif;
 }
-html,body{height:100%;overflow:hidden;}
-body{font-family:var(--fu);font-size:14px;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;}
+.dark:root,.dark,[data-theme="default"].dark{
+  --ink:#F0EBE0;--paper:#161412;--p2:#1E1B18;--p3:#27231E;--surf:#211E1A;
+  --acc:#E5603E;--acc2:#D44D2A;--yel:#E8BB2A;--grn:#4ade80;
+  --bd:2px solid rgba(240,235,224,.7);--bdt:1px solid rgba(240,235,224,.1);
+  --sh:3px 3px 0 rgba(240,235,224,.5);--shlg:5px 5px 0 rgba(240,235,224,.4);--shsm:2px 2px 0 rgba(240,235,224,.4);
+}
+[data-theme="eco"]{
+  --ink:#1A2E10;--paper:#F0F7EC;--p2:#E2F0D9;--p3:#CDE8C0;--surf:#F7FBF4;
+  --acc:#3A7D2C;--acc2:#2C5E1F;--yel:#8BC34A;--grn:#22c55e;
+  --bd:2px solid #1A2E10;--bdt:1px solid rgba(26,46,16,.15);
+  --sh:3px 3px 0 #1A2E10;--shlg:5px 5px 0 #1A2E10;--shsm:2px 2px 0 #1A2E10;
+}
+.dark[data-theme="eco"],[data-theme="eco"].dark{
+  --ink:#C8E6B0;--paper:#0D1A08;--p2:#142210;--p3:#1C2E16;--surf:#111E0D;
+  --acc:#5CB84A;--acc2:#4A9E3A;--yel:#7DB040;
+  --bd:2px solid rgba(200,230,176,.6);--bdt:1px solid rgba(200,230,176,.12);
+  --sh:3px 3px 0 rgba(200,230,176,.45);--shlg:5px 5px 0 rgba(200,230,176,.35);--shsm:2px 2px 0 rgba(200,230,176,.35);
+}
+[data-theme="aqua"]{
+  --ink:#0A1E2E;--paper:#EAF4F8;--p2:#D6ECF4;--p3:#BDE0EC;--surf:#F3F9FC;
+  --acc:#0B7EA8;--acc2:#065F82;--yel:#00B4D8;--grn:#4ade80;
+  --bd:2px solid #0A1E2E;--bdt:1px solid rgba(10,30,46,.15);
+  --sh:3px 3px 0 #0A1E2E;--shlg:5px 5px 0 #0A1E2E;--shsm:2px 2px 0 #0A1E2E;
+}
+.dark[data-theme="aqua"],[data-theme="aqua"].dark{
+  --ink:#A8D8EA;--paper:#060F18;--p2:#0C1820;--p3:#12222E;--surf:#091319;
+  --acc:#1AABCC;--acc2:#0B8AAA;--yel:#00CFE8;
+  --bd:2px solid rgba(168,216,234,.6);--bdt:1px solid rgba(168,216,234,.12);
+  --sh:3px 3px 0 rgba(168,216,234,.45);--shlg:5px 5px 0 rgba(168,216,234,.35);--shsm:2px 2px 0 rgba(168,216,234,.35);
+}
 
+body{font-family:var(--fu);font-size:14px;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;transition:background .15s,color .15s;}
+
+/* ── KEYFRAMES ── */
 @keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.18;transform:scale(.6)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes taskIn{from{opacity:0;transform:translateX(9px)}to{opacity:1;transform:translateX(0)}}
 @keyframes bubblePop{0%{opacity:0;transform:translateX(-50%) scale(.8) translateY(4px)}100%{opacity:1;transform:translateX(-50%) scale(1) translateY(0)}}
-@keyframes workGlow{0%,100%{box-shadow:var(--shsm)}50%{box-shadow:0 0 0 5px rgba(245,200,66,.25),var(--shsm)}}
+@keyframes workGlow{0%,100%{box-shadow:var(--shsm)}50%{box-shadow:0 0 0 5px rgba(245,200,66,.22),var(--shsm)}}
 @keyframes agWalk{0%,100%{transform:translateY(0) rotate(0deg)}25%{transform:translateY(-3px) rotate(-2deg)}75%{transform:translateY(-3px) rotate(2deg)}}
 @keyframes slideUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
-@keyframes superPulse{0%,100%{opacity:1}50%{opacity:.55}}
-@keyframes chainLine{from{stroke-dashoffset:100}to{stroke-dashoffset:0}}
+@keyframes superPulse{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes blink{0%,100%{opacity:.75}50%{opacity:0}}
 
-/* PAGE */
-#page{position:fixed;inset:0;display:flex;flex-direction:column;}
-#loading{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:var(--paper);z-index:999;transition:opacity .3s;}
+/* ── LOADING ── */
+#loading{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:var(--paper);z-index:999;transition:opacity .25s;}
 #loading.gone{opacity:0;pointer-events:none;}
-#loading-lbl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--ink);opacity:.38;font-family:var(--fd);}
+#loading-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:var(--ink);opacity:.38;font-family:var(--fd);}
 
-/* TOPBAR */
+/* ── LAYOUT ── */
+#page{position:fixed;inset:0;display:flex;flex-direction:column;}
+
+/* ── TOPBAR (matches cloak index.html exactly) ── */
 .topbar{height:50px;border-bottom:var(--bd);background:var(--surf);display:flex;align-items:center;justify-content:space-between;padding:0 14px;flex-shrink:0;gap:8px;}
-.brand{display:flex;align-items:center;gap:9px;flex-shrink:0;}
-.brand-name{font-family:var(--fd);font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
-.brand-sub{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--acc);opacity:.75;}
-.topbar-center{display:flex;align-items:center;gap:6px;flex:1;justify-content:center;}
-.model-tag{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:3px 8px;border:var(--bd);background:var(--p2);opacity:.6;font-family:'Courier New',monospace;white-space:nowrap;}
-.tr{display:flex;align-items:center;gap:7px;flex-shrink:0;}
-.icon-btn{width:32px;height:32px;border:var(--bd);background:var(--surf);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shsm);transition:box-shadow var(--t),transform var(--t);text-decoration:none;flex-shrink:0;}
+.topbar-left,.topbar-right{display:flex;align-items:center;gap:8px;}
+.brand-name{font-family:var(--fd);font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink);}
+.brand-sub{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--acc);}
+
+/* Shared icon-btn from cloak.css */
+.icon-btn{width:36px;height:36px;border:var(--bd);background:var(--surf);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--shsm);transition:box-shadow var(--t),transform var(--t);text-decoration:none;}
 .icon-btn:hover{box-shadow:var(--sh);transform:translate(-1px,-1px);}
 .icon-btn:active{box-shadow:none;transform:translate(2px,2px);}
-.status-pill{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:3px 9px;border:var(--bd);background:var(--p3);white-space:nowrap;transition:background var(--t);}
-.status-pill.running{background:var(--yel);}
+.moon{display:block;}.sun{display:none;}
+.dark .moon{display:none;}.dark .sun{display:block;}
+.live-dot{width:7px;height:7px;background:var(--acc);flex-shrink:0;animation:pdot 2s infinite;}
 
-/* SUPER TOGGLE */
-.super-toggle{display:flex;align-items:center;gap:7px;padding:4px 10px;border:var(--bd);background:var(--p2);cursor:pointer;transition:background var(--t),box-shadow var(--t),transform var(--t);box-shadow:var(--shsm);white-space:nowrap;user-select:none;}
+/* Super toggle */
+.super-toggle{display:flex;align-items:center;gap:7px;height:32px;padding:0 11px;border:var(--bd);background:var(--p2);cursor:pointer;transition:background var(--t),box-shadow var(--t),transform var(--t);box-shadow:var(--shsm);white-space:nowrap;user-select:none;}
 .super-toggle:hover{box-shadow:var(--sh);transform:translate(-1px,-1px);}
 .super-toggle:active{box-shadow:none;transform:translate(2px,2px);}
 .super-toggle.on{background:var(--ink);}
-.super-toggle.on .st-label{color:var(--paper);}
+.super-toggle.on .st-label,.super-toggle.on .st-sub{color:var(--paper);}
 .super-toggle.on .st-sub{color:var(--yel);opacity:1;}
-.super-toggle.on .st-pip{background:var(--yel);}
+.super-toggle.on .st-pip{background:var(--yel);border-color:var(--yel);}
 .st-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--ink);font-family:var(--fd);}
-.st-sub{font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--ink);opacity:.4;}
-.st-pip{width:7px;height:7px;border:1.5px solid var(--ink);background:var(--p3);transition:background var(--t);}
-.super-toggle.on .st-pip{border-color:var(--yel);}
+.st-sub{font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);opacity:.4;}
+.st-pip{width:7px;height:7px;border:1.5px solid var(--ink);background:var(--p3);flex-shrink:0;transition:background var(--t);}
 
-/* MAIN */
+/* Status pill */
+.status-pill{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;padding:4px 10px;border:var(--bd);background:var(--p3);white-space:nowrap;transition:background var(--t);}
+.status-pill.running{background:var(--yel);}
+
+/* ── MAIN ── */
 .main{flex:1;display:flex;overflow:hidden;min-height:0;}
 
-/* OFFICE */
+/* ── OFFICE CANVAS ── */
 #office{
   flex:1;position:relative;overflow:hidden;
   background:var(--p2);
   background-image:linear-gradient(rgba(10,10,10,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(10,10,10,.04) 1px,transparent 1px);
-  background-size:26px 26px;
-  transition:background .4s;
+  background-size:24px 24px;
 }
-#office.super-active{
-  background-color:#EDE7D8;
+.dark #office{
+  background-image:linear-gradient(rgba(240,235,224,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(240,235,224,.04) 1px,transparent 1px);
 }
-.room{position:absolute;border:var(--bd);background:var(--surf);pointer-events:none;transition:background .3s;}
-.room-lbl{position:absolute;top:7px;left:8px;font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:.16em;color:var(--ink);opacity:.2;font-family:var(--fd);}
-#office.super-active .room{background:rgba(250,250,247,.92);}
-
+#office.super-active{background-color:var(--p3);}
+.room{position:absolute;border:var(--bd);background:var(--surf);pointer-events:none;}
+.room-lbl{position:absolute;top:8px;left:10px;font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:.16em;color:var(--ink);opacity:.18;font-family:var(--fd);}
+#office.super-active .room{background:rgba(250,250,247,.9);}
 .desk-top{position:absolute;background:var(--p3);border:var(--bd);box-shadow:var(--shsm);pointer-events:none;}
-.desk-mon{position:absolute;background:#111;border:var(--bd);pointer-events:none;}
-.desk-mon::after{content:'';position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:7px;height:4px;background:var(--ink);}
+.desk-mon{position:absolute;background:var(--ink);border:var(--bd);pointer-events:none;opacity:.85;}
+.desk-mon::after{content:'';position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);width:8px;height:5px;background:var(--ink);}
 .mtable{position:absolute;background:var(--p2);border:var(--bd);box-shadow:var(--sh);pointer-events:none;display:flex;align-items:center;justify-content:center;}
-.mtable-lbl{font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:.13em;color:var(--ink);opacity:.18;font-family:var(--fd);}
-.whiteboard{position:absolute;background:#fafaf8;border:var(--bd);box-shadow:var(--shsm);pointer-events:none;overflow:hidden;}
-.wb-lines{position:absolute;inset:5px;display:flex;flex-direction:column;gap:6px;justify-content:center;}
-.wb-line{height:1px;background:var(--ink);opacity:.08;}
-
-/* Decor — no emojis, pure CSS shapes */
+.mtable-lbl{font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:.13em;color:var(--ink);opacity:.16;font-family:var(--fd);}
+.whiteboard{position:absolute;background:var(--surf);border:var(--bd);box-shadow:var(--shsm);pointer-events:none;overflow:hidden;}
+.wb-lines{position:absolute;inset:7px;display:flex;flex-direction:column;gap:7px;justify-content:center;}
+.wb-line{height:1px;background:var(--ink);opacity:.07;}
 .decor-plant{position:absolute;pointer-events:none;}
-.decor-plant::before{content:'';display:block;width:10px;height:18px;background:var(--p3);border:var(--bd);border-radius:50% 50% 0 0;}
-.decor-plant::after{content:'';display:block;width:14px;height:4px;background:var(--p3);border:var(--bd);margin-top:-1px;}
-.decor-book{position:absolute;pointer-events:none;display:flex;gap:2px;}
-.decor-book span{display:block;width:5px;height:14px;border:var(--bd);background:var(--p3);}
-.decor-book span:nth-child(2){height:11px;align-self:flex-end;}
-.decor-book span:nth-child(3){height:16px;}
+.decor-plant::before{content:'';display:block;width:10px;height:20px;background:var(--p3);border:var(--bd);border-radius:50% 50% 0 0;}
+.decor-plant::after{content:'';display:block;width:14px;height:5px;background:var(--p3);border:var(--bd);margin-top:-1px;}
+.decor-book{position:absolute;pointer-events:none;display:flex;gap:2px;align-items:flex-end;}
+.decor-book span{display:block;width:5px;border:var(--bd);background:var(--p3);}
 .decor-mug{position:absolute;pointer-events:none;width:12px;height:11px;border:var(--bd);border-radius:0 0 3px 3px;background:var(--surf);}
 .decor-mug::after{content:'';position:absolute;right:-5px;top:1px;width:5px;height:7px;border:var(--bd);border-left:none;border-radius:0 3px 3px 0;}
 
-/* Chain connector (super mode) */
+/* Chain SVG */
 .chain-svg{position:absolute;inset:0;pointer-events:none;z-index:4;overflow:visible;}
-.chain-line{stroke:var(--acc);stroke-width:1.5;stroke-dasharray:4 3;opacity:.35;fill:none;}
-.chain-line.active{opacity:.7;stroke:var(--acc);animation:superPulse 1s ease infinite;}
+.chain-line{stroke:var(--acc);stroke-width:1.5;stroke-dasharray:4 3;opacity:.3;fill:none;}
+.chain-line.active{opacity:.65;stroke:var(--acc);animation:superPulse 1.2s ease infinite;}
 
-/* AGENT */
+/* ── AGENTS ── */
 .agent-char{
-  position:absolute;display:flex;flex-direction:column;align-items:center;gap:2px;
+  position:absolute;display:flex;flex-direction:column;align-items:center;gap:3px;
   z-index:10;cursor:default;
-  transition:left .92s cubic-bezier(.16,1,.3,1),top .92s cubic-bezier(.16,1,.3,1),opacity .3s;
+  transition:left .9s cubic-bezier(.16,1,.3,1),top .9s cubic-bezier(.16,1,.3,1),opacity .3s;
 }
 .agent-char.hidden{opacity:0;pointer-events:none;}
-.agent-body{display:flex;flex-direction:column;align-items:center;gap:2px;}
-.agent-char.is-walking .agent-body{animation:agWalk .38s ease infinite;}
+.agent-body{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.agent-char.is-walking .agent-body{animation:agWalk .4s ease infinite;}
 .face-wrap{position:relative;}
 .face-cv{display:block;border:var(--bd);box-shadow:var(--shsm);}
-.agent-char.is-working .face-wrap{animation:workGlow 1.5s ease infinite;}
-.name-tag{font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:2px 5px;border:var(--bd);font-family:var(--fd);color:#fff;white-space:nowrap;max-width:72px;overflow:hidden;text-overflow:ellipsis;}
-.step-tag{font-size:6px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--ink);opacity:.4;white-space:nowrap;font-family:var(--fu);max-width:72px;overflow:hidden;text-overflow:ellipsis;}
-.sdot{width:5px;height:5px;border:1.5px solid var(--ink);}
+.agent-char.is-working .face-wrap{animation:workGlow 1.6s ease infinite;}
+.name-tag{font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:2px 6px;border:var(--bd);font-family:var(--fd);color:#fff;white-space:nowrap;max-width:76px;overflow:hidden;text-overflow:ellipsis;}
+.step-tag{font-size:6.5px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);opacity:.38;white-space:nowrap;font-family:var(--fu);max-width:76px;overflow:hidden;text-overflow:ellipsis;}
+.sdot{width:6px;height:6px;border:1.5px solid var(--ink);}
 .sdot.idle{background:var(--p3);}
 .sdot.thinking,.sdot.working{background:var(--yel);animation:pdot .8s infinite;}
 .sdot.talking{background:var(--acc);animation:pdot .5s infinite;}
 .sdot.done,.sdot.happy{background:var(--grn);}
 .sdot.error{background:var(--acc);}
-/* Super step indicator */
-.step-pip{display:flex;gap:2px;margin-top:1px;}
-.step-pip span{width:5px;height:5px;border:1.5px solid var(--ink);background:var(--p3);}
-.step-pip span.done{background:var(--grn);}
-.step-pip span.active{background:var(--yel);animation:pdot .7s infinite;}
 
-/* BUBBLE */
+/* ── SPEECH BUBBLE ── */
 .bubble{
-  position:absolute;bottom:calc(100% + 7px);left:50%;
+  position:absolute;bottom:calc(100% + 8px);left:50%;
   transform:translateX(-50%);
   background:var(--surf);border:var(--bd);box-shadow:var(--sh);
-  padding:5px 8px;font-size:9px;font-weight:600;color:var(--ink);
-  max-width:155px;line-height:1.45;z-index:30;white-space:normal;
-  animation:bubblePop .17s cubic-bezier(.16,1,.3,1);
+  padding:6px 9px;font-size:9px;font-weight:600;color:var(--ink);
+  max-width:160px;line-height:1.45;z-index:30;white-space:normal;
+  animation:bubblePop .18s cubic-bezier(.16,1,.3,1);
   font-family:var(--fu);pointer-events:none;
 }
 .bubble::after{content:'';position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);border:4px solid transparent;border-top:5px solid var(--ink);}
 .bubble.boss{background:var(--yel);}
+.bubble.boss::after{border-top-color:var(--ink);}
 
-/* TASK PANEL */
-#panel{width:278px;flex-shrink:0;border-left:var(--bd);background:var(--surf);display:flex;flex-direction:column;overflow:hidden;transition:width .28s cubic-bezier(.16,1,.3,1);}
+/* ── TASK PANEL ── */
+#panel{width:280px;flex-shrink:0;border-left:var(--bd);background:var(--surf);display:flex;flex-direction:column;overflow:hidden;transition:width .26s cubic-bezier(.16,1,.3,1);}
 #panel.collapsed{width:44px;}
-.ph{padding:10px 11px;border-bottom:var(--bd);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.13em;background:var(--p2);font-family:var(--fd);display:flex;align-items:center;gap:6px;cursor:pointer;flex-shrink:0;user-select:none;}
+.ph{padding:10px 11px;border-bottom:var(--bd);background:var(--p2);display:flex;align-items:center;gap:7px;cursor:pointer;flex-shrink:0;user-select:none;transition:background var(--t);}
 .ph:hover{background:var(--p3);}
-.ph-title{flex:1;white-space:nowrap;overflow:hidden;transition:opacity .2s;}
-#panel.collapsed .ph-title{opacity:0;}
-.ph-count{font-size:8.5px;opacity:.4;font-weight:700;white-space:nowrap;transition:opacity .2s;}
-#panel.collapsed .ph-count{opacity:0;}
-.ph-arrow{display:flex;align-items:center;flex-shrink:0;transition:transform .25s;}
+.ph-title{flex:1;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;font-family:var(--fd);white-space:nowrap;overflow:hidden;transition:opacity .18s;}
+.ph-count{font-size:8.5px;opacity:.4;font-weight:700;white-space:nowrap;transition:opacity .18s;}
+#panel.collapsed .ph-title,#panel.collapsed .ph-count{opacity:0;}
+.ph-arrow{display:flex;align-items:center;flex-shrink:0;transition:transform .22s;}
 #panel.collapsed .ph-arrow{transform:rotate(180deg);}
-#task-scroll{flex:1;overflow-y:auto;padding:7px;display:flex;flex-direction:column;gap:4px;transition:opacity .2s;}
+#task-scroll{flex:1;overflow-y:auto;padding:7px;display:flex;flex-direction:column;gap:5px;transition:opacity .18s;}
 #task-scroll::-webkit-scrollbar{width:2px;}
-#task-scroll::-webkit-scrollbar-thumb{background:var(--ink);}
+#task-scroll::-webkit-scrollbar-thumb{background:var(--ink);opacity:.3;}
 #panel.collapsed #task-scroll{opacity:0;pointer-events:none;}
-.et{font-size:11px;color:var(--ink);opacity:.35;text-align:center;padding:18px 10px;line-height:1.65;}
-.task-card{border:var(--bd);background:var(--paper);padding:7px 9px;animation:taskIn .2s ease;}
-.tc-head{display:flex;align-items:center;gap:4px;margin-bottom:4px;}
-.tc-badge{font-size:6.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:2px 5px;border:1.5px solid var(--ink);color:#fff;flex-shrink:0;}
-.tc-step{font-size:6.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink);opacity:.5;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.tc-pill{font-size:6.5px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:2px 5px;border:1.5px solid transparent;white-space:nowrap;flex-shrink:0;}
+.et{font-size:11.5px;color:var(--ink);opacity:.32;text-align:center;padding:20px 12px;line-height:1.7;}
+.task-card{border:var(--bd);background:var(--paper);padding:8px 10px;animation:taskIn .2s ease;box-shadow:var(--shsm);}
+.tc-head{display:flex;align-items:center;gap:5px;margin-bottom:5px;}
+.tc-badge{font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:2px 6px;border:1.5px solid var(--ink);color:#fff;flex-shrink:0;}
+.tc-step{font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink);opacity:.45;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tc-pill{font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:2px 6px;border:1.5px solid transparent;white-space:nowrap;flex-shrink:0;}
 .tc-pill.pending{background:var(--p3);color:var(--ink);}
 .tc-pill.working{background:var(--yel);color:var(--ink);border-color:var(--ink);}
 .tc-pill.done{background:var(--grn);color:#14532d;border-color:#16a34a;}
 .tc-pill.error{background:var(--acc);color:#fff;}
-.tc-desc{font-size:10px;color:var(--ink);opacity:.55;line-height:1.4;margin-bottom:2px;}
-.tc-out{font-size:10px;color:var(--ink);line-height:1.5;border-top:var(--bdt);padding-top:5px;margin-top:4px;display:none;max-height:95px;overflow-y:auto;}
+.tc-desc{font-size:11px;color:var(--ink);opacity:.52;line-height:1.45;margin-bottom:2px;}
+.tc-out{font-size:11px;color:var(--ink);line-height:1.55;border-top:var(--bdt);padding-top:6px;margin-top:5px;display:none;max-height:100px;overflow-y:auto;}
 .task-card.done-state .tc-out{display:block;}
 .tc-out p{margin-bottom:.3em;}.tc-out p:last-child{margin-bottom:0;}
 .tc-out strong{font-weight:700;}
-.tc-out code{font-family:'Courier New',monospace;font-size:9.5px;background:var(--p3);padding:0 3px;border:1px solid var(--ink);}
-.tc-out pre{font-family:'Courier New',monospace;font-size:9.5px;background:#1A1714;color:#E8E0D0;padding:6px;border:var(--bd);overflow-x:auto;margin:.3em 0;}
+.tc-out code{font-family:'Courier New',monospace;font-size:10px;background:var(--p3);padding:0 3px;border:1px solid var(--ink);}
+.tc-out pre{font-family:'Courier New',monospace;font-size:10px;background:#1A1714;color:#E8E0D0;padding:7px;border:var(--bd);overflow-x:auto;margin:.3em 0;}
 
-/* SUPER mode chain steps in task panel */
-.chain-steps{display:flex;flex-direction:column;gap:3px;margin-top:4px;border-top:var(--bdt);padding-top:4px;}
-.chain-step{display:flex;align-items:center;gap:5px;font-size:9.5px;color:var(--ink);}
+/* Super chain steps */
+.chain-steps{display:flex;flex-direction:column;gap:4px;margin-top:5px;border-top:var(--bdt);padding-top:5px;}
+.chain-step{display:flex;align-items:center;gap:6px;}
 .cs-num{font-family:var(--fd);font-size:9px;font-weight:800;color:var(--acc);flex-shrink:0;width:12px;}
-.cs-label{font-size:9px;font-weight:600;color:var(--ink);opacity:.5;flex:1;}
-.cs-label.active{opacity:1;color:var(--ink);}
-.cs-label.done{opacity:.7;}
+.cs-label{font-size:9.5px;font-weight:600;color:var(--ink);opacity:.45;flex:1;}
+.cs-label.active{opacity:1;}
+.cs-label.done{opacity:.65;}
 .cs-check{width:7px;height:7px;border:1.5px solid var(--ink);background:var(--p3);flex-shrink:0;}
 .cs-check.done{background:var(--grn);}
 .cs-check.active{background:var(--yel);animation:pdot .7s infinite;}
 
-/* BOTTOM */
+/* ── BOTTOM BAR ── */
 .chat-bottom{border-top:var(--bd);background:var(--surf);flex-shrink:0;}
-.report{max-height:185px;overflow-y:auto;padding:10px 15px;border-bottom:var(--bdt);display:none;}
-.report.show{display:block;animation:slideUp .22s ease;}
+.report{max-height:190px;overflow-y:auto;padding:12px 16px;border-bottom:var(--bdt);display:none;}
+.report.show{display:block;animation:slideUp .2s ease;}
 .report::-webkit-scrollbar{width:2px;}
 .report::-webkit-scrollbar-thumb{background:var(--ink);}
-.report-lbl{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--acc);margin-bottom:7px;font-family:var(--fd);}
-.report-body{font-size:12.5px;color:var(--ink);line-height:1.72;}
+.report-lbl{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.15em;color:var(--acc);margin-bottom:8px;font-family:var(--fd);}
+.report-body{font-size:13px;color:var(--ink);line-height:1.72;}
 .report-body p{margin-bottom:.5em;}.report-body p:last-child{margin-bottom:0;}
 .report-body h1,.report-body h2,.report-body h3{font-family:var(--fd);font-weight:800;text-transform:uppercase;margin:.7em 0 .3em;}
 .report-body h1{font-size:14px;}.report-body h2{font-size:12.5px;}.report-body h3{font-size:12px;}
-.report-body ul,.report-body ol{padding-left:15px;margin-bottom:.5em;}
+.report-body ul,.report-body ol{padding-left:16px;margin-bottom:.5em;}
 .report-body li{margin-bottom:.2em;}
 .report-body strong{font-weight:700;}
-.report-body pre{background:#1A1714;color:#E8E0D0;padding:9px;border:var(--bd);font-size:11px;overflow-x:auto;margin:.5em 0;font-family:'Courier New',monospace;}
-.report-body code{font-family:'Courier New',monospace;background:var(--p3);padding:1px 4px;font-size:11px;border:1.5px solid var(--ink);}
+.report-body pre{background:#1A1714;color:#E8E0D0;padding:10px;border:var(--bd);font-size:11.5px;overflow-x:auto;margin:.5em 0;font-family:'Courier New',monospace;}
+.report-body code{font-family:'Courier New',monospace;background:var(--p3);padding:1px 4px;font-size:11.5px;border:1.5px solid var(--ink);}
 .report-body a{color:var(--acc);font-weight:700;text-underline-offset:2px;}
-.input-row{display:flex;align-items:center;gap:7px;padding:8px 13px;}
-.chat-ta{flex:1;background:var(--paper);border:var(--bd);color:var(--ink);font-family:var(--fu);font-size:13px;font-weight:500;padding:7px 10px;outline:none;resize:none;height:35px;max-height:70px;overflow-y:auto;transition:box-shadow var(--t);}
+
+/* Input row — matches cloak.css input-area */
+.input-row{display:flex;align-items:center;gap:8px;padding:10px 14px;}
+.chat-ta{flex:1;background:var(--paper);border:var(--bd);color:var(--ink);font-family:var(--fu);font-size:14px;font-weight:500;padding:8px 10px;outline:none;resize:none;height:36px;max-height:72px;overflow-y:auto;transition:box-shadow var(--t);}
 .chat-ta:focus{box-shadow:var(--sh);border-color:var(--acc);}
 .chat-ta::placeholder{color:var(--ink);opacity:.28;}
-.send{height:35px;padding:0 13px;background:var(--acc);border:var(--bd);box-shadow:var(--shsm);color:#fff;font-family:var(--fu);font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;cursor:pointer;flex-shrink:0;white-space:nowrap;transition:box-shadow var(--t),transform var(--t),background var(--t);}
-.send:hover:not(:disabled){box-shadow:var(--sh);transform:translate(-1px,-1px);}
+.send{height:36px;padding:0 14px;background:var(--acc);border:var(--bd);box-shadow:var(--shsm);color:#fff;font-family:var(--fu);font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;cursor:pointer;flex-shrink:0;white-space:nowrap;transition:box-shadow var(--t),transform var(--t),background var(--t);}
+.send:hover:not(:disabled){box-shadow:var(--sh);transform:translate(-1px,-1px);background:var(--acc2);}
 .send:active:not(:disabled){box-shadow:none;transform:translate(2px,2px);}
 .send:disabled{opacity:.28;cursor:not-allowed;box-shadow:none;}
-.foot-hint{font-size:8.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink);opacity:.2;padding:0 13px 7px;display:flex;justify-content:space-between;}
+.foot-hint{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--ink);opacity:.2;padding:0 14px 9px;display:flex;justify-content:space-between;}
 </style>
 </head>
 <body>
 
 <div id="loading">
-  <svg style="animation:spin 1s linear infinite" width="26" height="26" viewBox="0 0 26 26" fill="none">
-    <path d="M13 2L15.5 9.2L23 13L15.5 16.8L13 24L10.5 16.8L3 13L10.5 9.2Z" fill="var(--acc)"/>
+  <svg style="animation:spin 1s linear infinite" width="28" height="28" viewBox="0 0 28 28" fill="none">
+    <path d="M14 2L16.8 10L24 14L16.8 18L14 26L11.2 18L4 14L11.2 10Z" fill="var(--acc)"/>
   </svg>
   <div id="loading-lbl">Loading office</div>
 </div>
 
 <div id="page">
+
+  <!-- TOPBAR -->
   <div class="topbar">
-    <div class="brand">
-      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 1L9.1 5.9L14 7.5L9.1 9.1L7.5 14L5.9 9.1L1 7.5L5.9 5.9Z" fill="var(--acc)"/></svg>
-      <div><div class="brand-name">Cloak Agents</div><div class="brand-sub">Agent Office</div></div>
+    <div class="topbar-left">
+      <a href="index.html" class="icon-btn" title="Back to Cloak">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      </a>
+      <div>
+        <div class="brand-name">Cloak Agents</div>
+        <div class="brand-sub">Agent Office</div>
+      </div>
     </div>
-    <div class="topbar-center">
-      <span class="model-tag">Groq / llama-3.1-8b-instant</span>
-    </div>
-    <div class="tr">
+    <div class="topbar-right">
+      <button class="icon-btn" onclick="toggleDark()" title="Toggle theme">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24">
+          <path class="moon" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          <g class="sun"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></g>
+        </svg>
+      </button>
+      <div class="live-dot"></div>
       <div class="super-toggle" id="super-toggle" onclick="toggleSuper()">
         <div class="st-pip" id="st-pip"></div>
         <div>
           <div class="st-label">Super Cloak</div>
-          <div class="st-sub" id="st-sub">3-step thinking off</div>
+          <div class="st-sub" id="st-sub">3-step off</div>
         </div>
       </div>
       <span class="status-pill" id="status-pill">Idle</span>
-      <a href="index.html" class="icon-btn" title="Back to Cloak">
-        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-      </a>
     </div>
   </div>
 
+  <!-- MAIN -->
   <div class="main">
     <div id="office">
       <svg class="chain-svg" id="chain-svg" xmlns="http://www.w3.org/2000/svg"></svg>
     </div>
+
+    <!-- TASK PANEL -->
     <div id="panel">
       <div class="ph" onclick="togglePanel()">
         <div class="ph-title">Task Log</div>
@@ -263,17 +312,20 @@ body{font-family:var(--fu);font-size:14px;background:var(--paper);color:var(--in
           <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
         </div>
       </div>
-      <div id="task-scroll"><div class="et">Send a task below.<br>The Boss will coordinate<br>the whole team.</div></div>
+      <div id="task-scroll">
+        <div class="et">Send a task below.<br>The Boss will coordinate<br>the whole team.</div>
+      </div>
     </div>
   </div>
 
+  <!-- BOTTOM -->
   <div class="chat-bottom">
     <div class="report" id="report">
       <div class="report-lbl">Boss Report</div>
       <div class="report-body" id="report-body"></div>
     </div>
     <div class="input-row">
-      <textarea class="chat-ta" id="user-input" placeholder="Give the team a task..." rows="1"
+      <textarea class="chat-ta" id="user-input" placeholder="Give the team a task…" rows="1"
         onkeydown="onKey(event)" oninput="onInput(this)"></textarea>
       <button class="send" id="send-btn" onclick="go()" disabled>Send</button>
     </div>
@@ -294,148 +346,78 @@ const EP      = SB_URL + '/functions/v1/chat-message';
 const NO_EMOJI = 'Do not use any emojis at all in your response. Use plain text only.';
 
 // ═══════════════════════════════════════════════════════════════
+// DARK MODE
+// ═══════════════════════════════════════════════════════════════
+let dark = localStorage.getItem('cloak_dark') !== '0';
+function toggleDark() {
+  dark = !dark;
+  document.body.classList.toggle('dark', dark);
+  document.documentElement.classList.toggle('dark', dark);
+  localStorage.setItem('cloak_dark', dark ? '1' : '0');
+}
+
+// ═══════════════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════════════
 let sbClient = null, authToken = null, busy = false, superMode = false;
 let numTasks = 0;
 let mX = 400, mY = 300;
-const AG = {};   // id -> agent runtime object
+const AG = {};
 document.addEventListener('mousemove', e => { mX = e.clientX; mY = e.clientY; });
 
 // ═══════════════════════════════════════════════════════════════
 // AGENT DEFINITIONS
-// Normal mode: boss + 4 single agents
-// Super mode : boss + 4 x 3 sub-agents (12 total workers)
 // ═══════════════════════════════════════════════════════════════
 const BASE = {
-  boss: {
-    id:'boss', name:'Boss', role:'Coordinator',
-    color:'#D44D2A', face:'#fff5f2',
-    hx:8,  hy:9,  dx:8,  dy:21,
-    system_prompt: NO_EMOJI + '\nYou are The Boss agent: a chief coordinator. Plan and delegate tasks, or synthesise team findings into a final answer. Be concise and structured. Return valid JSON when asked for a plan.'
-  },
-  researcher: {
-    id:'researcher', name:'Researcher', role:'Info & Facts',
-    color:'#2B6CB0', face:'#f0f6ff',
-    hx:69, hy:8,  dx:69, dy:20,
-    system_prompt: NO_EMOJI + '\nYou are the Researcher agent: an information and facts specialist. Provide accurate, well-sourced factual information. Be thorough but concise. Max 160 words.'
-  },
-  writer: {
-    id:'writer', name:'Writer', role:'Content Creator',
-    color:'#276749', face:'#f0fff5',
-    hx:7,  hy:58, dx:7,  dy:50,
-    system_prompt: NO_EMOJI + '\nYou are the Writer agent: a content creation specialist. Produce clear, well-structured, engaging prose. Focus on clarity and flow. Max 160 words.'
-  },
-  analyst: {
-    id:'analyst', name:'Analyst', role:'Strategic Thinker',
-    color:'#B7791F', face:'#fffaeb',
-    hx:70, hy:57, dx:70, dy:48,
-    system_prompt: NO_EMOJI + '\nYou are the Analyst agent: a strategic reasoning specialist. Provide deep critical thinking, identify patterns, draw insights, and make strategic recommendations. Max 160 words.'
-  },
-  coder: {
-    id:'coder', name:'Coder', role:'Tech Expert',
-    color:'#553C9A', face:'#f6f2ff',
-    hx:39, hy:71, dx:39, dy:63,
-    system_prompt: NO_EMOJI + '\nYou are the Coder agent: a software and technical expert. Provide working code, technical explanations, or architectural decisions. Use code blocks. Max 200 words.'
-  }
+  boss:       { id:'boss',       name:'Boss',       role:'Coordinator',     color:'#D44D2A', face:'#fff5f2', hx:8,  hy:9,  dx:8,  dy:21, system_prompt: NO_EMOJI+'\nYou are The Boss agent: a chief coordinator. Plan and delegate tasks, or synthesise team findings into a final answer. Be concise and structured. Return valid JSON when asked for a plan.' },
+  researcher: { id:'researcher', name:'Researcher', role:'Info & Facts',    color:'#2B6CB0', face:'#f0f6ff', hx:69, hy:8,  dx:69, dy:20, system_prompt: NO_EMOJI+'\nYou are the Researcher agent: an information and facts specialist. Provide accurate, well-sourced factual information. Be thorough but concise. Max 160 words.' },
+  writer:     { id:'writer',     name:'Writer',     role:'Content Creator', color:'#276749', face:'#f0fff5', hx:7,  hy:58, dx:7,  dy:50, system_prompt: NO_EMOJI+'\nYou are the Writer agent: a content creation specialist. Produce clear, well-structured, engaging prose. Focus on clarity and flow. Max 160 words.' },
+  analyst:    { id:'analyst',    name:'Analyst',    role:'Strategic Thinker',color:'#B7791F',face:'#fffaeb', hx:70, hy:57, dx:70, dy:48, system_prompt: NO_EMOJI+'\nYou are the Analyst agent: a strategic reasoning specialist. Provide deep critical thinking, identify patterns, draw insights, and make strategic recommendations. Max 160 words.' },
+  coder:      { id:'coder',      name:'Coder',      role:'Tech Expert',     color:'#553C9A', face:'#f6f2ff', hx:39, hy:71, dx:39, dy:63, system_prompt: NO_EMOJI+'\nYou are the Coder agent: a software and technical expert. Provide working code, technical explanations, or architectural decisions. Use code blocks. Max 200 words.' }
 };
 
-// Super mode sub-agents: 3 per role, sequential chain
 const SUPER_STEPS = {
-  researcher: [
-    { step: 'Gather Data',      stepPrompt: 'Step 1 of 3: Gather raw information and key facts about the topic. List the most important factual points. Max 120 words.' },
-    { step: 'Verify & Deepen',  stepPrompt: 'Step 2 of 3: Take the gathered data from your colleague (provided below) and verify, expand, and add depth. Identify any gaps. Max 120 words.' },
-    { step: 'Compile Findings', stepPrompt: 'Step 3 of 3: Take the research from steps 1 and 2 (provided below) and compile into a polished, comprehensive research summary. Max 150 words.' }
-  ],
-  writer: [
-    { step: 'Plan Structure',   stepPrompt: 'Step 1 of 3: Create a clear outline and structural plan for the content. List the sections and key points to cover. Max 120 words.' },
-    { step: 'Draft Content',    stepPrompt: 'Step 2 of 3: Using the outline from step 1 (provided below), write the full draft content. Focus on getting ideas onto the page. Max 150 words.' },
-    { step: 'Polish & Refine',  stepPrompt: 'Step 3 of 3: Take the draft from steps 1 and 2 (provided below) and refine it. Improve clarity, flow, word choice, and impact. Max 150 words.' }
-  ],
-  analyst: [
-    { step: 'Break Down',       stepPrompt: 'Step 1 of 3: Break down the problem or topic into its core components and sub-problems. Be systematic. Max 120 words.' },
-    { step: 'Analyze Parts',    stepPrompt: 'Step 2 of 3: Taking the breakdown from step 1 (provided below), analyze each component in depth. Identify patterns, risks, and relationships. Max 130 words.' },
-    { step: 'Draw Conclusions', stepPrompt: 'Step 3 of 3: Using the analysis from steps 1 and 2 (provided below), draw clear strategic conclusions and actionable recommendations. Max 150 words.' }
-  ],
-  coder: [
-    { step: 'Plan Architecture', stepPrompt: 'Step 1 of 3: Plan the technical architecture and approach. Define the components, data structures, and logic flow. No code yet — just the plan. Max 120 words.' },
-    { step: 'Write Code',        stepPrompt: 'Step 2 of 3: Using the architecture plan from step 1 (provided below), write the actual implementation with code. Max 200 words.' },
-    { step: 'Review & Optimize', stepPrompt: 'Step 3 of 3: Review the code from steps 1 and 2 (provided below). Identify improvements, edge cases, and optimizations. Provide the final refined version. Max 200 words.' }
-  ]
+  researcher: [{step:'Gather Data',stepPrompt:'Step 1 of 3: Gather raw information and key facts about the topic. List the most important factual points. Max 120 words.'},{step:'Verify & Deepen',stepPrompt:'Step 2 of 3: Take the gathered data from your colleague (provided below) and verify, expand, and add depth. Identify any gaps. Max 120 words.'},{step:'Compile Findings',stepPrompt:'Step 3 of 3: Take the research from steps 1 and 2 (provided below) and compile into a polished, comprehensive research summary. Max 150 words.'}],
+  writer:     [{step:'Plan Structure',stepPrompt:'Step 1 of 3: Create a clear outline and structural plan for the content. List the sections and key points to cover. Max 120 words.'},{step:'Draft Content',stepPrompt:'Step 2 of 3: Using the outline from step 1 (provided below), write the full draft content. Focus on getting ideas onto the page. Max 150 words.'},{step:'Polish & Refine',stepPrompt:'Step 3 of 3: Take the draft from steps 1 and 2 (provided below) and refine it. Improve clarity, flow, word choice, and impact. Max 150 words.'}],
+  analyst:    [{step:'Break Down',stepPrompt:'Step 1 of 3: Break down the problem or topic into its core components and sub-problems. Be systematic. Max 120 words.'},{step:'Analyze Parts',stepPrompt:'Step 2 of 3: Taking the breakdown from step 1 (provided below), analyze each component in depth. Identify patterns, risks, and relationships. Max 130 words.'},{step:'Draw Conclusions',stepPrompt:'Step 3 of 3: Using the analysis from steps 1 and 2 (provided below), draw clear strategic conclusions and actionable recommendations. Max 150 words.'}],
+  coder:      [{step:'Plan Architecture',stepPrompt:'Step 1 of 3: Plan the technical architecture and approach. Define the components, data structures, and logic flow. No code yet — just the plan. Max 120 words.'},{step:'Write Code',stepPrompt:'Step 2 of 3: Using the architecture plan from step 1 (provided below), write the actual implementation with code. Max 200 words.'},{step:'Review & Optimize',stepPrompt:'Step 3 of 3: Review the code from steps 1 and 2 (provided below). Identify improvements, edge cases, and optimizations. Provide the final refined version. Max 200 words.'}]
 };
 
-// Build super-mode agent definitions from the base
 function buildSuperDefs() {
   const defs = {};
   const positions = {
-    researcher: [{hx:59,hy:8,dx:59,dy:20},{hx:71,hy:8,dx:71,dy:20},{hx:83,hy:8,dx:83,dy:20}],
-    writer:     [{hx:3, hy:58,dx:3, dy:50},{hx:11,hy:58,dx:11,dy:50},{hx:19,hy:58,dx:19,dy:50}],
-    analyst:    [{hx:60,hy:57,dx:60,dy:48},{hx:71,hy:57,dx:71,dy:48},{hx:82,hy:57,dx:82,dy:48}],
-    coder:      [{hx:29,hy:71,dx:29,dy:63},{hx:39,hy:71,dx:39,dy:63},{hx:49,hy:71,dx:49,dy:63}],
+    researcher:[{hx:59,hy:8,dx:59,dy:20},{hx:71,hy:8,dx:71,dy:20},{hx:83,hy:8,dx:83,dy:20}],
+    writer:    [{hx:3,hy:58,dx:3,dy:50},{hx:11,hy:58,dx:11,dy:50},{hx:19,hy:58,dx:19,dy:50}],
+    analyst:   [{hx:60,hy:57,dx:60,dy:48},{hx:71,hy:57,dx:71,dy:48},{hx:82,hy:57,dx:82,dy:48}],
+    coder:     [{hx:29,hy:71,dx:29,dy:63},{hx:39,hy:71,dx:39,dy:63},{hx:49,hy:71,dx:49,dy:63}],
   };
   const labels = ['A','B','C'];
   for (const type of ['researcher','writer','analyst','coder']) {
     const base = BASE[type];
     for (let i = 0; i < 3; i++) {
-      const sid = type + '_' + (i+1);
+      const sid = type+'_'+(i+1);
       const step = SUPER_STEPS[type][i];
-      defs[sid] = {
-        ...base,
-        id: sid,
-        superParent: type,
-        superStep: i+1,
-        name: base.name.slice(0,3).toUpperCase() + '-' + labels[i],
-        stepName: step.step,
-        stepPrompt: step.stepPrompt,
-        ...positions[type][i],
-        system_prompt: NO_EMOJI + '\nYou are a ' + base.role + ' agent (step ' + (i+1) + ' of 3: ' + step.step + '). ' + base.system_prompt.replace(NO_EMOJI+'\n','')
-      };
+      defs[sid] = { ...base, id:sid, superParent:type, superStep:i+1, name:base.name.slice(0,3).toUpperCase()+'-'+labels[i], stepName:step.step, stepPrompt:step.stepPrompt, ...positions[type][i], system_prompt:NO_EMOJI+'\nYou are a '+base.role+' agent (step '+(i+1)+' of 3: '+step.step+'). '+base.system_prompt.replace(NO_EMOJI+'\n','') };
     }
   }
   return defs;
 }
 const SUPER_DEFS = buildSuperDefs();
 
-// Active defs for current mode
 function activeDefs() {
   const d = { boss: BASE.boss };
-  if (superMode) {
-    Object.assign(d, SUPER_DEFS);
-  } else {
-    Object.assign(d, {
-      researcher: BASE.researcher,
-      writer:     BASE.writer,
-      analyst:    BASE.analyst,
-      coder:      BASE.coder
-    });
-  }
+  if (superMode) Object.assign(d, SUPER_DEFS);
+  else Object.assign(d, { researcher:BASE.researcher, writer:BASE.writer, analyst:BASE.analyst, coder:BASE.coder });
   return d;
 }
-
-// Map normal agent type to super sub-agents
-function superAgentsFor(type) {
-  return [1,2,3].map(n => SUPER_DEFS[type+'_'+n]);
-}
-
+function superAgentsFor(type) { return [1,2,3].map(n => SUPER_DEFS[type+'_'+n]); }
 const MX = 37, MY = 39;
 
 // ═══════════════════════════════════════════════════════════════
 // EMOJI STRIPPER
 // ═══════════════════════════════════════════════════════════════
 function stripEmoji(str) {
-  return String(str)
-    .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
-    .replace(/[\u{1F300}-\u{1F5FF}]/gu, '')
-    .replace(/[\u{1F680}-\u{1F6FF}]/gu, '')
-    .replace(/[\u{1F700}-\u{1F77F}]/gu, '')
-    .replace(/[\u{1F780}-\u{1F9FF}]/gu, '')
-    .replace(/[\u{1FA00}-\u{1FAFF}]/gu, '')
-    .replace(/[\u{2600}-\u{26FF}]/gu, '')
-    .replace(/[\u{2700}-\u{27BF}]/gu, '')
-    .replace(/[\u{FE00}-\u{FE0F}]/gu, '')
-    .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, '')
-    .replace(/\s{2,}/g,' ')
-    .trim();
+  return String(str).replace(/[\u{1F600}-\u{1FAFF}]/gu,'').replace(/[\u{2600}-\u{27BF}]/gu,'').replace(/[\u{FE00}-\u{FE0F}]/gu,'').replace(/\s{2,}/g,' ').trim();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -449,82 +431,47 @@ function drawFace(id) {
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle = d.face; ctx.fillRect(0,0,W,H);
   ctx.fillStyle = d.color; ctx.fillRect(0,0,W,5);
-
   const st = a.state || 'idle';
   const ox = Math.max(-4.5, Math.min(4.5, a.ex));
   const oy = Math.max(-3.5, Math.min(3.5, a.ey));
   const eyY = H*.44, lx = W*.3, rx = W*.7;
-
-  // Eyes
-  if (st === 'thinking' || st === 'working') {
-    ctx.fillStyle = '#0A0A0A';
-    ctx.fillRect(lx-6+ox, eyY+oy-1, 12, 2.5);
-    ctx.fillRect(rx-6+ox, eyY+oy-1, 12, 2.5);
-  } else if (st === 'happy' || st === 'done') {
-    ctx.fillStyle = '#0A0A0A';
-    ctx.beginPath(); ctx.arc(lx+ox, eyY+2+oy, 5, Math.PI, 0); ctx.fill();
-    ctx.beginPath(); ctx.arc(rx+ox, eyY+2+oy, 5, Math.PI, 0); ctx.fill();
+  if (st==='thinking'||st==='working') {
+    ctx.fillStyle='#0A0A0A'; ctx.fillRect(lx-6+ox,eyY+oy-1,12,2.5); ctx.fillRect(rx-6+ox,eyY+oy-1,12,2.5);
+  } else if (st==='happy'||st==='done') {
+    ctx.fillStyle='#0A0A0A';
+    ctx.beginPath();ctx.arc(lx+ox,eyY+2+oy,5,Math.PI,0);ctx.fill();
+    ctx.beginPath();ctx.arc(rx+ox,eyY+2+oy,5,Math.PI,0);ctx.fill();
   } else {
-    [lx, rx].forEach(x => {
-      ctx.fillStyle = '#0A0A0A';
-      ctx.beginPath(); ctx.arc(x+ox, eyY+oy, 4.5, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = d.face;
-      ctx.beginPath(); ctx.arc(x+ox-1.2, eyY+oy-1.2, 1.4, 0, Math.PI*2); ctx.fill();
+    [lx,rx].forEach(x=>{
+      ctx.fillStyle='#0A0A0A';ctx.beginPath();ctx.arc(x+ox,eyY+oy,4.5,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=d.face;ctx.beginPath();ctx.arc(x+ox-1.2,eyY+oy-1.2,1.4,0,Math.PI*2);ctx.fill();
     });
-    ctx.fillStyle = '#0A0A0A';
   }
-  if (a.blinking && (st === 'idle' || st === 'happy')) {
-    ctx.fillStyle = d.face;
-    ctx.fillRect(lx-7, eyY-6, 14, 12);
-    ctx.fillRect(rx-7, eyY-6, 14, 12);
-  }
-
-  // Mouth
+  if (a.blinking&&(st==='idle'||st==='happy')) { ctx.fillStyle=d.face; ctx.fillRect(lx-7,eyY-6,14,12); ctx.fillRect(rx-7,eyY-6,14,12); }
   const my = H*.73, mx2 = W/2;
-  ctx.strokeStyle = '#0A0A0A'; ctx.lineWidth = 2; ctx.lineCap = 'round';
-  if (st === 'talking') {
-    ctx.fillStyle = '#0A0A0A';
-    ctx.beginPath(); ctx.ellipse(mx2, my, 5.5, 5, 0, 0, Math.PI*2); ctx.fill();
-  } else if (st === 'happy' || st === 'done') {
-    ctx.beginPath(); ctx.arc(mx2, my-5, 9, .18, Math.PI-.18); ctx.stroke();
-  } else if (st === 'thinking') {
-    ctx.beginPath();
-    ctx.moveTo(mx2-8,my); ctx.lineTo(mx2-3,my-2.5); ctx.lineTo(mx2+3,my+2.5); ctx.lineTo(mx2+8,my); ctx.stroke();
-  } else if (st === 'working') {
-    ctx.beginPath(); ctx.moveTo(mx2-7,my); ctx.lineTo(mx2+7,my); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(mx2-4,my+3); ctx.lineTo(mx2+4,my+3); ctx.stroke();
-  } else if (st === 'error') {
-    ctx.beginPath(); ctx.arc(mx2, my-2, 7, Math.PI*.1, Math.PI*.9, true); ctx.stroke();
-  } else {
-    ctx.beginPath(); ctx.arc(mx2, my-3, 7, .2, Math.PI-.2); ctx.stroke();
-  }
+  ctx.strokeStyle='#0A0A0A';ctx.lineWidth=2;ctx.lineCap='round';
+  if (st==='talking') { ctx.fillStyle='#0A0A0A';ctx.beginPath();ctx.ellipse(mx2,my,5.5,5,0,0,Math.PI*2);ctx.fill(); }
+  else if (st==='happy'||st==='done') { ctx.beginPath();ctx.arc(mx2,my-5,9,.18,Math.PI-.18);ctx.stroke(); }
+  else if (st==='thinking') { ctx.beginPath();ctx.moveTo(mx2-8,my);ctx.lineTo(mx2-3,my-2.5);ctx.lineTo(mx2+3,my+2.5);ctx.lineTo(mx2+8,my);ctx.stroke(); }
+  else if (st==='working') { ctx.beginPath();ctx.moveTo(mx2-7,my);ctx.lineTo(mx2+7,my);ctx.stroke();ctx.beginPath();ctx.moveTo(mx2-4,my+3);ctx.lineTo(mx2+4,my+3);ctx.stroke(); }
+  else if (st==='error') { ctx.beginPath();ctx.arc(mx2,my-2,7,Math.PI*.1,Math.PI*.9,true);ctx.stroke(); }
+  else { ctx.beginPath();ctx.arc(mx2,my-3,7,.2,Math.PI-.2);ctx.stroke(); }
 }
-
 function scheduleBlink(id) {
-  setTimeout(() => {
-    const a = AG[id]; if (!a) return;
-    a.blinking = true; drawFace(id);
-    setTimeout(() => { a.blinking = false; drawFace(id); scheduleBlink(id); }, 130);
-  }, 2800 + Math.random()*4000);
+  setTimeout(()=>{ const a=AG[id];if(!a)return;a.blinking=true;drawFace(id);setTimeout(()=>{a.blinking=false;drawFace(id);scheduleBlink(id);},130); }, 2800+Math.random()*4200);
 }
-
 function eyeLoop() {
-  Object.keys(AG).forEach(id => {
-    const a = AG[id]; if (!a) return;
-    if (a.state === 'thinking' || a.state === 'working') {
-      if (a.ex !== 0 || a.ey !== 0) { a.ex = 0; a.ey = 0; drawFace(id); }
-      return;
-    }
-    const r = a.canvas.getBoundingClientRect();
-    const cx = r.left+r.width/2, cy = r.top+r.height/2;
-    const dx = mX-cx, dy = mY-cy;
-    const dist = Math.sqrt(dx*dx+dy*dy);
-    const f = Math.min(dist*.07, 4.5);
-    const nx = dist>0?dx/dist:0, ny = dist>0?dy/dist:0;
-    const tx = nx*f, ty = ny*f;
-    if (Math.abs(tx-a.ex)>.22 || Math.abs(ty-a.ey)>.22) {
-      a.ex += (tx-a.ex)*.18; a.ey += (ty-a.ey)*.18; drawFace(id);
-    }
+  Object.keys(AG).forEach(id=>{
+    const a=AG[id];if(!a)return;
+    if(a.state==='thinking'||a.state==='working'){if(a.ex!==0||a.ey!==0){a.ex=0;a.ey=0;drawFace(id);}return;}
+    const r=a.canvas.getBoundingClientRect();
+    const cx=r.left+r.width/2,cy=r.top+r.height/2;
+    const dx=mX-cx,dy=mY-cy;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    const f=Math.min(dist*.07,4.5);
+    const nx=dist>0?dx/dist:0,ny=dist>0?dy/dist:0;
+    const tx=nx*f,ty=ny*f;
+    if(Math.abs(tx-a.ex)>.22||Math.abs(ty-a.ey)>.22){a.ex+=(tx-a.ex)*.18;a.ey+=(ty-a.ey)*.18;drawFace(id);}
   });
   requestAnimationFrame(eyeLoop);
 }
@@ -534,612 +481,329 @@ function eyeLoop() {
 // ═══════════════════════════════════════════════════════════════
 function buildOffice() {
   const off = document.getElementById('office');
-  // Preserve the chain SVG
   const svgEl = off.querySelector('#chain-svg');
-  off.innerHTML = '';
-  const svg = svgEl || document.createElementNS('http://www.w3.org/2000/svg','svg');
-  svg.id = 'chain-svg'; svg.className = 'chain-svg';
-  svg.innerHTML = '';
+  off.innerHTML='';
+  const svg = svgEl||document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.id='chain-svg';svg.className='chain-svg';svg.innerHTML='';
   off.appendChild(svg);
-
-  // Clear old agents from DOM (but not svg)
-  Object.keys(AG).forEach(id => { if (AG[id]) { AG[id].el.remove(); } });
-
-  const W = off.offsetWidth, H = off.offsetHeight;
-  const px = (xp,yp) => ({x:(xp/100)*W, y:(yp/100)*H});
-
-  off.classList.toggle('super-active', superMode);
+  Object.keys(AG).forEach(id=>{if(AG[id])AG[id].el.remove();});
+  const W=off.offsetWidth,H=off.offsetHeight;
+  const px=(xp,yp)=>({x:(xp/100)*W,y:(yp/100)*H});
+  off.classList.toggle('super-active',superMode);
 
   // Rooms
-  [
-    {lbl:"Boss Office",    x:0,  y:0,  w:27, h:44},
-    {lbl:'Research Lab',   x:55, y:0,  w:45, h:44},
-    {lbl:'Writing Studio', x:0,  y:44, w:25, h:56},
-    {lbl:'Coder Den',      x:25, y:58, w:31, h:42},
-    {lbl:'Analysis Room',  x:56, y:44, w:44, h:56},
-  ].forEach(r => {
-    const el = document.createElement('div'); el.className = 'room';
-    el.style.cssText = `left:${r.x}%;top:${r.y}%;width:${r.w}%;height:${r.h}%;`;
-    el.innerHTML = `<div class="room-lbl">${r.lbl}</div>`;
-    off.appendChild(el);
+  [{lbl:'Boss Office',x:0,y:0,w:27,h:44},{lbl:'Research Lab',x:55,y:0,w:45,h:44},{lbl:'Writing Studio',x:0,y:44,w:25,h:56},{lbl:'Coder Den',x:25,y:58,w:31,h:42},{lbl:'Analysis Room',x:56,y:44,w:44,h:56}]
+  .forEach(r=>{
+    const el=document.createElement('div');el.className='room';
+    el.style.cssText=`left:${r.x}%;top:${r.y}%;width:${r.w}%;height:${r.h}%;`;
+    el.innerHTML=`<div class="room-lbl">${r.lbl}</div>`;off.appendChild(el);
   });
 
   // Meeting table
-  const mp = px(27,30);
-  const mt = document.createElement('div'); mt.className = 'mtable';
-  mt.style.cssText = `left:${mp.x}px;top:${mp.y}px;width:${(29/100)*W}px;height:${(20/100)*H}px;`;
-  mt.innerHTML = '<div class="mtable-lbl">Meeting Table</div>';
-  off.appendChild(mt);
+  const mp=px(27,30);const mt=document.createElement('div');mt.className='mtable';
+  mt.style.cssText=`left:${mp.x}px;top:${mp.y}px;width:${(29/100)*W}px;height:${(20/100)*H}px;`;
+  mt.innerHTML='<div class="mtable-lbl">Meeting Table</div>';off.appendChild(mt);
 
   // Whiteboard
-  const wbp = px(28,4);
-  const wb = document.createElement('div'); wb.className = 'whiteboard';
-  wb.style.cssText = `left:${wbp.x}px;top:${wbp.y}px;width:${(22/100)*W}px;height:${(15/100)*H}px;`;
-  wb.innerHTML = '<div class="wb-lines">'+Array(5).fill('<div class="wb-line"></div>').join('')+'</div>';
-  off.appendChild(wb);
+  const wbp=px(28,4);const wb=document.createElement('div');wb.className='whiteboard';
+  wb.style.cssText=`left:${wbp.x}px;top:${wbp.y}px;width:${(22/100)*W}px;height:${(14/100)*H}px;`;
+  wb.innerHTML='<div class="wb-lines">'+Array(5).fill('<div class="wb-line"></div>').join('')+'</div>';off.appendChild(wb);
 
   // Desks
   [{x:5,y:22,w:8,h:3.2},{x:62,y:20,w:9,h:3.2},{x:3,y:50,w:8,h:3.2},{x:63,y:47,w:9,h:3.2},{x:35,y:62,w:8,h:3.2}]
-  .forEach(d => {
-    const p = px(d.x,d.y); const dw=(d.w/100)*W, dh=(d.h/100)*H;
-    const top = document.createElement('div'); top.className = 'desk-top';
-    top.style.cssText = `left:${p.x}px;top:${p.y}px;width:${dw}px;height:${dh}px;`;
-    const mon = document.createElement('div'); mon.className = 'desk-mon';
-    const mw = Math.max(16,dw*.45);
-    mon.style.cssText = `width:${mw}px;height:12px;top:-14px;left:${dw/2-mw/2}px;`;
-    top.appendChild(mon); off.appendChild(top);
+  .forEach(d=>{
+    const p=px(d.x,d.y);const dw=(d.w/100)*W,dh=(d.h/100)*H;
+    const top=document.createElement('div');top.className='desk-top';
+    top.style.cssText=`left:${p.x}px;top:${p.y}px;width:${dw}px;height:${dh}px;`;
+    const mon=document.createElement('div');mon.className='desk-mon';
+    const mw=Math.max(16,dw*.45);mon.style.cssText=`width:${mw}px;height:12px;top:-14px;left:${dw/2-mw/2}px;`;
+    top.appendChild(mon);off.appendChild(top);
   });
 
-  // CSS-only decor (no emojis)
-  const p1=px(1,1), p2=px(23,44), p3=px(53,1);
-  [[p1,'plant'],[p2,'mug'],[p3,'plant']].forEach(([p,type]) => {
-    const el = document.createElement('div');
-    if (type === 'plant') {
-      el.className = 'decor-plant';
-      el.style.cssText = `position:absolute;left:${p.x+3}px;top:${p.y+3}px;`;
-    } else {
-      el.className = 'decor-mug';
-      el.style.cssText = `left:${p.x+3}px;top:${p.y+3}px;`;
-    }
-    off.appendChild(el);
-  });
-  const pb = px(1,44);
-  const books = document.createElement('div'); books.className = 'decor-book';
-  books.style.cssText = `position:absolute;left:${pb.x+3}px;top:${pb.y+3}px;`;
-  books.innerHTML = '<span></span><span></span><span></span>';
-  off.appendChild(books);
+  // Decor
+  const p1=px(1,1),p2=px(23,44),p3c=px(53,1);
+  const pl1=document.createElement('div');pl1.className='decor-plant';pl1.style.cssText=`position:absolute;left:${p1.x+3}px;top:${p1.y+3}px;`;off.appendChild(pl1);
+  const pl2=document.createElement('div');pl2.className='decor-plant';pl2.style.cssText=`position:absolute;left:${p3c.x+3}px;top:${p3c.y+3}px;`;off.appendChild(pl2);
+  const mg=document.createElement('div');mg.className='decor-mug';mg.style.cssText=`left:${p2.x+3}px;top:${p2.y+3}px;`;off.appendChild(mg);
+  const pb=px(1,44);const books=document.createElement('div');books.className='decor-book';
+  books.style.cssText=`position:absolute;left:${pb.x+3}px;top:${pb.y+3}px;`;
+  books.innerHTML='<span style="height:14px"></span><span style="height:11px"></span><span style="height:16px"></span>';off.appendChild(books);
 
-  // Spawn agents for current mode
-  Object.assign(AG, {});
-  const defs = activeDefs();
-  Object.values(defs).forEach(def => spawnAgent(def));
-  Object.keys(defs).forEach(id => setTimeout(() => scheduleBlink(id), Math.random()*2500));
+  // Spawn agents
+  Object.assign(AG,{});
+  const defs=activeDefs();
+  Object.values(defs).forEach(def=>spawnAgent(def));
+  Object.keys(defs).forEach(id=>setTimeout(()=>scheduleBlink(id),Math.random()*2500));
 }
 
 function spawnAgent(def) {
-  const off = document.getElementById('office');
-  const W = off.offsetWidth, H = off.offsetHeight;
-  const el = document.createElement('div'); el.className = 'agent-char'; el.id = 'ag-'+def.id;
-  el.style.left = (def.hx/100*W)+'px'; el.style.top = (def.hy/100*H)+'px';
-
-  const body = document.createElement('div'); body.className = 'agent-body';
-  const fw = document.createElement('div'); fw.className = 'face-wrap';
-  const cv = document.createElement('canvas'); cv.className = 'face-cv';
-  cv.width = 56; cv.height = 46; cv.style.cssText = 'display:block;width:56px;height:46px;';
-  fw.appendChild(cv); body.appendChild(fw);
-
-  const nt = document.createElement('div'); nt.className = 'name-tag';
-  nt.style.background = def.color; nt.textContent = def.name;
-  body.appendChild(nt);
-
-  // Step tag (super mode)
-  if (def.stepName) {
-    const st = document.createElement('div'); st.className = 'step-tag';
-    st.textContent = def.stepName; body.appendChild(st);
-  }
-
-  // Step pip for super-parent agents (normal mode agents still show normal)
-  const sd = document.createElement('div'); sd.className = 'sdot idle'; body.appendChild(sd);
-
-  el.appendChild(body); off.appendChild(el);
-
-  AG[def.id] = {
-    el, canvas:cv, ctx:cv.getContext('2d'), def,
-    dot:sd, bubble:null, state:'idle', ex:0, ey:0, blinking:false
-  };
+  const off=document.getElementById('office');
+  const W=off.offsetWidth,H=off.offsetHeight;
+  const el=document.createElement('div');el.className='agent-char';el.id='ag-'+def.id;
+  el.style.left=(def.hx/100*W)+'px';el.style.top=(def.hy/100*H)+'px';
+  const body=document.createElement('div');body.className='agent-body';
+  const fw=document.createElement('div');fw.className='face-wrap';
+  const cv=document.createElement('canvas');cv.className='face-cv';
+  cv.width=56;cv.height=46;cv.style.cssText='display:block;width:56px;height:46px;';
+  fw.appendChild(cv);body.appendChild(fw);
+  const nt=document.createElement('div');nt.className='name-tag';nt.style.background=def.color;nt.textContent=def.name;body.appendChild(nt);
+  if(def.stepName){const st=document.createElement('div');st.className='step-tag';st.textContent=def.stepName;body.appendChild(st);}
+  const sd=document.createElement('div');sd.className='sdot idle';body.appendChild(sd);
+  el.appendChild(body);off.appendChild(el);
+  AG[def.id]={el,canvas:cv,ctx:cv.getContext('2d'),def,dot:sd,bubble:null,state:'idle',ex:0,ey:0,blinking:false};
   drawFace(def.id);
 }
 
 // ═══════════════════════════════════════════════════════════════
-// AGENT MOVEMENT & STATE
+// MOVEMENT & STATE
 // ═══════════════════════════════════════════════════════════════
-function moveTo(id, xp, yp, walk=true) {
-  const a = AG[id]; if (!a) return Promise.resolve();
-  const off = document.getElementById('office');
-  const W = off.offsetWidth, H = off.offsetHeight;
-  if (walk) { a.el.classList.add('is-walking'); setTimeout(()=>a.el.classList.remove('is-walking'),980); }
-  a.el.style.left = (xp/100*W)+'px'; a.el.style.top  = (yp/100*H)+'px';
+function moveTo(id,xp,yp,walk=true){
+  const a=AG[id];if(!a)return Promise.resolve();
+  const off=document.getElementById('office');const W=off.offsetWidth,H=off.offsetHeight;
+  if(walk){a.el.classList.add('is-walking');setTimeout(()=>a.el.classList.remove('is-walking'),980);}
+  a.el.style.left=(xp/100*W)+'px';a.el.style.top=(yp/100*H)+'px';
   return new Promise(r=>setTimeout(r,1000));
 }
-
-function setState(id, st) {
-  const a = AG[id]; if (!a) return;
-  a.state = st; a.dot.className = 'sdot '+st;
-  if (st==='working') a.el.classList.add('is-working'); else a.el.classList.remove('is-working');
-  drawFace(id);
+function setState(id,st){
+  const a=AG[id];if(!a)return;a.state=st;a.dot.className='sdot '+st;
+  if(st==='working')a.el.classList.add('is-working');else a.el.classList.remove('is-working');drawFace(id);
 }
-
-function setBubble(id, text, boss=false, dur=3500) {
-  const a = AG[id]; if (!a) return;
-  if (a.bubble) { a.bubble.remove(); a.bubble = null; }
-  const b = document.createElement('div'); b.className = 'bubble'+(boss?' boss':'');
-  a.el.appendChild(b); a.bubble = b;
-  const clean = stripEmoji(text);
-  const short = clean.length > 90 ? clean.slice(0,87)+'...' : clean;
-  let i = 0; const tick = ()=>{ if(i<short.length){b.textContent+=short[i++];setTimeout(tick,15);} }; tick();
-  if (dur>0) setTimeout(()=>{ if(b.parentNode)b.remove(); if(a.bubble===b)a.bubble=null; },dur);
+function setBubble(id,text,boss=false,dur=3500){
+  const a=AG[id];if(!a)return;
+  if(a.bubble){a.bubble.remove();a.bubble=null;}
+  const b=document.createElement('div');b.className='bubble'+(boss?' boss':'');
+  a.el.appendChild(b);a.bubble=b;
+  const clean=stripEmoji(text);
+  const short=clean.length>90?clean.slice(0,87)+'...':clean;
+  let i=0;const tick=()=>{if(i<short.length){b.textContent+=short[i++];setTimeout(tick,14);}};tick();
+  if(dur>0)setTimeout(()=>{if(b.parentNode)b.remove();if(a.bubble===b)a.bubble=null;},dur);
 }
-
-function clearBub(id) { const a=AG[id]; if(a&&a.bubble){a.bubble.remove();a.bubble=null;} }
+function clearBub(id){const a=AG[id];if(a&&a.bubble){a.bubble.remove();a.bubble=null;}}
 
 // ═══════════════════════════════════════════════════════════════
-// CHAIN SVG LINES (super mode visual connector)
+// CHAIN SVG
 // ═══════════════════════════════════════════════════════════════
-function drawChainLine(fromId, toId, active=false) {
-  const svg = document.getElementById('chain-svg'); if (!svg) return;
-  const fa = AG[fromId], ta = AG[toId]; if (!fa||!ta) return;
-  const fr = fa.canvas.getBoundingClientRect();
-  const tr = ta.canvas.getBoundingClientRect();
-  const or = svg.getBoundingClientRect();
-  const x1 = fr.left+fr.width/2 - or.left;
-  const y1 = fr.top+fr.height/2 - or.top;
-  const x2 = tr.left+tr.width/2 - or.left;
-  const y2 = tr.top+tr.height/2 - or.top;
-  const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-  line.setAttribute('x1',x1); line.setAttribute('y1',y1);
-  line.setAttribute('x2',x2); line.setAttribute('y2',y2);
-  line.className = 'chain-line'+(active?' active':'');
-  line.id = 'cl-'+fromId+'-'+toId;
-  svg.appendChild(line);
+function drawChainLine(fromId,toId,active=false){
+  const svg=document.getElementById('chain-svg');if(!svg)return;
+  const fa=AG[fromId],ta=AG[toId];if(!fa||!ta)return;
+  const fr=fa.canvas.getBoundingClientRect(),tr=ta.canvas.getBoundingClientRect(),or=svg.getBoundingClientRect();
+  const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+  line.setAttribute('x1',fr.left+fr.width/2-or.left);line.setAttribute('y1',fr.top+fr.height/2-or.top);
+  line.setAttribute('x2',tr.left+tr.width/2-or.left);line.setAttribute('y2',tr.top+tr.height/2-or.top);
+  line.className='chain-line'+(active?' active':'');line.id='cl-'+fromId+'-'+toId;svg.appendChild(line);
 }
-
-function clearChainLines() {
-  const svg = document.getElementById('chain-svg'); if (svg) svg.innerHTML='';
-}
+function clearChainLines(){const svg=document.getElementById('chain-svg');if(svg)svg.innerHTML='';}
 
 // ═══════════════════════════════════════════════════════════════
 // TASK PANEL
 // ═══════════════════════════════════════════════════════════════
-function togglePanel() {
-  document.getElementById('panel').classList.toggle('collapsed');
-}
+function togglePanel(){document.getElementById('panel').classList.toggle('collapsed');}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-let tcCardMap = {}; // agentId -> card element id
-
-function addTask(id, desc, stepNum=null, totalSteps=null) {
+function addTask(id,desc){
   numTasks++;
-  const def = activeDefs()[id] || BASE[id.split('_')[0]] || SUPER_DEFS[id];
-  const scroll = document.getElementById('task-scroll');
-  scroll.querySelector('.et') && scroll.querySelector('.et').remove();
-  const cardId = 'tc-'+id;
-  tcCardMap[id] = cardId;
-  const card = document.createElement('div'); card.className = 'task-card'; card.id = cardId;
-
-  const stepLabel = stepNum ? `Step ${stepNum}/${totalSteps}: ${def.stepName||''}` : '';
-  card.innerHTML =
-    `<div class="tc-head">` +
-      `<span class="tc-badge" style="background:${def.color}">${def.name}</span>` +
-      (stepLabel ? `<span class="tc-step">${stepLabel}</span>` : '') +
-      `<span class="tc-pill pending" id="tp-${id}">Pending</span>` +
-    `</div>` +
-    `<div class="tc-desc">${esc(desc.slice(0,120))}</div>` +
-    `<div class="tc-out" id="to-${id}"></div>`;
+  const def=activeDefs()[id]||BASE[id.split('_')[0]]||SUPER_DEFS[id];
+  const scroll=document.getElementById('task-scroll');
+  scroll.querySelector('.et')&&scroll.querySelector('.et').remove();
+  const card=document.createElement('div');card.className='task-card';card.id='tc-'+id;
+  card.innerHTML=`<div class="tc-head"><span class="tc-badge" style="background:${def.color}">${def.name}</span><span class="tc-pill pending" id="tp-${id}">Pending</span></div><div class="tc-desc">${esc(desc.slice(0,120))}</div><div class="tc-out" id="to-${id}"></div>`;
   scroll.appendChild(card);
-  document.getElementById('tc').textContent = numTasks+' task'+(numTasks!==1?'s':'');
+  document.getElementById('tc').textContent=numTasks+' task'+(numTasks!==1?'s':'');
   return card;
 }
 
-function addSuperTaskGroup(type, task) {
-  // Add one group card showing 3 chain steps for a given agent type
+function addSuperTaskGroup(type,task){
   numTasks++;
-  const base = BASE[type];
-  const scroll = document.getElementById('task-scroll');
-  scroll.querySelector('.et') && scroll.querySelector('.et').remove();
-  const cardId = 'stg-'+type;
-  const card = document.createElement('div'); card.className = 'task-card'; card.id = cardId;
-  card.innerHTML =
-    `<div class="tc-head">` +
-      `<span class="tc-badge" style="background:${base.color}">${base.name}</span>` +
-      `<span class="tc-pill pending" id="sgp-${type}">Pending</span>` +
-    `</div>` +
-    `<div class="tc-desc">${esc(task.slice(0,110))}</div>` +
-    `<div class="chain-steps" id="csteps-${type}">` +
-      SUPER_STEPS[type].map((s,i) =>
-        `<div class="chain-step">` +
-          `<span class="cs-num">${i+1}</span>` +
-          `<span class="cs-label" id="csl-${type}-${i}">${s.step}</span>` +
-          `<span class="cs-check" id="csc-${type}-${i}"></span>` +
-        `</div>`
-      ).join('') +
-    `</div>` +
-    `<div class="tc-out" id="sgo-${type}"></div>`;
+  const base=BASE[type];const scroll=document.getElementById('task-scroll');
+  scroll.querySelector('.et')&&scroll.querySelector('.et').remove();
+  const card=document.createElement('div');card.className='task-card';card.id='stg-'+type;
+  card.innerHTML=`<div class="tc-head"><span class="tc-badge" style="background:${base.color}">${base.name}</span><span class="tc-pill pending" id="sgp-${type}">Pending</span></div><div class="tc-desc">${esc(task.slice(0,110))}</div><div class="chain-steps" id="csteps-${type}">${SUPER_STEPS[type].map((s,i)=>`<div class="chain-step"><span class="cs-num">${i+1}</span><span class="cs-label" id="csl-${type}-${i}">${s.step}</span><span class="cs-check" id="csc-${type}-${i}"></span></div>`).join('')}</div><div class="tc-out" id="sgo-${type}"></div>`;
   scroll.appendChild(card);
-  document.getElementById('tc').textContent = numTasks+' task'+(numTasks!==1?'s':'');
+  document.getElementById('tc').textContent=numTasks+' task'+(numTasks!==1?'s':'');
   return card;
 }
 
-function updateTask(id, status, output='') {
-  const pill = document.getElementById('tp-'+id);
-  const out  = document.getElementById('to-'+id);
-  const card = document.getElementById('tc-'+id);
-  if (pill) { pill.className='tc-pill '+status; pill.textContent=status[0].toUpperCase()+status.slice(1); }
-  if (output&&out) out.innerHTML = marked.parse(stripEmoji(output).slice(0,500));
-  if (status==='done'&&card) card.classList.add('done-state');
+function updateTask(id,status,output=''){
+  const pill=document.getElementById('tp-'+id),out=document.getElementById('to-'+id),card=document.getElementById('tc-'+id);
+  if(pill){pill.className='tc-pill '+status;pill.textContent=status[0].toUpperCase()+status.slice(1);}
+  if(output&&out)out.innerHTML=marked.parse(stripEmoji(output).slice(0,500));
+  if(status==='done'&&card)card.classList.add('done-state');
 }
 
-function updateSuperGroup(type, status, stepIdx=null, output='') {
-  const pill = document.getElementById('sgp-'+type);
-  const out  = document.getElementById('sgo-'+type);
-  if (pill) { pill.className='tc-pill '+status; pill.textContent=status[0].toUpperCase()+status.slice(1); }
-  if (stepIdx !== null) {
-    for (let i=0;i<3;i++) {
-      const lbl = document.getElementById(`csl-${type}-${i}`);
-      const chk = document.getElementById(`csc-${type}-${i}`);
-      if (!lbl||!chk) continue;
-      if (i < stepIdx) { lbl.className='cs-label done'; chk.className='cs-check done'; }
-      else if (i === stepIdx) { lbl.className='cs-label active'; chk.className='cs-check active'; }
-      else { lbl.className='cs-label'; chk.className='cs-check'; }
+function updateSuperGroup(type,status,stepIdx=null,output=''){
+  const pill=document.getElementById('sgp-'+type),out=document.getElementById('sgo-'+type);
+  if(pill){pill.className='tc-pill '+status;pill.textContent=status[0].toUpperCase()+status.slice(1);}
+  if(stepIdx!==null){
+    for(let i=0;i<3;i++){
+      const lbl=document.getElementById(`csl-${type}-${i}`),chk=document.getElementById(`csc-${type}-${i}`);if(!lbl||!chk)continue;
+      if(i<stepIdx){lbl.className='cs-label done';chk.className='cs-check done';}
+      else if(i===stepIdx){lbl.className='cs-label active';chk.className='cs-check active';}
+      else{lbl.className='cs-label';chk.className='cs-check';}
     }
   }
-  if (status==='done') {
-    for (let i=0;i<3;i++) {
-      document.getElementById(`csl-${type}-${i}`)?.classList.replace('active','done');
-      const c = document.getElementById(`csc-${type}-${i}`);
-      if (c) c.className = 'cs-check done';
-    }
-    const card = document.getElementById('stg-'+type);
-    if (card) card.classList.add('done-state');
-    if (output&&out) out.innerHTML = marked.parse(stripEmoji(output).slice(0,500));
+  if(status==='done'){
+    for(let i=0;i<3;i++){document.getElementById(`csl-${type}-${i}`)?.classList.replace('active','done');const c=document.getElementById(`csc-${type}-${i}`);if(c)c.className='cs-check done';}
+    const card=document.getElementById('stg-'+type);if(card)card.classList.add('done-state');
+    if(output&&out)out.innerHTML=marked.parse(stripEmoji(output).slice(0,500));
   }
 }
-
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // ═══════════════════════════════════════════════════════════════
 // API
 // ═══════════════════════════════════════════════════════════════
-async function callAgent(def, message, chatHistory=[]) {
-  const hdrs = {'Content-Type':'application/json'};
-  if (authToken) hdrs['Authorization'] = 'Bearer '+authToken;
-  const body = {
-    message,
-    temperature: 0.65,
-    chat_history: chatHistory,
-    system_prompt: def.system_prompt,
-    guest: !authToken
-  };
-  const res = await fetch(EP, {method:'POST', headers:hdrs, body:JSON.stringify(body)});
-  const data = await res.json();
-  if (!res.ok || data.error) throw new Error(data.error||'HTTP '+res.status);
+async function callAgent(def,message,chatHistory=[]){
+  const hdrs={'Content-Type':'application/json'};
+  if(authToken)hdrs['Authorization']='Bearer '+authToken;
+  const body={message,temperature:0.65,chat_history:chatHistory,system_prompt:def.system_prompt,guest:!authToken};
+  const res=await fetch(EP,{method:'POST',headers:hdrs,body:JSON.stringify(body)});
+  const data=await res.json();
+  if(!res.ok||data.error)throw new Error(data.error||'HTTP '+res.status);
   return stripEmoji((data.text||'').trim());
 }
 
 // ═══════════════════════════════════════════════════════════════
-// SUPER MODE CHAIN CALL (3 sequential steps for one agent type)
+// SUPER CHAIN
 // ═══════════════════════════════════════════════════════════════
-async function runSuperChain(type, taskDesc, userQuery) {
-  const subs = superAgentsFor(type);
-  const base = BASE[type];
-  let results = [];
-  let history = [];
-
-  for (let i = 0; i < subs.length; i++) {
-    const sub = subs[i];
-    updateSuperGroup(type, 'working', i);
-    setState(sub.id, 'working');
-    clearBub(sub.id);
-    setBubble(sub.id, sub.stepName+'...', false, 0);
-
-    let msg = sub.stepPrompt + '\n\nMain task: ' + taskDesc + '\nUser request context: "' + userQuery + '"';
-    if (i > 0) {
-      msg += '\n\nPrevious steps output:\n' + results.map((r,j)=>`[Step ${j+1}]:\n${r}`).join('\n\n');
-    }
-
-    try {
-      const result = await callAgent(sub, msg, history);
-      results.push(result);
-      // Pass as chat history for next step
-      history.push({role:'USER', message:msg});
-      history.push({role:'CHATBOT', message:result});
-
-      setState(sub.id, 'done');
-      clearBub(sub.id);
-      setBubble(sub.id, 'Step '+(i+1)+' complete', false, 2200);
-
-      // Draw chain line to next agent
-      if (i < subs.length-1) {
-        drawChainLine(sub.id, subs[i+1].id, true);
-        await sleep(500);
-        moveTo(subs[i+1].id, subs[i+1].dx, subs[i+1].dy, true);
-      }
+async function runSuperChain(type,taskDesc,userQuery){
+  const subs=superAgentsFor(type);let results=[],history=[];
+  for(let i=0;i<subs.length;i++){
+    const sub=subs[i];updateSuperGroup(type,'working',i);setState(sub.id,'working');clearBub(sub.id);setBubble(sub.id,sub.stepName+'...',false,0);
+    let msg=sub.stepPrompt+'\n\nMain task: '+taskDesc+'\nUser request context: "'+userQuery+'"';
+    if(i>0)msg+='\n\nPrevious steps output:\n'+results.map((r,j)=>`[Step ${j+1}]:\n${r}`).join('\n\n');
+    try{
+      const result=await callAgent(sub,msg,history);results.push(result);
+      history.push({role:'USER',message:msg});history.push({role:'CHATBOT',message:result});
+      setState(sub.id,'done');clearBub(sub.id);setBubble(sub.id,'Step '+(i+1)+' complete',false,2200);
+      if(i<subs.length-1){drawChainLine(sub.id,subs[i+1].id,true);await sleep(500);moveTo(subs[i+1].id,subs[i+1].dx,subs[i+1].dy,true);}
       await sleep(400);
-    } catch(e) {
-      results.push('Error: '+e.message);
-      setState(sub.id, 'error');
-      clearBub(sub.id);
-      setBubble(sub.id, 'Step '+(i+1)+' failed', false, 2500);
-    }
+    }catch(e){results.push('Error: '+e.message);setState(sub.id,'error');clearBub(sub.id);setBubble(sub.id,'Step '+(i+1)+' failed',false,2500);}
   }
-
-  // Final result is the last step's output
-  const finalResult = results[results.length-1];
-  updateSuperGroup(type, 'done', null, finalResult);
-
-  // Move all sub-agents to meeting area
-  for (const sub of subs) {
-    setState(sub.id, 'happy'); drawFace(sub.id);
-    await sleep(200);
-    moveTo(sub.id, MX + (Math.random()*16-8), MY + (Math.random()*14-7), true);
-  }
-
+  const finalResult=results[results.length-1];
+  updateSuperGroup(type,'done',null,finalResult);
+  for(const sub of subs){setState(sub.id,'happy');drawFace(sub.id);await sleep(200);moveTo(sub.id,MX+(Math.random()*16-8),MY+(Math.random()*14-7),true);}
   return finalResult;
 }
 
 // ═══════════════════════════════════════════════════════════════
 // MAIN FLOW
 // ═══════════════════════════════════════════════════════════════
-async function go() {
-  if (busy) return;
-  const inp = document.getElementById('user-input');
-  const q = inp.value.trim(); if (!q) return;
-  inp.value=''; onInput(inp);
-  busy=true;
+async function go(){
+  if(busy)return;
+  const inp=document.getElementById('user-input');const q=inp.value.trim();if(!q)return;
+  inp.value='';onInput(inp);busy=true;
   document.getElementById('send-btn').disabled=true;
-  const spill = document.getElementById('status-pill');
-  spill.textContent='Running'; spill.classList.add('running');
+  const spill=document.getElementById('status-pill');spill.textContent='Running';spill.classList.add('running');
+  document.getElementById('task-scroll').innerHTML='<div class="et">Starting…</div>';
+  numTasks=0;clearChainLines();
+  document.getElementById('report').classList.remove('show');document.getElementById('report-body').innerHTML='';
 
-  document.getElementById('task-scroll').innerHTML='<div class="et">Starting...</div>';
-  numTasks=0; tcCardMap={};
-  clearChainLines();
-  document.getElementById('report').classList.remove('show');
-  document.getElementById('report-body').innerHTML='';
-
-  // Reset agents home
-  const defs = activeDefs();
-  for (const id of Object.keys(defs)) {
-    setState(id,'idle'); clearBub(id);
-    moveTo(id, defs[id].hx, defs[id].hy, false);
-  }
+  const defs=activeDefs();
+  for(const id of Object.keys(defs)){setState(id,'idle');clearBub(id);moveTo(id,defs[id].hx,defs[id].hy,false);}
   await sleep(100);
 
-  try {
-    // STEP 1: BOSS PLANS
-    setState('boss','thinking');
-    setBubble('boss','Analyzing task...', true, 0);
-
-    const planMsg =
-      `Analyze this user request and return ONLY a raw JSON object (no markdown fences):\n` +
-      `{"plan":"one sentence summary","tasks":[{"agent":"researcher|writer|analyst|coder","task":"specific instruction"}]}\n\n` +
-      `User request: "${q}"\n\n` +
-      `Rules: include only needed agents (1 to 3 max).\n` +
-      `researcher=facts/research, writer=text/prose, analyst=reasoning/strategy, coder=code/technical.\n` +
-      `Return ONLY the raw JSON.`;
-
+  try{
+    setState('boss','thinking');setBubble('boss','Analyzing task…',true,0);
+    const planMsg=`Analyze this user request and return ONLY a raw JSON object (no markdown fences):\n{"plan":"one sentence summary","tasks":[{"agent":"researcher|writer|analyst|coder","task":"specific instruction"}]}\n\nUser request: "${q}"\n\nRules: include only needed agents (1 to 3 max).\nresearcher=facts/research, writer=text/prose, analyst=reasoning/strategy, coder=code/technical.\nReturn ONLY the raw JSON.`;
     let plan;
-    try {
-      const raw = await callAgent(BASE.boss, planMsg);
-      const cleaned = raw.replace(/```json|```/g,'').trim();
-      const m = cleaned.match(/\{[\s\S]*\}/);
-      plan = JSON.parse(m?m[0]:cleaned);
-    } catch(e) {
-      plan = {plan:'Handle directly', tasks:[{agent:'analyst',task:q}]};
-    }
+    try{const raw=await callAgent(BASE.boss,planMsg);const cleaned=raw.replace(/```json|```/g,'').trim();const m=cleaned.match(/\{[\s\S]*\}/);plan=JSON.parse(m?m[0]:cleaned);}
+    catch(e){plan={plan:'Handle directly',tasks:[{agent:'analyst',task:q}]};}
+    clearBub('boss');setBubble('boss','Plan: '+(plan.plan||'Delegating now.'),true,4500);setState('boss','talking');await sleep(700);
 
-    clearBub('boss');
-    setBubble('boss','Plan: '+(plan.plan||'Delegating now.'), true, 4500);
-    setState('boss','talking');
-    await sleep(700);
-
-    const validTasks = (plan.tasks||[]).filter(t=>BASE[t.agent]);
+    const validTasks=(plan.tasks||[]).filter(t=>BASE[t.agent]);
     document.getElementById('task-scroll').innerHTML='';
+    if(superMode)validTasks.forEach(t=>addSuperTaskGroup(t.agent,t.task));
+    else validTasks.forEach(t=>addTask(t.agent,t.task));
 
-    if (superMode) {
-      // Add super group cards
-      validTasks.forEach(t => addSuperTaskGroup(t.agent, t.task));
-    } else {
-      validTasks.forEach(t => addTask(t.agent, t.task));
-    }
-
-    // STEP 2: BOSS DELEGATES
-    for (const t of validTasks) {
-      const def = superMode ? SUPER_DEFS[t.agent+'_1'] : defs[t.agent];
-      await moveTo('boss', def.hx-7, def.dy, true);
-      setState('boss','talking');
-      setBubble('boss', def.name.replace(/-.$/,'')+': '+t.task, true, 3200);
-      await sleep(500);
-      if (superMode) {
-        // Brief boss talks to first sub-agent of the chain
-        setState(t.agent+'_1','talking');
-        setBubble(t.agent+'_1','Understood. Starting chain.', false, 1800);
-      } else {
-        setState(t.agent,'talking');
-        setBubble(t.agent,'On it, Boss.', false, 1800);
-      }
+    for(const t of validTasks){
+      const def=superMode?SUPER_DEFS[t.agent+'_1']:defs[t.agent];
+      await moveTo('boss',def.hx-7,def.dy,true);setState('boss','talking');setBubble('boss',def.name.replace(/-.$/,'')+': '+t.task,true,3200);await sleep(500);
+      if(superMode){setState(t.agent+'_1','talking');setBubble(t.agent+'_1','Understood. Starting chain.',false,1800);}
+      else{setState(t.agent,'talking');setBubble(t.agent,'On it, Boss.',false,1800);}
       await sleep(1000);
     }
 
-    clearBub('boss');
-    await moveTo('boss', BASE.boss.dx, BASE.boss.dy, true);
-    setState('boss','working');
-    setBubble('boss','Waiting for results...', true, 0);
+    clearBub('boss');await moveTo('boss',BASE.boss.dx,BASE.boss.dy,true);setState('boss','working');setBubble('boss','Waiting for results…',true,0);
 
-    // STEP 3: AGENTS WORK
-    const results = {};
-
-    if (superMode) {
-      // Sequential chains per agent type (parallel across types)
-      await Promise.all(validTasks.map(async (t, i) => {
-        await sleep(i*300);
-        const type = t.agent;
-        const subs = superAgentsFor(type);
-
-        // Walk first sub-agent to desk
-        await moveTo(type+'_1', SUPER_DEFS[type+'_1'].dx, SUPER_DEFS[type+'_1'].dy, true);
-        // Pre-position subsequent sub-agents near desk
-        for (let j=1;j<subs.length;j++) {
-          moveTo(subs[j].id, subs[j].dx, subs[j].dy, false);
-        }
+    const results={};
+    if(superMode){
+      await Promise.all(validTasks.map(async(t,i)=>{
+        await sleep(i*300);const type=t.agent;const subs=superAgentsFor(type);
+        await moveTo(type+'_1',SUPER_DEFS[type+'_1'].dx,SUPER_DEFS[type+'_1'].dy,true);
+        for(let j=1;j<subs.length;j++)moveTo(subs[j].id,subs[j].dx,subs[j].dy,false);
         updateSuperGroup(type,'working',0);
-
-        const finalRes = await runSuperChain(type, t.task, q);
-        results[type] = finalRes;
+        const finalRes=await runSuperChain(type,t.task,q);results[type]=finalRes;
       }));
-    } else {
-      await Promise.all(validTasks.map(async (t, i) => {
-        await sleep(i*250);
-        const def = defs[t.agent];
-        await moveTo(t.agent, def.dx, def.dy, true);
-        setState(t.agent,'working'); clearBub(t.agent);
-        setBubble(t.agent,'Working...', false, 0);
-        updateTask(t.agent,'working');
-
-        const agMsg =
-          `You are the ${def.name} agent (${def.role}).\n` +
-          `Complete this task assigned by the Boss:\n\nTASK: ${t.task}\n\n` +
-          `User request context: "${q}"\n\nBe expert, focused, and concise. Do not use emojis.`;
-
-        try {
-          const result = await callAgent(def, agMsg);
-          results[t.agent] = result;
-          clearBub(t.agent); setState(t.agent,'done');
-          updateTask(t.agent,'done',result);
-          setBubble(t.agent,'Done. Reporting to Boss.', false, 2800);
-          await sleep(400);
-          await moveTo(t.agent, MX+(Math.random()*12-6), MY+(Math.random()*12-6), true);
-          setState(t.agent,'happy');
-        } catch(e) {
-          results[t.agent]='Error: '+e.message;
-          setState(t.agent,'error'); updateTask(t.agent,'error');
-          clearBub(t.agent); setBubble(t.agent,'Failed.', false, 3000);
-        }
+    }else{
+      await Promise.all(validTasks.map(async(t,i)=>{
+        await sleep(i*250);const def=defs[t.agent];
+        await moveTo(t.agent,def.dx,def.dy,true);setState(t.agent,'working');clearBub(t.agent);setBubble(t.agent,'Working…',false,0);updateTask(t.agent,'working');
+        const agMsg=`You are the ${def.name} agent (${def.role}).\nComplete this task assigned by the Boss:\n\nTASK: ${t.task}\n\nUser request context: "${q}"\n\nBe expert, focused, and concise. Do not use emojis.`;
+        try{
+          const result=await callAgent(def,agMsg);results[t.agent]=result;
+          clearBub(t.agent);setState(t.agent,'done');updateTask(t.agent,'done',result);setBubble(t.agent,'Done. Reporting to Boss.',false,2800);
+          await sleep(400);await moveTo(t.agent,MX+(Math.random()*12-6),MY+(Math.random()*12-6),true);setState(t.agent,'happy');
+        }catch(e){results[t.agent]='Error: '+e.message;setState(t.agent,'error');updateTask(t.agent,'error');clearBub(t.agent);setBubble(t.agent,'Failed.',false,3000);}
       }));
     }
 
-    // STEP 4: BOSS SYNTHESISES
-    clearBub('boss'); setState('boss','thinking');
-    await moveTo('boss', MX-10, MY, true);
-    setBubble('boss','Synthesising results...', true, 0);
-
-    const parts = Object.entries(results)
-      .map(([ag,r]) => (BASE[ag]?.name||ag)+' results:\n'+r)
-      .join('\n\n---\n\n');
-
-    const synthMsg =
-      `You are the Boss agent synthesising the team output into one final answer.\n\n` +
-      `User request: "${q}"\n\nTeam deliverables:\n${parts}\n\n` +
-      `Write a clear, well-structured final answer integrating all findings. Use markdown. Do not use emojis. ` +
-      `Do not mention individual agent names.`;
-
-    const final = await callAgent(BASE.boss, synthMsg);
-
-    clearBub('boss'); setState('boss','happy');
-    setBubble('boss','Report ready.', true, 5000);
-
-    if (!superMode) {
-      validTasks.forEach(t => { setState(t.agent,'happy'); drawFace(t.agent); });
-    } else {
-      validTasks.forEach(t => {
-        superAgentsFor(t.agent).forEach(s => { setState(s.id,'happy'); drawFace(s.id); });
-      });
-    }
-
+    clearBub('boss');setState('boss','thinking');await moveTo('boss',MX-10,MY,true);setBubble('boss','Synthesising results…',true,0);
+    const parts=Object.entries(results).map(([ag,r])=>(BASE[ag]?.name||ag)+' results:\n'+r).join('\n\n---\n\n');
+    const synthMsg=`You are the Boss agent synthesising the team output into one final answer.\n\nUser request: "${q}"\n\nTeam deliverables:\n${parts}\n\nWrite a clear, well-structured final answer integrating all findings. Use markdown. Do not use emojis. Do not mention individual agent names.`;
+    const final=await callAgent(BASE.boss,synthMsg);
+    clearBub('boss');setState('boss','happy');setBubble('boss','Report ready.',true,5000);
+    if(!superMode)validTasks.forEach(t=>{setState(t.agent,'happy');drawFace(t.agent);});
+    else validTasks.forEach(t=>{superAgentsFor(t.agent).forEach(s=>{setState(s.id,'happy');drawFace(s.id);});});
     clearChainLines();
-    document.getElementById('report').classList.add('show');
-    document.getElementById('report-body').innerHTML = marked.parse(final);
-
-    // Return home after 6s
+    document.getElementById('report').classList.add('show');document.getElementById('report-body').innerHTML=marked.parse(final);
     setTimeout(async()=>{
       clearChainLines();
-      for (const id of Object.keys(activeDefs())) {
-        const d = activeDefs()[id];
-        await sleep(Math.random()*300);
-        await moveTo(id, d.hx, d.hy, true);
-        setState(id,'idle'); clearBub(id);
-      }
-    }, 6000);
-
-  } catch(err) {
-    setState('boss','error'); clearBub('boss');
-    setBubble('boss','Error: '+err.message, true, 6000);
-    console.error(err);
-  } finally {
-    busy=false;
-    document.getElementById('send-btn').disabled=false;
-    spill.textContent='Idle'; spill.classList.remove('running');
+      for(const id of Object.keys(activeDefs())){const d=activeDefs()[id];await sleep(Math.random()*300);await moveTo(id,d.hx,d.hy,true);setState(id,'idle');clearBub(id);}
+    },6000);
+  }catch(err){
+    setState('boss','error');clearBub('boss');setBubble('boss','Error: '+err.message,true,6000);console.error(err);
+  }finally{
+    busy=false;document.getElementById('send-btn').disabled=false;spill.textContent='Idle';spill.classList.remove('running');
   }
 }
 
 // ═══════════════════════════════════════════════════════════════
 // SUPER TOGGLE
 // ═══════════════════════════════════════════════════════════════
-function toggleSuper() {
-  if (busy) return;
-  superMode = !superMode;
-  const tog = document.getElementById('super-toggle');
-  const sub = document.getElementById('st-sub');
-  tog.classList.toggle('on', superMode);
-  sub.textContent = superMode ? '3-step chain active' : '3-step thinking off';
+function toggleSuper(){
+  if(busy)return;superMode=!superMode;
+  document.getElementById('super-toggle').classList.toggle('on',superMode);
+  document.getElementById('st-sub').textContent=superMode?'3-step active':'3-step off';
   buildOffice();
 }
 
 // ═══════════════════════════════════════════════════════════════
 // INPUT
 // ═══════════════════════════════════════════════════════════════
-function onKey(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(!busy)go();} }
-function onInput(el) {
-  el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,70)+'px';
-  document.getElementById('send-btn').disabled = !el.value.trim()||busy;
-}
+function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(!busy)go();}}
+function onInput(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,70)+'px';document.getElementById('send-btn').disabled=!el.value.trim()||busy;}
 
 // ═══════════════════════════════════════════════════════════════
 // RESIZE
 // ═══════════════════════════════════════════════════════════════
 let rt;
-function handleResize() {
-  clearTimeout(rt);
-  rt = setTimeout(()=>{
-    const off = document.getElementById('office');
-    const W=off.offsetWidth, H=off.offsetHeight;
-    const defs = activeDefs();
-    Object.entries(defs).forEach(([id,def])=>{
-      const a=AG[id];if(!a)return;
-      a.el.style.left=(def.hx/100*W)+'px'; a.el.style.top=(def.hy/100*H)+'px';
-    });
-  }, 220);
-}
+window.addEventListener('resize',()=>{
+  clearTimeout(rt);rt=setTimeout(()=>{
+    const off=document.getElementById('office');const W=off.offsetWidth,H=off.offsetHeight;
+    Object.entries(activeDefs()).forEach(([id,def])=>{const a=AG[id];if(!a)return;a.el.style.left=(def.hx/100*W)+'px';a.el.style.top=(def.hy/100*H)+'px';});
+  },200);
+});
 
 // ═══════════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════════
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 
-async function init() {
-  sbClient = supabase.createClient(SB_URL, SB_KEY, {auth:{persistSession:true,autoRefreshToken:true,storage:window.localStorage}});
-  try {
-    const{data:{session}}=await sbClient.auth.getSession();
-    if(session&&session.access_token) authToken=session.access_token;
-  } catch(e){}
-
-  buildOffice();
-  eyeLoop();
-  window.addEventListener('resize', handleResize);
-
-  setTimeout(()=>{
-    document.getElementById('loading').classList.add('gone');
-    document.getElementById('user-input').focus();
-  },420);
+async function init(){
+  sbClient=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,storage:window.localStorage}});
+  try{const{data:{session}}=await sbClient.auth.getSession();if(session?.access_token)authToken=session.access_token;}catch(e){}
+  buildOffice();eyeLoop();
+  setTimeout(()=>{document.getElementById('loading').classList.add('gone');document.getElementById('user-input').focus();},400);
 }
-
 init();
 </script>
 </body>
