@@ -21,22 +21,21 @@
 html,body{height:100%;overflow:hidden;}
 body{font-family:var(--fu);font-size:14px;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;}
 
-@keyframes pop{0%{opacity:0;transform:scale(.9) translateY(6px)}60%{transform:scale(1.02)}100%{opacity:1;transform:scale(1) translateY(0)}}
 @keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.2;transform:scale(.6)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes taskIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}
 @keyframes bubblePop{0%{opacity:0;transform:translateX(-50%) scale(.8) translateY(5px)}100%{opacity:1;transform:translateX(-50%) scale(1) translateY(0)}}
-@keyframes workGlow{0%,100%{box-shadow:var(--shsm)}50%{box-shadow:0 0 0 5px rgba(245,200,66,.3),var(--shsm)}}
-@keyframes agWalk{0%,100%{transform:translateY(0) rotate(0deg)}25%{transform:translateY(-3px) rotate(-2.5deg)}75%{transform:translateY(-3px) rotate(2.5deg)}}
+@keyframes workGlow{0%,100%{box-shadow:var(--shsm)}50%{box-shadow:0 0 0 5px rgba(245,200,66,.28),var(--shsm)}}
+@keyframes agWalk{0%,100%{transform:translateY(0) rotate(0deg)}25%{transform:translateY(-3px) rotate(-2deg)}75%{transform:translateY(-3px) rotate(2deg)}}
 @keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
-/* ── PAGE ── */
+/* PAGE */
 #page{position:fixed;inset:0;display:flex;flex-direction:column;}
-#loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--paper);z-index:999;transition:opacity .25s;}
+#loading{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--paper);z-index:999;transition:opacity .3s;}
 #loading.gone{opacity:0;pointer-events:none;}
+#loading-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--ink);opacity:.4;font-family:var(--fd);}
 
-/* ── TOPBAR ── */
+/* TOPBAR */
 .topbar{height:50px;border-bottom:var(--bd);background:var(--surf);display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;}
 .brand{display:flex;align-items:center;gap:10px;}
 .brand-name{font-family:var(--fd);font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
@@ -45,13 +44,14 @@ body{font-family:var(--fu);font-size:14px;background:var(--paper);color:var(--in
 .icon-btn{width:34px;height:34px;border:var(--bd);background:var(--surf);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shsm);transition:box-shadow var(--t),transform var(--t);text-decoration:none;}
 .icon-btn:hover{box-shadow:var(--sh);transform:translate(-1px,-1px);}
 .icon-btn:active{box-shadow:none;transform:translate(2px,2px);}
-.status-pill{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:4px 10px;border:var(--bd);background:var(--p3);transition:background var(--t);}
+.status-pill{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:4px 10px;border:var(--bd);background:var(--p3);transition:background var(--t),color var(--t);}
 .status-pill.running{background:var(--yel);}
+.model-tag{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:3px 8px;border:var(--bd);background:var(--p2);opacity:.7;font-family:'Courier New',monospace;}
 
-/* ── MAIN ── */
+/* MAIN */
 .main{flex:1;display:flex;overflow:hidden;min-height:0;}
 
-/* ── OFFICE ── */
+/* OFFICE */
 #office{
   flex:1;position:relative;overflow:hidden;
   background:var(--p2);
@@ -59,18 +59,18 @@ body{font-family:var(--fu);font-size:14px;background:var(--paper);color:var(--in
   background-size:26px 26px;
 }
 .room{position:absolute;border:var(--bd);background:var(--surf);pointer-events:none;}
-.room-lbl{position:absolute;top:7px;left:9px;font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:.16em;color:var(--ink);opacity:.22;font-family:var(--fd);}
+.room-lbl{position:absolute;top:7px;left:9px;font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:.16em;color:var(--ink);opacity:.2;font-family:var(--fd);}
 .desk-top{position:absolute;background:var(--p3);border:var(--bd);box-shadow:var(--shsm);pointer-events:none;}
 .desk-mon{position:absolute;background:#111;border:var(--bd);pointer-events:none;}
 .desk-mon::after{content:'';position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:7px;height:4px;background:var(--ink);}
 .mtable{position:absolute;background:var(--p2);border:var(--bd);box-shadow:var(--sh);pointer-events:none;display:flex;align-items:center;justify-content:center;}
-.mtable-lbl{font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:.13em;color:var(--ink);opacity:.2;font-family:var(--fd);}
+.mtable-lbl{font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:.13em;color:var(--ink);opacity:.18;font-family:var(--fd);}
 .whiteboard{position:absolute;background:#fafaf8;border:var(--bd);box-shadow:var(--shsm);pointer-events:none;overflow:hidden;}
 .wb-lines{position:absolute;inset:5px;display:flex;flex-direction:column;gap:6px;justify-content:center;}
-.wb-line{height:1px;background:var(--ink);opacity:.1;}
-.decor{position:absolute;pointer-events:none;user-select:none;font-size:17px;opacity:.5;}
+.wb-line{height:1px;background:var(--ink);opacity:.09;}
+.decor{position:absolute;pointer-events:none;user-select:none;font-size:17px;opacity:.48;}
 
-/* ── AGENT ── */
+/* AGENT */
 .agent-char{
   position:absolute;display:flex;flex-direction:column;align-items:center;gap:3px;
   z-index:10;cursor:default;
@@ -81,7 +81,8 @@ body{font-family:var(--fu);font-size:14px;background:var(--paper);color:var(--in
 .face-wrap{position:relative;}
 .face-cv{display:block;border:var(--bd);box-shadow:var(--shsm);}
 .agent-char.is-working .face-wrap{animation:workGlow 1.5s ease infinite;}
-.name-tag{font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:2px 7px;border:var(--bd);font-family:var(--fd);color:#fff;white-space:nowrap;}
+.name-tag{font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:2px 6px;border:var(--bd);font-family:var(--fd);color:#fff;white-space:nowrap;}
+.role-tag{font-size:6.5px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--ink);opacity:.45;white-space:nowrap;font-family:var(--fu);}
 .sdot{width:5px;height:5px;border:1.5px solid var(--ink);}
 .sdot.idle{background:var(--p3);}
 .sdot.thinking,.sdot.working{background:var(--yel);animation:pdot .8s infinite;}
@@ -89,70 +90,77 @@ body{font-family:var(--fu);font-size:14px;background:var(--paper);color:var(--in
 .sdot.done,.sdot.happy{background:#4ade80;}
 .sdot.error{background:var(--acc);}
 
-/* ── BUBBLE ── */
+/* BUBBLE */
 .bubble{
   position:absolute;bottom:calc(100% + 8px);left:50%;
   transform:translateX(-50%);
   background:var(--surf);border:var(--bd);box-shadow:var(--sh);
   padding:6px 9px;font-size:9.5px;font-weight:600;color:var(--ink);
-  max-width:165px;line-height:1.45;z-index:30;white-space:normal;
+  max-width:168px;line-height:1.45;z-index:30;white-space:normal;
   animation:bubblePop .18s cubic-bezier(.16,1,.3,1);
   font-family:var(--fu);pointer-events:none;
 }
 .bubble::after{content:'';position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);border:4px solid transparent;border-top:5px solid var(--ink);}
 .bubble.boss{background:var(--yel);}
 
-/* ── TASK PANEL ── */
+/* TASK PANEL */
 #panel{width:280px;flex-shrink:0;border-left:var(--bd);background:var(--surf);display:flex;flex-direction:column;overflow:hidden;}
 .ph{padding:10px 14px;border-bottom:var(--bd);font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.13em;background:var(--p2);font-family:var(--fd);display:flex;align-items:center;justify-content:space-between;}
-.ph-count{font-size:9px;opacity:.42;font-weight:700;}
+.ph-count{font-size:9px;opacity:.4;font-weight:700;}
 #task-list{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:5px;}
 #task-list::-webkit-scrollbar{width:2px;}
 #task-list::-webkit-scrollbar-thumb{background:var(--ink);}
-.et{font-size:11px;color:var(--ink);opacity:.38;text-align:center;padding:20px 12px;line-height:1.65;}
+.et{font-size:11px;color:var(--ink);opacity:.36;text-align:center;padding:20px 12px;line-height:1.65;}
 .task-card{border:var(--bd);background:var(--paper);padding:8px 10px;animation:taskIn .2s ease;}
 .tc-head{display:flex;align-items:center;gap:5px;margin-bottom:4px;}
-.tc-badge{font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:2px 5px;border:1.5px solid var(--ink);color:#fff;}
-.tc-pill{font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:2px 5px;margin-left:auto;border:1.5px solid transparent;}
+.tc-badge{font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:2px 5px;border:1.5px solid var(--ink);color:#fff;}
+.tc-pill{font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:2px 5px;margin-left:auto;border:1.5px solid transparent;}
 .tc-pill.pending{background:var(--p3);color:var(--ink);}
 .tc-pill.working{background:var(--yel);color:var(--ink);border-color:var(--ink);}
 .tc-pill.done{background:#4ade80;color:#14532d;border-color:#16a34a;}
 .tc-pill.error{background:var(--acc);color:#fff;}
-.tc-desc{font-size:10.5px;color:var(--ink);opacity:.6;line-height:1.4;}
-.tc-out{font-size:10.5px;color:var(--ink);line-height:1.5;border-top:var(--bdt);padding-top:5px;margin-top:5px;display:none;max-height:100px;overflow-y:auto;}
+.tc-desc{font-size:10.5px;color:var(--ink);opacity:.58;line-height:1.4;margin-bottom:2px;}
+.tc-out{font-size:10.5px;color:var(--ink);line-height:1.5;border-top:var(--bdt);padding-top:5px;margin-top:5px;display:none;max-height:110px;overflow-y:auto;}
 .task-card.done-state .tc-out{display:block;}
+.tc-out p{margin-bottom:.35em;}.tc-out p:last-child{margin-bottom:0;}
+.tc-out strong{font-weight:700;}
+.tc-out code{font-family:'Courier New',monospace;font-size:10px;background:var(--p3);padding:0 3px;border:1px solid var(--ink);}
 
-/* ── BOTTOM ── */
+/* BOTTOM */
 .chat-bottom{border-top:var(--bd);background:var(--surf);flex-shrink:0;}
-.report{max-height:185px;overflow-y:auto;padding:10px 16px;border-bottom:var(--bdt);display:none;}
+.report{max-height:190px;overflow-y:auto;padding:10px 16px;border-bottom:var(--bdt);display:none;}
 .report.show{display:block;animation:slideUp .25s ease;}
+.report::-webkit-scrollbar{width:2px;}
+.report::-webkit-scrollbar-thumb{background:var(--ink);}
 .report-lbl{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--acc);margin-bottom:8px;font-family:var(--fd);display:flex;align-items:center;gap:6px;}
-.report-body{font-size:12.5px;color:var(--ink);line-height:1.7;}
+.report-body{font-size:12.5px;color:var(--ink);line-height:1.72;}
 .report-body p{margin-bottom:.55em;}.report-body p:last-child{margin-bottom:0;}
-.report-body h1,.report-body h2,.report-body h3{font-family:var(--fd);font-weight:800;text-transform:uppercase;margin:.75em 0 .35em;color:var(--ink);}
+.report-body h1,.report-body h2,.report-body h3{font-family:var(--fd);font-weight:800;text-transform:uppercase;margin:.75em 0 .35em;}
 .report-body h1{font-size:15px;}.report-body h2{font-size:13px;}.report-body h3{font-size:12px;}
 .report-body ul,.report-body ol{padding-left:16px;margin-bottom:.55em;}
 .report-body li{margin-bottom:.2em;}
 .report-body strong{font-weight:700;}
 .report-body pre{background:#1A1714;color:#E8E0D0;padding:9px;border:var(--bd);font-size:11px;overflow-x:auto;margin:.5em 0;font-family:'Courier New',monospace;}
 .report-body code{font-family:'Courier New',monospace;background:var(--p3);padding:1px 4px;font-size:11px;border:1.5px solid var(--ink);}
+.report-body a{color:var(--acc);font-weight:700;text-underline-offset:2px;}
 .input-row{display:flex;align-items:center;gap:8px;padding:9px 14px;}
-.chat-ta{flex:1;background:var(--paper);border:var(--bd);color:var(--ink);font-family:var(--fu);font-size:13px;font-weight:500;padding:7px 11px;outline:none;resize:none;height:36px;max-height:70px;overflow-y:auto;transition:box-shadow var(--t);}
+.chat-ta{flex:1;background:var(--paper);border:var(--bd);color:var(--ink);font-family:var(--fu);font-size:13px;font-weight:500;padding:7px 11px;outline:none;resize:none;height:36px;max-height:72px;overflow-y:auto;transition:box-shadow var(--t);}
 .chat-ta:focus{box-shadow:var(--sh);border-color:var(--acc);}
 .chat-ta::placeholder{color:var(--ink);opacity:.3;}
-.send{height:36px;padding:0 14px;background:var(--acc);border:var(--bd);box-shadow:var(--shsm);color:#fff;font-family:var(--fu);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;cursor:pointer;flex-shrink:0;transition:box-shadow var(--t),transform var(--t),background var(--t);}
+.send{height:36px;padding:0 14px;background:var(--acc);border:var(--bd);box-shadow:var(--shsm);color:#fff;font-family:var(--fu);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;cursor:pointer;flex-shrink:0;white-space:nowrap;transition:box-shadow var(--t),transform var(--t),background var(--t);}
 .send:hover:not(:disabled){box-shadow:var(--sh);transform:translate(-1px,-1px);}
 .send:active:not(:disabled){box-shadow:none;transform:translate(2px,2px);}
-.send:disabled{opacity:.32;cursor:not-allowed;box-shadow:none;}
-.foot-hint{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink);opacity:.25;padding:0 14px 8px;display:flex;justify-content:space-between;}
+.send:disabled{opacity:.3;cursor:not-allowed;box-shadow:none;}
+.foot-hint{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink);opacity:.23;padding:0 14px 8px;display:flex;justify-content:space-between;}
 </style>
 </head>
 <body>
 
 <div id="loading">
-  <svg style="animation:spin 1s linear infinite" width="30" height="30" viewBox="0 0 30 30" fill="none">
-    <path d="M15 2L18 10.5L27 15L18 19.5L15 28L12 19.5L3 15L12 10.5Z" fill="var(--acc)"/>
+  <svg style="animation:spin 1s linear infinite" width="28" height="28" viewBox="0 0 28 28" fill="none">
+    <path d="M14 2L16.8 9.8L25 14L16.8 18.2L14 26L11.2 18.2L3 14L11.2 9.8Z" fill="var(--acc)"/>
   </svg>
+  <div id="loading-label">Loading office…</div>
 </div>
 
 <div id="page">
@@ -162,6 +170,7 @@ body{font-family:var(--fu);font-size:14px;background:var(--paper);color:var(--in
       <div><div class="brand-name">Cloak Agents</div><div class="brand-sub">2D Agent Office</div></div>
     </div>
     <div class="tr">
+      <span class="model-tag">Groq · llama-3.1-8b-instant</span>
       <span class="status-pill" id="status-pill">Idle</span>
       <a href="index.html" class="icon-btn" title="Back to Cloak">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
@@ -173,7 +182,7 @@ body{font-family:var(--fu);font-size:14px;background:var(--paper);color:var(--in
     <div id="office"></div>
     <div id="panel">
       <div class="ph">Task Log <span class="ph-count" id="tc">0 tasks</span></div>
-      <div id="task-list"><div class="et">Send a task below.<br>The Boss will coordinate<br>the whole team.</div></div>
+      <div id="task-list"><div class="et">Give the team a task below.<br>The Boss plans, delegates,<br>and synthesises the results.</div></div>
     </div>
   </div>
 
@@ -186,411 +195,534 @@ body{font-family:var(--fu);font-size:14px;background:var(--paper);color:var(--in
       <div class="report-body" id="report-body"></div>
     </div>
     <div class="input-row">
-      <textarea class="chat-ta" id="user-input" placeholder="Give the team a task… e.g. 'Research and write a summary of quantum computing'" rows="1"
+      <textarea class="chat-ta" id="user-input" placeholder="Give the team a task… e.g. 'Research and summarise quantum computing breakthroughs in 2024'" rows="1"
         onkeydown="onKey(event)" oninput="onInput(this)"></textarea>
       <button class="send" id="send-btn" onclick="go()" disabled>Send</button>
     </div>
     <div class="foot-hint">
-      <span>OpenRouter via Supabase</span>
-      <span>Enter to send &middot; Shift+Enter = newline</span>
+      <span>Groq llama-3.1-8b-instant via Supabase edge function</span>
+      <span>Enter to send · Shift+Enter = newline</span>
     </div>
   </div>
 </div>
 
 <script>
-const SB_URL='https://kdawsqrrmwirilyhcolk.supabase.co';
-const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYXdzcXJybXdpcmlseWhjb2xrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NjUxNjAsImV4cCI6MjA4OTU0MTE2MH0.cMN9V51J3042DrdaDmL7-ro-AMaw-IU47wQLnW2NMBE';
-let sbClient=null,authToken=null,busy=false,numTasks=0;
+// ─────────────────────────────────────────────────────────
+// CONFIG — matches your Supabase edge function exactly
+// ─────────────────────────────────────────────────────────
+const SB_URL = 'https://kdawsqrrmwirilyhcolk.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYXdzcXJybXdpcmlseWhjb2xrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NjUxNjAsImV4cCI6MjA4OTU0MTE2MH0.cMN9V51J3042DrdaDmL7-ro-AMaw-IU47wQLnW2NMBE';
+const ENDPOINT = SB_URL + '/functions/v1/chat-message';
 
-const DEFS={
-  boss:       {id:'boss',       name:'The Boss',  role:'Chief Coordinator', model:'meta-llama/llama-3.3-70b-instruct:free', color:'#D44D2A',face:'#fff5f2',hx:8, hy:9, dx:8, dy:21},
-  researcher: {id:'researcher', name:'Researcher',role:'Info Specialist',   model:'google/gemma-3-12b-it:free',            color:'#2B6CB0',face:'#f0f6ff',hx:66,hy:8, dx:66,dy:20},
-  writer:     {id:'writer',     name:'Writer',    role:'Content Creator',   model:'mistralai/mistral-7b-instruct:free',    color:'#276749',face:'#f0fff5',hx:7, hy:58,dx:7, dy:50},
-  analyst:    {id:'analyst',    name:'Analyst',   role:'Strategic Thinker', model:'qwen/qwen-2.5-72b-instruct:free',       color:'#B7791F',face:'#fffaeb',hx:67,hy:56,dx:67,dy:48},
-  coder:      {id:'coder',      name:'Coder',     role:'Tech Expert',       model:'qwen/qwen-2.5-coder-7b-instruct:free',  color:'#553C9A',face:'#f6f2ff',hx:39,hy:71,dx:39,dy:63},
+// The backend uses GROQ_MODEL = "llama-3.1-8b-instant" always.
+// We differentiate agents through the `system_prompt` field (injected as
+// "User Preferences" in your edge function) plus carefully-framed messages.
+
+// ─────────────────────────────────────────────────────────
+// AGENT DEFINITIONS
+// system_prompt → injected as "User Preferences" in the edge fn
+// ─────────────────────────────────────────────────────────
+const DEFS = {
+  boss: {
+    id:'boss', name:'The Boss', role:'Chief Coordinator',
+    color:'#D44D2A', face:'#fff5f2',
+    hx:8,  hy:9,  dx:8,  dy:21,
+    system_prompt: 'You are acting as The Boss agent — a chief coordinator. Your job is ONLY to plan and delegate tasks, or to synthesise team findings into a final answer. Be concise and structured. Always return valid JSON when asked for a plan.'
+  },
+  researcher: {
+    id:'researcher', name:'Researcher', role:'Info & Facts',
+    color:'#2B6CB0', face:'#f0f6ff',
+    hx:66, hy:8,  dx:66, dy:20,
+    system_prompt: 'You are acting as the Researcher agent — an information and facts specialist. When given a research task, provide accurate, well-sourced factual information. Be thorough but concise. Max 180 words.'
+  },
+  writer: {
+    id:'writer', name:'Writer', role:'Content Creator',
+    color:'#276749', face:'#f0fff5',
+    hx:7,  hy:58, dx:7,  dy:50,
+    system_prompt: 'You are acting as the Writer agent — a content creation specialist. When given a writing task, produce clear, well-structured, engaging prose. Focus on clarity, flow, and quality. Max 180 words.'
+  },
+  analyst: {
+    id:'analyst', name:'Analyst', role:'Strategic Thinker',
+    color:'#B7791F', face:'#fffaeb',
+    hx:67, hy:56, dx:67, dy:48,
+    system_prompt: 'You are acting as the Analyst agent — a strategic reasoning specialist. When given an analysis task, provide deep critical thinking, identify patterns, draw insights, and make strategic recommendations. Max 180 words.'
+  },
+  coder: {
+    id:'coder', name:'Coder', role:'Tech Expert',
+    color:'#553C9A', face:'#f6f2ff',
+    hx:39, hy:71, dx:39, dy:63,
+    system_prompt: 'You are acting as the Coder agent — a software and technical expert. When given a technical or coding task, provide working code, technical explanations, or architectural decisions. Use code blocks. Max 220 words.'
+  }
 };
-const MX=37,MY=39;
-const AG={};
-let mX=400,mY=300;
-document.addEventListener('mousemove',e=>{mX=e.clientX;mY=e.clientY;});
 
-// FACE
-function drawFace(id){
-  const a=AG[id];if(!a)return;
-  const d=DEFS[id];
-  const{ctx,canvas}=a;
-  const W=canvas.width,H=canvas.height;
-  ctx.clearRect(0,0,W,H);
-  ctx.fillStyle=d.face;ctx.fillRect(0,0,W,H);
-  ctx.fillStyle=d.color;ctx.fillRect(0,0,W,5);
-  const st=a.state||'idle';
-  const ox=Math.max(-4.5,Math.min(4.5,a.ex));
-  const oy=Math.max(-3.5,Math.min(3.5,a.ey));
-  const eyY=H*.44,lx=W*.3,rx=W*.7;
-  ctx.fillStyle='#0A0A0A';
-  if(st==='thinking'||st==='working'){
-    ctx.fillRect(lx-6+ox,eyY+oy-1,12,2.5);
-    ctx.fillRect(rx-6+ox,eyY+oy-1,12,2.5);
-  } else if(st==='happy'||st==='done'){
-    ctx.beginPath();ctx.arc(lx+ox,eyY+2+oy,5,Math.PI,0);ctx.fill();
-    ctx.beginPath();ctx.arc(rx+ox,eyY+2+oy,5,Math.PI,0);ctx.fill();
+const MX = 37, MY = 39;
+const AG = {};
+let sbClient = null, authToken = null, busy = false, numTasks = 0;
+let mX = 400, mY = 300;
+
+document.addEventListener('mousemove', e => { mX = e.clientX; mY = e.clientY; });
+
+// ─────────────────────────────────────────────────────────
+// API — calls your edge function exactly as cloak.js does
+// Uses system_prompt for agent personality injection.
+// chat_history format: [{role:'USER'|'CHATBOT', message:'...'}]
+// ─────────────────────────────────────────────────────────
+async function callAgent(def, message, chatHistory = []) {
+  const hdrs = { 'Content-Type': 'application/json' };
+  if (authToken) hdrs['Authorization'] = 'Bearer ' + authToken;
+
+  const body = {
+    message,
+    temperature: 0.65,
+    chat_history: chatHistory,
+    system_prompt: def.system_prompt,  // injected as User Preferences
+    guest: !authToken
+  };
+  // Note: we don't send `model` because the edge function hardcodes GROQ_MODEL.
+
+  const res = await fetch(ENDPOINT, { method: 'POST', headers: hdrs, body: JSON.stringify(body) });
+  const data = await res.json();
+  if (!res.ok || data.error) throw new Error(data.error || 'HTTP ' + res.status);
+  return (data.text || '').trim();
+}
+
+// ─────────────────────────────────────────────────────────
+// FACE DRAWING
+// ─────────────────────────────────────────────────────────
+function drawFace(id) {
+  const a = AG[id]; if (!a) return;
+  const d = DEFS[id];
+  const { ctx, canvas } = a;
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = d.face; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = d.color; ctx.fillRect(0, 0, W, 5);
+
+  const st = a.state || 'idle';
+  const ox = Math.max(-4.5, Math.min(4.5, a.ex));
+  const oy = Math.max(-3.5, Math.min(3.5, a.ey));
+  const eyY = H * .44, lx = W * .3, rx = W * .7;
+
+  // Eyes
+  if (st === 'thinking' || st === 'working') {
+    ctx.fillStyle = '#0A0A0A';
+    ctx.fillRect(lx - 6 + ox, eyY + oy - 1, 12, 2.5);
+    ctx.fillRect(rx - 6 + ox, eyY + oy - 1, 12, 2.5);
+  } else if (st === 'happy' || st === 'done') {
+    ctx.fillStyle = '#0A0A0A';
+    ctx.beginPath(); ctx.arc(lx + ox, eyY + 2 + oy, 5, Math.PI, 0); ctx.fill();
+    ctx.beginPath(); ctx.arc(rx + ox, eyY + 2 + oy, 5, Math.PI, 0); ctx.fill();
   } else {
-    [lx,rx].forEach(x=>{
-      ctx.fillStyle='#0A0A0A';
-      ctx.beginPath();ctx.arc(x+ox,eyY+oy,4.5,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle=d.face;
-      ctx.beginPath();ctx.arc(x+ox-1.2,eyY+oy-1.2,1.4,0,Math.PI*2);ctx.fill();
+    [lx, rx].forEach(x => {
+      ctx.fillStyle = '#0A0A0A';
+      ctx.beginPath(); ctx.arc(x + ox, eyY + oy, 4.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = d.face;
+      ctx.beginPath(); ctx.arc(x + ox - 1.2, eyY + oy - 1.2, 1.4, 0, Math.PI * 2); ctx.fill();
     });
-    ctx.fillStyle='#0A0A0A';
+    ctx.fillStyle = '#0A0A0A';
   }
-  if(a.blinking&&(st==='idle'||st==='happy')){
-    ctx.fillStyle=d.face;
-    ctx.fillRect(lx-7,eyY-6,14,12);
-    ctx.fillRect(rx-7,eyY-6,14,12);
+  if (a.blinking && (st === 'idle' || st === 'happy')) {
+    ctx.fillStyle = d.face;
+    ctx.fillRect(lx - 7, eyY - 6, 14, 12);
+    ctx.fillRect(rx - 7, eyY - 6, 14, 12);
   }
-  const my=H*.73,mx=W/2;
-  ctx.strokeStyle='#0A0A0A';ctx.lineWidth=2;ctx.lineCap='round';
-  if(st==='talking'){
-    ctx.fillStyle='#0A0A0A';
-    ctx.beginPath();ctx.ellipse(mx,my,5.5,5,0,0,Math.PI*2);ctx.fill();
-  } else if(st==='happy'||st==='done'){
-    ctx.beginPath();ctx.arc(mx,my-5,10,.15,Math.PI-.15);ctx.stroke();
-  } else if(st==='thinking'){
-    ctx.beginPath();ctx.moveTo(mx-8,my);ctx.lineTo(mx-3,my-2.5);ctx.lineTo(mx+3,my+2.5);ctx.lineTo(mx+8,my);ctx.stroke();
-  } else if(st==='working'){
-    ctx.beginPath();ctx.moveTo(mx-7,my);ctx.lineTo(mx+7,my);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(mx-4,my+3);ctx.lineTo(mx+4,my+3);ctx.stroke();
-  } else if(st==='error'){
-    ctx.beginPath();ctx.arc(mx,my-2,7,Math.PI*.1,Math.PI*.9,true);ctx.stroke();
+
+  // Mouth
+  const my = H * .73, mx = W / 2;
+  ctx.strokeStyle = '#0A0A0A'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+  if (st === 'talking') {
+    ctx.fillStyle = '#0A0A0A';
+    ctx.beginPath(); ctx.ellipse(mx, my, 5.5, 5, 0, 0, Math.PI * 2); ctx.fill();
+  } else if (st === 'happy' || st === 'done') {
+    ctx.beginPath(); ctx.arc(mx, my - 5, 10, .15, Math.PI - .15); ctx.stroke();
+  } else if (st === 'thinking') {
+    ctx.beginPath();
+    ctx.moveTo(mx - 8, my); ctx.lineTo(mx - 3, my - 2.5);
+    ctx.lineTo(mx + 3, my + 2.5); ctx.lineTo(mx + 8, my); ctx.stroke();
+  } else if (st === 'working') {
+    ctx.beginPath(); ctx.moveTo(mx - 7, my); ctx.lineTo(mx + 7, my); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(mx - 4, my + 3); ctx.lineTo(mx + 4, my + 3); ctx.stroke();
+  } else if (st === 'error') {
+    ctx.beginPath(); ctx.arc(mx, my - 2, 7, Math.PI * .1, Math.PI * .9, true); ctx.stroke();
   } else {
-    ctx.beginPath();ctx.arc(mx,my-3,7,.2,Math.PI-.2);ctx.stroke();
+    ctx.beginPath(); ctx.arc(mx, my - 3, 7, .2, Math.PI - .2); ctx.stroke();
   }
 }
 
-function scheduleBlink(id){
-  setTimeout(()=>{
-    const a=AG[id];if(!a)return;
-    a.blinking=true;drawFace(id);
-    setTimeout(()=>{a.blinking=false;drawFace(id);scheduleBlink(id);},130);
-  },2800+Math.random()*4000);
+// ─────────────────────────────────────────────────────────
+// BLINK + EYE TRACKING
+// ─────────────────────────────────────────────────────────
+function scheduleBlink(id) {
+  setTimeout(() => {
+    const a = AG[id]; if (!a) return;
+    a.blinking = true; drawFace(id);
+    setTimeout(() => { a.blinking = false; drawFace(id); scheduleBlink(id); }, 130);
+  }, 2800 + Math.random() * 4000);
 }
 
-function eyeLoop(){
-  Object.keys(AG).forEach(id=>{
-    const a=AG[id];if(!a)return;
-    if(a.state==='thinking'||a.state==='working'){
-      if(a.ex!==0||a.ey!==0){a.ex=0;a.ey=0;drawFace(id);}
+function eyeLoop() {
+  Object.keys(AG).forEach(id => {
+    const a = AG[id]; if (!a) return;
+    if (a.state === 'thinking' || a.state === 'working') {
+      if (a.ex !== 0 || a.ey !== 0) { a.ex = 0; a.ey = 0; drawFace(id); }
       return;
     }
-    const r=a.canvas.getBoundingClientRect();
-    const cx=r.left+r.width/2,cy=r.top+r.height/2;
-    const dx=mX-cx,dy=mY-cy;
-    const dist=Math.sqrt(dx*dx+dy*dy);
-    const f=Math.min(dist*.07,4.5);
-    const nx=dist>0?dx/dist:0,ny=dist>0?dy/dist:0;
-    const tx=nx*f,ty=ny*f;
-    if(Math.abs(tx-a.ex)>.22||Math.abs(ty-a.ey)>.22){
-      a.ex+=(tx-a.ex)*.18;a.ey+=(ty-a.ey)*.18;drawFace(id);
+    const r = a.canvas.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const dx = mX - cx, dy = mY - cy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const f = Math.min(dist * .07, 4.5);
+    const nx = dist > 0 ? dx / dist : 0, ny = dist > 0 ? dy / dist : 0;
+    const tx = nx * f, ty = ny * f;
+    if (Math.abs(tx - a.ex) > .22 || Math.abs(ty - a.ey) > .22) {
+      a.ex += (tx - a.ex) * .18; a.ey += (ty - a.ey) * .18; drawFace(id);
     }
   });
   requestAnimationFrame(eyeLoop);
 }
 
+// ─────────────────────────────────────────────────────────
 // BUILD OFFICE
-function buildOffice(){
-  const off=document.getElementById('office');
-  off.innerHTML='';
-  const W=off.offsetWidth,H=off.offsetHeight;
-  const px=(xp,yp)=>({x:(xp/100)*W,y:(yp/100)*H});
+// ─────────────────────────────────────────────────────────
+function buildOffice() {
+  const off = document.getElementById('office');
+  off.innerHTML = '';
+  const W = off.offsetWidth, H = off.offsetHeight;
+  const px = (xp, yp) => ({ x: (xp / 100) * W, y: (yp / 100) * H });
 
-  [{lbl:"Boss Office",x:0,y:0,w:27,h:44},{lbl:'Research Lab',x:55,y:0,w:45,h:44},
-   {lbl:'Writing Studio',x:0,y:44,w:25,h:56},{lbl:'Coder Den',x:25,y:58,w:31,h:42},
-   {lbl:'Analysis Room',x:56,y:44,w:44,h:56}].forEach(r=>{
-    const el=document.createElement('div');el.className='room';
-    el.style.cssText=`left:${r.x}%;top:${r.y}%;width:${r.w}%;height:${r.h}%;`;
-    el.innerHTML=`<div class="room-lbl">${r.lbl}</div>`;off.appendChild(el);
+  // Rooms
+  [
+    { lbl: "Boss Office",      x: 0,  y: 0,  w: 27, h: 44 },
+    { lbl: 'Research Lab',     x: 55, y: 0,  w: 45, h: 44 },
+    { lbl: 'Writing Studio',   x: 0,  y: 44, w: 25, h: 56 },
+    { lbl: 'Coder Den',        x: 25, y: 58, w: 31, h: 42 },
+    { lbl: 'Analysis Room',    x: 56, y: 44, w: 44, h: 56 },
+  ].forEach(r => {
+    const el = document.createElement('div'); el.className = 'room';
+    el.style.cssText = `left:${r.x}%;top:${r.y}%;width:${r.w}%;height:${r.h}%;`;
+    el.innerHTML = `<div class="room-lbl">${r.lbl}</div>`;
+    off.appendChild(el);
   });
 
-  const mp=px(27,30);
-  const mt=document.createElement('div');mt.className='mtable';
-  const mw=(29/100)*W,mh=(20/100)*H;
-  mt.style.cssText=`left:${mp.x}px;top:${mp.y}px;width:${mw}px;height:${mh}px;`;
-  mt.innerHTML='<div class="mtable-lbl">Meeting Table</div>';off.appendChild(mt);
+  // Meeting table
+  const mp = px(27, 30);
+  const mt = document.createElement('div'); mt.className = 'mtable';
+  mt.style.cssText = `left:${mp.x}px;top:${mp.y}px;width:${(29 / 100) * W}px;height:${(20 / 100) * H}px;`;
+  mt.innerHTML = '<div class="mtable-lbl">Meeting Table</div>';
+  off.appendChild(mt);
 
-  const wbp=px(28,4);
-  const wb=document.createElement('div');wb.className='whiteboard';
-  const wbw=(22/100)*W,wbh=(15/100)*H;
-  wb.style.cssText=`left:${wbp.x}px;top:${wbp.y}px;width:${wbw}px;height:${wbh}px;`;
-  wb.innerHTML='<div class="wb-lines">'+Array(5).fill('<div class="wb-line"></div>').join('')+'</div>';
+  // Whiteboard
+  const wbp = px(28, 4);
+  const wb = document.createElement('div'); wb.className = 'whiteboard';
+  wb.style.cssText = `left:${wbp.x}px;top:${wbp.y}px;width:${(22 / 100) * W}px;height:${(15 / 100) * H}px;`;
+  wb.innerHTML = '<div class="wb-lines">' + Array(5).fill('<div class="wb-line"></div>').join('') + '</div>';
   off.appendChild(wb);
 
-  [{x:5,y:22,w:8,h:3.2},{x:62,y:20,w:9,h:3.2},{x:3,y:50,w:8,h:3.2},{x:63,y:47,w:9,h:3.2},{x:35,y:62,w:8,h:3.2}]
-  .forEach(d=>{
-    const p=px(d.x,d.y);
-    const dw=(d.w/100)*W,dh=(d.h/100)*H;
-    const top=document.createElement('div');top.className='desk-top';
-    top.style.cssText=`left:${p.x}px;top:${p.y}px;width:${dw}px;height:${dh}px;`;
-    const mon=document.createElement('div');mon.className='desk-mon';
-    const mw2=Math.max(16,dw*.45);
-    mon.style.cssText=`width:${mw2}px;height:12px;top:-14px;left:${dw/2-mw2/2}px;`;
-    top.appendChild(mon);off.appendChild(top);
+  // Desks
+  [
+    { x: 5, y: 22, w: 8, h: 3.2 }, { x: 62, y: 20, w: 9, h: 3.2 },
+    { x: 3, y: 50, w: 8, h: 3.2 }, { x: 63, y: 47, w: 9, h: 3.2 },
+    { x: 35, y: 62, w: 8, h: 3.2 }
+  ].forEach(d => {
+    const p = px(d.x, d.y); const dw = (d.w / 100) * W, dh = (d.h / 100) * H;
+    const top = document.createElement('div'); top.className = 'desk-top';
+    top.style.cssText = `left:${p.x}px;top:${p.y}px;width:${dw}px;height:${dh}px;`;
+    const mon = document.createElement('div'); mon.className = 'desk-mon';
+    const mw = Math.max(16, dw * .45);
+    mon.style.cssText = `width:${mw}px;height:12px;top:-14px;left:${dw / 2 - mw / 2}px;`;
+    top.appendChild(mon); off.appendChild(top);
   });
 
-  [{x:1,y:1,e:'🌿'},{x:52,y:1,e:'🌱'},{x:1,y:44,e:'📚'},{x:53,y:58,e:'🌿'},{x:22,y:44,e:'☕'}]
-  .forEach(d=>{
-    const el=document.createElement('div');el.className='decor';
-    const p=px(d.x,d.y);
-    el.style.cssText=`left:${p.x+3}px;top:${p.y+3}px;`;
-    el.textContent=d.e;off.appendChild(el);
-  });
+  // Decor
+  [{ x: 1, y: 1, e: '🌿' }, { x: 52, y: 1, e: '🌱' }, { x: 1, y: 44, e: '📚' }, { x: 53, y: 58, e: '🌿' }, { x: 22, y: 44, e: '☕' }]
+    .forEach(d => {
+      const el = document.createElement('div'); el.className = 'decor';
+      const p = px(d.x, d.y); el.style.cssText = `left:${p.x + 3}px;top:${p.y + 3}px;`;
+      el.textContent = d.e; off.appendChild(el);
+    });
 
-  Object.values(DEFS).forEach(def=>spawnAgent(def));
-  Object.keys(DEFS).forEach(id=>setTimeout(()=>scheduleBlink(id),Math.random()*2500));
+  // Agents
+  Object.values(DEFS).forEach(def => spawnAgent(def));
+  Object.keys(DEFS).forEach(id => setTimeout(() => scheduleBlink(id), Math.random() * 2500));
   eyeLoop();
 }
 
-function spawnAgent(def){
-  const off=document.getElementById('office');
-  const W=off.offsetWidth,H=off.offsetHeight;
-  const el=document.createElement('div');
-  el.className='agent-char';el.id='ag-'+def.id;
-  el.style.left=(def.hx/100*W)+'px';el.style.top=(def.hy/100*H)+'px';
-  const body=document.createElement('div');body.className='agent-body';
-  const fw=document.createElement('div');fw.className='face-wrap';
-  const cv=document.createElement('canvas');cv.className='face-cv';
-  cv.width=60;cv.height=48;cv.style.cssText='display:block;width:60px;height:48px;';
-  fw.appendChild(cv);body.appendChild(fw);
-  const nt=document.createElement('div');nt.className='name-tag';
-  nt.style.background=def.color;nt.textContent=def.name;body.appendChild(nt);
-  const sd=document.createElement('div');sd.className='sdot idle';body.appendChild(sd);
-  el.appendChild(body);off.appendChild(el);
-  AG[def.id]={el,canvas:cv,ctx:cv.getContext('2d'),body,dot:sd,bubble:null,state:'idle',ex:0,ey:0,blinking:false};
+function spawnAgent(def) {
+  const off = document.getElementById('office');
+  const W = off.offsetWidth, H = off.offsetHeight;
+  const el = document.createElement('div'); el.className = 'agent-char'; el.id = 'ag-' + def.id;
+  el.style.left = (def.hx / 100 * W) + 'px'; el.style.top = (def.hy / 100 * H) + 'px';
+  const body = document.createElement('div'); body.className = 'agent-body';
+  const fw = document.createElement('div'); fw.className = 'face-wrap';
+  const cv = document.createElement('canvas'); cv.className = 'face-cv';
+  cv.width = 60; cv.height = 48; cv.style.cssText = 'display:block;width:60px;height:48px;';
+  fw.appendChild(cv); body.appendChild(fw);
+  const nt = document.createElement('div'); nt.className = 'name-tag'; nt.style.background = def.color; nt.textContent = def.name;
+  body.appendChild(nt);
+  const rt = document.createElement('div'); rt.className = 'role-tag'; rt.textContent = def.role;
+  body.appendChild(rt);
+  const sd = document.createElement('div'); sd.className = 'sdot idle'; body.appendChild(sd);
+  el.appendChild(body); off.appendChild(el);
+  AG[def.id] = { el, canvas: cv, ctx: cv.getContext('2d'), body, dot: sd, bubble: null, state: 'idle', ex: 0, ey: 0, blinking: false };
   drawFace(def.id);
 }
 
-// MOVEMENT
-function moveTo(id,xp,yp,walk=true){
-  const a=AG[id];if(!a)return Promise.resolve();
-  const off=document.getElementById('office');
-  const W=off.offsetWidth,H=off.offsetHeight;
-  const lx=(xp/100)*W,ly=(yp/100)*H;
-  if(walk){a.el.classList.add('is-walking');setTimeout(()=>a.el.classList.remove('is-walking'),980);}
-  a.el.style.left=lx+'px';a.el.style.top=ly+'px';
-  return new Promise(r=>setTimeout(r,1000));
+// ─────────────────────────────────────────────────────────
+// AGENT HELPERS
+// ─────────────────────────────────────────────────────────
+function moveTo(id, xp, yp, walk = true) {
+  const a = AG[id]; if (!a) return Promise.resolve();
+  const off = document.getElementById('office');
+  const W = off.offsetWidth, H = off.offsetHeight;
+  if (walk) { a.el.classList.add('is-walking'); setTimeout(() => a.el.classList.remove('is-walking'), 980); }
+  a.el.style.left = (xp / 100 * W) + 'px'; a.el.style.top = (yp / 100 * H) + 'px';
+  return new Promise(r => setTimeout(r, 1000));
 }
 
-function setState(id,st){
-  const a=AG[id];if(!a)return;
-  a.state=st;a.dot.className='sdot '+st;
-  if(st==='working')a.el.classList.add('is-working');
-  else a.el.classList.remove('is-working');
+function setState(id, st) {
+  const a = AG[id]; if (!a) return;
+  a.state = st; a.dot.className = 'sdot ' + st;
+  if (st === 'working') a.el.classList.add('is-working'); else a.el.classList.remove('is-working');
   drawFace(id);
 }
 
-function setBubble(id,text,boss=false,dur=3500){
-  const a=AG[id];if(!a)return;
-  if(a.bubble){a.bubble.remove();a.bubble=null;}
-  const b=document.createElement('div');
-  b.className='bubble'+(boss?' boss':'');
-  a.el.appendChild(b);a.bubble=b;
-  const short=text.length>95?text.slice(0,92)+'...':text;
-  let i=0;const tick=()=>{if(i<short.length){b.textContent+=short[i++];setTimeout(tick,16);}};tick();
-  if(dur>0)setTimeout(()=>{if(b.parentNode)b.remove();if(a.bubble===b)a.bubble=null;},dur);
+function setBubble(id, text, boss = false, dur = 3500) {
+  const a = AG[id]; if (!a) return;
+  if (a.bubble) { a.bubble.remove(); a.bubble = null; }
+  const b = document.createElement('div'); b.className = 'bubble' + (boss ? ' boss' : '');
+  a.el.appendChild(b); a.bubble = b;
+  const short = text.length > 95 ? text.slice(0, 92) + '…' : text;
+  let i = 0; const tick = () => { if (i < short.length) { b.textContent += short[i++]; setTimeout(tick, 16); } }; tick();
+  if (dur > 0) setTimeout(() => { if (b.parentNode) b.remove(); if (a.bubble === b) a.bubble = null; }, dur);
 }
 
-function clearBub(id){const a=AG[id];if(a&&a.bubble){a.bubble.remove();a.bubble=null;}}
+function clearBub(id) { const a = AG[id]; if (a && a.bubble) { a.bubble.remove(); a.bubble = null; } }
 
+// ─────────────────────────────────────────────────────────
 // TASK PANEL
-function addTask(id,desc){
+// ─────────────────────────────────────────────────────────
+function addTask(id, desc) {
   numTasks++;
-  const def=DEFS[id];
-  const list=document.getElementById('task-list');
-  list.querySelector('.et')&&list.querySelector('.et').remove();
-  const card=document.createElement('div');card.className='task-card';card.id='tc-'+id;
-  card.innerHTML=`<div class="tc-head"><span class="tc-badge" style="background:${def.color}">${def.name}</span><span class="tc-pill pending" id="tp-${id}">Pending</span></div><div class="tc-desc">${desc}</div><div class="tc-out" id="to-${id}"></div>`;
+  const def = DEFS[id];
+  const list = document.getElementById('task-list');
+  list.querySelector('.et') && list.querySelector('.et').remove();
+  const card = document.createElement('div'); card.className = 'task-card'; card.id = 'tc-' + id;
+  card.innerHTML = `<div class="tc-head"><span class="tc-badge" style="background:${def.color}">${def.name}</span><span class="tc-pill pending" id="tp-${id}">Pending</span></div><div class="tc-desc">${esc(desc)}</div><div class="tc-out" id="to-${id}"></div>`;
   list.appendChild(card);
-  document.getElementById('tc').textContent=numTasks+' task'+(numTasks!==1?'s':'');
+  document.getElementById('tc').textContent = numTasks + ' task' + (numTasks !== 1 ? 's' : '');
 }
 
-function updateTask(id,status,output=''){
-  const pill=document.getElementById('tp-'+id);
-  const out=document.getElementById('to-'+id);
-  const card=document.getElementById('tc-'+id);
-  if(pill){pill.className='tc-pill '+status;pill.textContent=status[0].toUpperCase()+status.slice(1);}
-  if(output&&out)out.innerHTML=marked.parse(output.slice(0,450)+(output.length>450?'...':''));
-  if(status==='done'&&card)card.classList.add('done-state');
+function updateTask(id, status, output = '') {
+  const pill = document.getElementById('tp-' + id);
+  const out = document.getElementById('to-' + id);
+  const card = document.getElementById('tc-' + id);
+  if (pill) { pill.className = 'tc-pill ' + status; pill.textContent = status[0].toUpperCase() + status.slice(1); }
+  if (output && out) out.innerHTML = marked.parse(output.slice(0, 500) + (output.length > 500 ? '…' : ''));
+  if (status === 'done' && card) card.classList.add('done-state');
 }
 
-// API
-async function callModel(model,message,history=[]){
-  const hdrs={'Content-Type':'application/json'};
-  if(authToken)hdrs['Authorization']='Bearer '+authToken;
-  const res=await fetch(SB_URL+'/functions/v1/chat-message',{
-    method:'POST',headers:hdrs,
-    body:JSON.stringify({message,model,chat_history:history,temperature:.7,guest:!authToken})
-  });
-  const data=await res.json();
-  if(!res.ok||data.error)throw new Error(data.error||'HTTP '+res.status);
-  return data.text||'';
-}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// MAIN FLOW
-async function go(){
-  if(busy)return;
-  const inp=document.getElementById('user-input');
-  const q=inp.value.trim();if(!q)return;
-  inp.value='';onInput(inp);
-  busy=true;
-  document.getElementById('send-btn').disabled=true;
-  const spill=document.getElementById('status-pill');
-  spill.textContent='Running';spill.classList.add('running');
-  document.getElementById('task-list').innerHTML='<div class="et">Starting up...</div>';
-  numTasks=0;
+// ─────────────────────────────────────────────────────────
+// MAIN ORCHESTRATION FLOW
+// ─────────────────────────────────────────────────────────
+async function go() {
+  if (busy) return;
+  const inp = document.getElementById('user-input');
+  const q = inp.value.trim(); if (!q) return;
+  inp.value = ''; onInput(inp);
+  busy = true;
+  document.getElementById('send-btn').disabled = true;
+  const spill = document.getElementById('status-pill');
+  spill.textContent = 'Running'; spill.classList.add('running');
+  document.getElementById('task-list').innerHTML = '<div class="et">Starting…</div>';
+  numTasks = 0;
   document.getElementById('report').classList.remove('show');
-  document.getElementById('report-body').innerHTML='';
+  document.getElementById('report-body').innerHTML = '';
 
-  for(const id of Object.keys(DEFS)){
-    setState(id,'idle');clearBub(id);
-    const d=DEFS[id];moveTo(id,d.hx,d.hy,false);
+  // Reset all agents home
+  for (const id of Object.keys(DEFS)) {
+    setState(id, 'idle'); clearBub(id);
+    const d = DEFS[id]; moveTo(id, d.hx, d.hy, false);
   }
   await sleep(80);
 
-  try{
-    setState('boss','thinking');
-    setBubble('boss','Analyzing the task...',true,0);
+  try {
+    // ── STEP 1: BOSS PLANS ──
+    setState('boss', 'thinking');
+    setBubble('boss', 'Analyzing task…', true, 0);
 
-    const planMsg=`You are a team coordinator. Return ONLY valid JSON (no markdown, no extra text).
-{"plan":"one sentence summary","tasks":[{"agent":"researcher|writer|analyst|coder","task":"specific instruction"}]}
-Task: "${q}"
-Rules: include only needed agents (1-3 max). researcher=facts/research, writer=text/prose, analyst=reasoning/strategy, coder=code/technical. Return ONLY the JSON.`;
+    // We ask the boss agent to return a JSON delegation plan.
+    // The edge fn will use GROQ_MODEL (llama-3.1-8b-instant) with
+    // boss.system_prompt injected as "User Preferences".
+    const planMsg =
+      `Analyze this user request and return ONLY a raw JSON object (no markdown fences, no extra text):\n` +
+      `{"plan":"one sentence summary","tasks":[{"agent":"researcher|writer|analyst|coder","task":"specific instruction"}]}\n\n` +
+      `User request: "${q}"\n\n` +
+      `Rules: include only the agents genuinely needed (1 to 3 max).\n` +
+      `- researcher = facts, current info, web research\n` +
+      `- writer = prose, summaries, articles, explanations\n` +
+      `- analyst = reasoning, strategy, critique, comparisons\n` +
+      `- coder = code, technical implementation, debugging\n` +
+      `Return ONLY the raw JSON object.`;
 
     let plan;
-    try{
-      const raw=await callModel(DEFS.boss.model,planMsg);
-      const m=raw.match(/\{[\s\S]*\}/);
-      plan=JSON.parse(m?m[0]:raw);
-    }catch(e){plan={plan:'Handle directly',tasks:[{agent:'analyst',task:q}]};}
-
-    clearBub('boss');
-    setBubble('boss','Plan: '+(plan.plan||'Delegating now...'),true,4500);
-    setState('boss','talking');
-    await sleep(800);
-
-    const validTasks=(plan.tasks||[]).filter(t=>DEFS[t.agent]);
-    document.getElementById('task-list').innerHTML='';
-    validTasks.forEach(t=>addTask(t.agent,t.task));
-
-    for(const t of validTasks){
-      const def=DEFS[t.agent];
-      await moveTo('boss',def.dx-7,def.dy,true);
-      setState('boss','talking');
-      setBubble('boss',def.name+': '+t.task,true,3000);
-      await sleep(500);
-      setState(t.agent,'talking');
-      setBubble(t.agent,'On it, Boss!',false,1800);
-      await sleep(1000);
+    try {
+      const raw = await callAgent(DEFS.boss, planMsg);
+      // Strip any accidental markdown fences
+      const cleaned = raw.replace(/```json|```/g, '').trim();
+      const m = cleaned.match(/\{[\s\S]*\}/);
+      plan = JSON.parse(m ? m[0] : cleaned);
+    } catch (e) {
+      // Fallback: delegate to analyst
+      plan = { plan: 'Handle the request directly', tasks: [{ agent: 'analyst', task: q }] };
     }
 
     clearBub('boss');
-    await moveTo('boss',DEFS.boss.dx,DEFS.boss.dy,true);
-    setState('boss','working');
-    setBubble('boss','Waiting for results...',true,0);
+    setBubble('boss', '📋 ' + (plan.plan || 'Delegating…'), true, 4500);
+    setState('boss', 'talking');
+    await sleep(800);
 
-    const results={};
-    await Promise.all(validTasks.map(async(t,i)=>{
-      await sleep(i*220);
-      const def=DEFS[t.agent];
-      await moveTo(t.agent,def.dx,def.dy,true);
-      setState(t.agent,'working');
+    // ── STEP 2: BOSS DELEGATES (sequential walk-ups) ──
+    const validTasks = (plan.tasks || []).filter(t => DEFS[t.agent]);
+    document.getElementById('task-list').innerHTML = '';
+    validTasks.forEach(t => addTask(t.agent, t.task));
+
+    for (const t of validTasks) {
+      const def = DEFS[t.agent];
+      await moveTo('boss', def.dx - 7, def.dy, true);
+      setState('boss', 'talking');
+      setBubble('boss', def.name + ': ' + t.task, true, 3200);
+      await sleep(500);
+      setState(t.agent, 'talking');
+      setBubble(t.agent, 'On it, Boss!', false, 1800);
+      await sleep(1000);
+    }
+
+    // Boss returns to desk
+    clearBub('boss');
+    await moveTo('boss', DEFS.boss.dx, DEFS.boss.dy, true);
+    setState('boss', 'working');
+    setBubble('boss', 'Waiting for results…', true, 0);
+
+    // ── STEP 3: AGENTS WORK (parallel) ──
+    const results = {};
+    await Promise.all(validTasks.map(async (t, i) => {
+      await sleep(i * 230);
+      const def = DEFS[t.agent];
+      await moveTo(t.agent, def.dx, def.dy, true);
+      setState(t.agent, 'working');
       clearBub(t.agent);
-      setBubble(t.agent,'Working...', false, 0);
-      updateTask(t.agent,'working');
-      const agMsg=`You are ${def.name}, a ${def.role}.\nTask: ${t.task}\nOriginal request: "${q}"\nBe concise, expert, and direct. Max 180 words.`;
-      try{
-        const result=await callModel(def.model,agMsg);
-        results[t.agent]=result;
-        clearBub(t.agent);setState(t.agent,'done');
-        updateTask(t.agent,'done',result);
-        setBubble(t.agent,'Done! Sending to Boss.',false,2800);
+      setBubble(t.agent, '⚙ Working…', false, 0);
+      updateTask(t.agent, 'working');
+
+      // Each agent call uses its own system_prompt (injected as User Preferences)
+      // and a clearly framed message. The backend always uses llama-3.1-8b-instant.
+      const agMsg =
+        `You are the ${def.name} agent (${def.role}).\n` +
+        `Complete this specific task assigned by the Boss:\n\n` +
+        `TASK: ${t.task}\n\n` +
+        `Original user request for context: "${q}"\n\n` +
+        `Be expert, focused, and concise.`;
+
+      try {
+        const result = await callAgent(def, agMsg);
+        results[t.agent] = result;
+        clearBub(t.agent); setState(t.agent, 'done');
+        updateTask(t.agent, 'done', result);
+        setBubble(t.agent, '✓ Done! Reporting to Boss.', false, 2800);
         await sleep(400);
-        await moveTo(t.agent,MX+(Math.random()*12-6),MY+(Math.random()*12-6),true);
-        setState(t.agent,'happy');
-      }catch(e){
-        results[t.agent]='Error: '+e.message;
-        setState(t.agent,'error');updateTask(t.agent,'error');
-        clearBub(t.agent);setBubble(t.agent,'Failed.',false,3000);
+        await moveTo(t.agent, MX + (Math.random() * 12 - 6), MY + (Math.random() * 12 - 6), true);
+        setState(t.agent, 'happy');
+      } catch (e) {
+        results[t.agent] = 'Error: ' + e.message;
+        setState(t.agent, 'error'); updateTask(t.agent, 'error');
+        clearBub(t.agent); setBubble(t.agent, '⚠ Failed', false, 3000);
       }
     }));
 
-    clearBub('boss');setState('boss','thinking');
-    await moveTo('boss',MX-9,MY,true);
-    setBubble('boss','Synthesising results...',true,0);
+    // ── STEP 4: BOSS SYNTHESISES ──
+    clearBub('boss'); setState('boss', 'thinking');
+    await moveTo('boss', MX - 9, MY, true);
+    setBubble('boss', '🧠 Synthesising…', true, 0);
 
-    const parts=Object.entries(results)
-      .map(([ag,r])=>DEFS[ag].name+' ('+DEFS[ag].role+'):\n'+r)
+    const parts = Object.entries(results)
+      .map(([ag, r]) => `${DEFS[ag].name} (${DEFS[ag].role}):\n${r}`)
       .join('\n\n---\n\n');
 
-    const synthMsg=`You are a Chief Coordinator. Synthesise your team's findings into a clear, complete response.\n\nUser request: "${q}"\n\nTeam results:\n${parts}\n\nProvide a well-structured final answer integrating all findings. Use markdown.`;
-    const final=await callModel(DEFS.boss.model,synthMsg);
+    const synthMsg =
+      `You are the Boss agent synthesising your team's work into a single final answer for the user.\n\n` +
+      `Original user request: "${q}"\n\n` +
+      `Team deliverables:\n${parts}\n\n` +
+      `Write a clear, well-structured final answer that integrates all findings. Use markdown formatting. ` +
+      `Do not mention individual agent names — present it as one unified response.`;
 
-    clearBub('boss');setState('boss','happy');
-    setBubble('boss','Report ready!',true,5000);
-    validTasks.forEach(t=>{setState(t.agent,'happy');drawFace(t.agent);});
+    const final = await callAgent(DEFS.boss, synthMsg);
+
+    clearBub('boss'); setState('boss', 'happy');
+    setBubble('boss', '✅ Report ready!', true, 5000);
+    validTasks.forEach(t => { setState(t.agent, 'happy'); drawFace(t.agent); });
 
     document.getElementById('report').classList.add('show');
-    document.getElementById('report-body').innerHTML=marked.parse(final);
+    document.getElementById('report-body').innerHTML = marked.parse(final);
 
-    setTimeout(async()=>{
-      for(const id of Object.keys(DEFS)){
-        const d=DEFS[id];
-        await sleep(Math.random()*350);
-        await moveTo(id,d.hx,d.hy,true);
-        setState(id,'idle');clearBub(id);
+    // Return agents home after 6s
+    setTimeout(async () => {
+      for (const id of Object.keys(DEFS)) {
+        const d = DEFS[id];
+        await sleep(Math.random() * 350);
+        await moveTo(id, d.hx, d.hy, true);
+        setState(id, 'idle'); clearBub(id);
       }
-    },6000);
+    }, 6000);
 
-  }catch(err){
-    setState('boss','error');clearBub('boss');
-    setBubble('boss','Error: '+err.message,true,6000);
+  } catch (err) {
+    setState('boss', 'error'); clearBub('boss');
+    setBubble('boss', '⚠ ' + err.message, true, 6000);
     console.error(err);
-  }finally{
-    busy=false;
-    document.getElementById('send-btn').disabled=false;
-    spill.textContent='Idle';spill.classList.remove('running');
+  } finally {
+    busy = false;
+    document.getElementById('send-btn').disabled = false;
+    spill.textContent = 'Idle'; spill.classList.remove('running');
   }
 }
 
-function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
-function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(!busy)go();}}
-function onInput(el){
-  el.style.height='auto';
-  el.style.height=Math.min(el.scrollHeight,72)+'px';
-  document.getElementById('send-btn').disabled=!el.value.trim()||busy;
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function onKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!busy) go(); } }
+function onInput(el) {
+  el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 72) + 'px';
+  document.getElementById('send-btn').disabled = !el.value.trim() || busy;
 }
 
-async function init(){
-  sbClient=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,storage:window.localStorage}});
-  try{
-    const{data:{session}}=await sbClient.auth.getSession();
-    if(session&&session.access_token)authToken=session.access_token;
-  }catch(e){}
+// ─────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────
+async function init() {
+  sbClient = supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, storage: window.localStorage } });
+  try {
+    const { data: { session } } = await sbClient.auth.getSession();
+    if (session && session.access_token) authToken = session.access_token;
+  } catch (e) { /* guest */ }
 
   buildOffice();
 
   let rt;
-  window.addEventListener('resize',()=>{
+  window.addEventListener('resize', () => {
     clearTimeout(rt);
-    rt=setTimeout(()=>{
-      const off=document.getElementById('office');
-      const W=off.offsetWidth,H=off.offsetHeight;
-      Object.entries(DEFS).forEach(([id,def])=>{
-        const a=AG[id];if(!a)return;
-        a.el.style.left=(def.hx/100*W)+'px';a.el.style.top=(def.hy/100*H)+'px';
+    rt = setTimeout(() => {
+      const off = document.getElementById('office');
+      const W = off.offsetWidth, H = off.offsetHeight;
+      Object.entries(DEFS).forEach(([id, def]) => {
+        const a = AG[id]; if (!a) return;
+        a.el.style.left = (def.hx / 100 * W) + 'px'; a.el.style.top = (def.hy / 100 * H) + 'px';
       });
-    },220);
+    }, 220);
   });
 
-  setTimeout(()=>{document.getElementById('loading').classList.add('gone');document.getElementById('user-input').focus();},400);
+  setTimeout(() => {
+    document.getElementById('loading').classList.add('gone');
+    document.getElementById('user-input').focus();
+  }, 450);
 }
 
 init();
