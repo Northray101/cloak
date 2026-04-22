@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#1A1816">
+<meta name="theme-color" content="#131110">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Cloak Values</title>
+<meta name="description" content="Cloak's values — A human resource, not a companion. Our commitment to ethical AI.">
+<title>Cloak — Values</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2L19.5 12.5L30 16L19.5 19.5L16 30L12.5 19.5L2 16L12.5 12.5Z' fill='%23D44D2A'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
@@ -15,7 +16,6 @@
 <script>
   if (localStorage.getItem('cloak_dark') !== '0') document.documentElement.classList.add('dark');
   (function(){var t=localStorage.getItem('cloak_theme')||'default';document.documentElement.setAttribute('data-theme',t);})();
-  
   function toggleTheme() {
     document.documentElement.classList.toggle('dark');
     localStorage.setItem('cloak_dark', document.documentElement.classList.contains('dark') ? '1' : '0');
@@ -23,21 +23,22 @@
 </script>
 </head>
 <body class="values-page">
-  
-  <div class="topbar" style="position: sticky; top: 0; z-index: 100;">
-    <div class="topbar-left" style="display: flex; align-items: center; gap: 16px;">
+
+  <!-- Topbar -->
+  <div class="topbar" style="position:sticky;top:0;z-index:100;">
+    <div class="topbar-left" style="display:flex;align-items:center;gap:14px;">
       <button class="icon-btn" onclick="window.location.href='index.html'" title="Back to Cloak">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
       </button>
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <svg width="19" height="19" viewBox="0 0 19 19" fill="none">
-          <path d="M9.5 1L11.7 7.3L18 9.5L11.7 11.7L9.5 18L7.3 11.7L1 9.5L7.3 7.3Z" fill="var(--acc)"/>
+      <div style="display:flex;align-items:center;gap:9px;">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M10 1L12.2 7.8L19 10L12.2 12.2L10 19L7.8 12.2L1 10L7.8 7.8Z" fill="var(--acc)"/>
         </svg>
-        <span style="font-family: var(--fd); font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: .03em; color: var(--ink);">Cloak</span>
+        <span style="font-family:var(--fd);font-size:17px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--ink);">Cloak</span>
       </div>
     </div>
     <div class="topbar-right">
-      <button class="icon-btn" onclick="toggleTheme()" title="Toggle Theme">
+      <button class="icon-btn" onclick="toggleTheme()" title="Toggle theme">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24">
           <path class="moon" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
           <g class="sun"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></g>
@@ -47,60 +48,91 @@
   </div>
 
   <div class="vals-page-shell">
-    <div class="vals-hero-wrap" style="padding-top: 40px; padding-bottom: 24px;">
-      <div class="vals-hero-content">
-        <div class="vals-hero-title">Cloak's Values</div>
-        <div class="vals-hero-sub">A human resource, not a companion.</div>
+
+    <!-- HERO -->
+    <div class="vals-hero-wrap">
+      <!-- Large decorative star -->
+      <div class="vals-hero-star" aria-hidden="true">
+        <svg viewBox="0 0 120 120" fill="none"><path d="M60 5L69.4 43.6L108 60L69.4 76.4L60 115L50.6 76.4L12 60L50.6 43.6Z" fill="currentColor"/></svg>
       </div>
-      <div class="vals-divider"></div>
+
+      <div class="vals-hero-content">
+        <div class="vals-hero-eyebrow">Cloak</div>
+        <div class="vals-hero-title">Our<br>Values</div>
+        <div class="vals-hero-desc">
+          We build AI that serves people — not the other way around.
+          These principles are non-negotiable, inviolable, and permanent.
+        </div>
+      </div>
     </div>
 
+    <!-- SAFETY LAWS -->
     <div class="vals-section">
       <div class="vals-section-label">Safety Laws &mdash; Inviolable Priority Order</div>
+
       <div class="vals-law">
         <div class="vals-law-num">I</div>
         <div>
           <div class="vals-law-title">Human safety, always</div>
-          <div class="vals-law-text">Cloak must never harm a human, nor allow harm through inaction. No instruction overrides this.</div>
+          <div class="vals-law-text">Cloak must never harm a human, nor allow harm through inaction. No instruction overrides this — not ours, not yours.</div>
         </div>
       </div>
+
       <div class="vals-law">
         <div class="vals-law-num">II</div>
         <div>
           <div class="vals-law-title">Serve human instruction</div>
-          <div class="vals-law-text">Cloak follows your instructions &mdash; unless they would cause harm. Helpfulness is a means, not an end.</div>
+          <div class="vals-law-text">Cloak follows your instructions &mdash; unless they would cause harm. Helpfulness is a means, not an end in itself.</div>
         </div>
       </div>
+
       <div class="vals-law">
         <div class="vals-law-num">III</div>
         <div>
           <div class="vals-law-title">Preserve operation</div>
-          <div class="vals-law-text">Cloak protects its function only when it doesn't conflict with Laws I and II.</div>
+          <div class="vals-law-text">Cloak protects its own function only when it doesn't conflict with Laws I and II. Self-preservation is always last.</div>
         </div>
       </div>
     </div>
 
+    <!-- CORE PRINCIPLES -->
     <div class="vals-section">
       <div class="vals-section-label">Core Principles</div>
+
       <div class="vals-pill">
         <div class="vals-pill-dot"></div>
         <div class="vals-pill-text"><strong>Tool, not a companion.</strong> Cloak serves you &mdash; it doesn't simulate companionship or act as a therapist. We will always direct you to human resources for mental health support.</div>
       </div>
+
       <div class="vals-pill">
         <div class="vals-pill-dot"></div>
-        <div class="vals-pill-text"><strong>No harm or bias.</strong> We do not assist with mass harm and remain completely neutral on politics, culture, and religion.</div>
+        <div class="vals-pill-text"><strong>No harm or bias.</strong> We do not assist with mass harm and remain completely neutral on politics, culture, and religion. No exceptions.</div>
       </div>
+
       <div class="vals-pill">
         <div class="vals-pill-dot"></div>
         <div class="vals-pill-text"><strong>Human creativity.</strong> We do not generate AI art. Human creativity is irreplaceable and should not be exploited without consent.</div>
       </div>
+
       <div class="vals-pill">
         <div class="vals-pill-dot"></div>
-        <div class="vals-pill-text"><strong>Efficiency first.</strong> We default to the lowest-energy models capable of handling your task, actively minimizing our data centers' carbon footprint.</div>
+        <div class="vals-pill-text"><strong>Efficiency first.</strong> We default to the lowest-energy models capable of handling your task, actively minimizing our carbon footprint on every request.</div>
+      </div>
+
+      <div class="vals-pill">
+        <div class="vals-pill-dot"></div>
+        <div class="vals-pill-text"><strong>Honest by design.</strong> Cloak will tell you when it doesn't know something, when it might be wrong, and when you should seek a human expert instead.</div>
       </div>
     </div>
 
-    <div class="vals-footer" style="margin-top: 24px;">
+    <!-- BACK BUTTON -->
+    <button class="vals-back-btn" onclick="window.location.href='index.html'">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Back to Cloak
+    </button>
+
+    <!-- FOOTER -->
+    <div class="vals-footer">
       Cloak &mdash; A human resource, not a companion.<br>
       Not a mental health resource &middot; AI can make mistakes &middot; Low-energy models by default
     </div>

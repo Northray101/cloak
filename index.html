@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#1A1816">
+<meta name="theme-color" content="#131110">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Cloak">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="format-detection" content="telephone=no">
+<meta name="description" content="Cloak — A human resource, not a companion. Ethical AI that serves you.">
 <title>Cloak</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2L19.5 12.5L30 16L19.5 19.5L16 30L12.5 19.5L2 16L12.5 12.5Z' fill='%23D44D2A'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,8 +25,9 @@
 </head>
 <body>
 
+<!-- ── LOADING ── -->
 <div id="s-loading">
-  <svg class="load-star" width="36" height="36" viewBox="0 0 36 36" fill="none">
+  <svg class="load-star" width="34" height="34" viewBox="0 0 36 36" fill="none">
     <path d="M18 2L21.6 13.4L33 18L21.6 22.6L18 34L14.4 22.6L3 18L14.4 13.4Z" fill="var(--acc)"/>
   </svg>
 </div>
@@ -34,11 +36,11 @@
 <div id="s-auth" class="screen">
   <div class="auth-card">
     <div class="brand">
-      <svg class="brand-icon" width="44" height="44" viewBox="0 0 44 44" fill="none">
-        <path d="M22 2L26.4 16.6L41 22L26.4 27.4L22 42L17.6 27.4L3 22L17.6 16.6Z" fill="var(--acc)"/>
+      <svg class="brand-icon" width="48" height="48" viewBox="0 0 48 48" fill="none">
+        <path d="M24 3L28.8 17.6L43 24L28.8 30.4L24 45L19.2 30.4L5 24L19.2 17.6Z" fill="var(--acc)"/>
       </svg>
       <div class="brand-name">Cloak</div>
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--acc);opacity:.85;margin-top:2px;">A human resource, not a companion.</div>
+      <div class="brand-tag">A human resource, not a companion.</div>
     </div>
     <div class="seg">
       <button class="seg-btn active" id="tab-in" onclick="authMode('in')">Sign in</button>
@@ -55,14 +57,19 @@
       </div>
       <div>
         <label class="field-label">Password</label>
-        <input class="input" id="inp-pass" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" autocomplete="current-password" onkeydown="authKey(event,'inp-confirm',true)">
+        <input class="input" id="inp-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="authKey(event,'inp-confirm',true)">
       </div>
       <div id="field-confirm" style="display:none">
         <label class="field-label">Confirm password</label>
-        <input class="input" id="inp-confirm" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" onkeydown="authKey(event,null)">
+        <input class="input" id="inp-confirm" type="password" placeholder="••••••••" onkeydown="authKey(event,null)">
       </div>
       <div class="err-msg" id="auth-err"></div>
       <button class="btn-primary" id="btn-submit" onclick="handleAuth()">Sign in</button>
+      <div class="auth-divider">
+        <div class="auth-divider-line"></div>
+        <div class="auth-divider-text">or</div>
+        <div class="auth-divider-line"></div>
+      </div>
       <button class="btn-ghost" onclick="startGuest()">Continue as guest</button>
     </div>
     <div class="auth-note">
@@ -75,7 +82,7 @@
 <div id="s-verify" class="screen">
   <div class="auth-card">
     <div class="brand">
-      <svg width="44" height="44" viewBox="0 0 44 44" fill="none"><path d="M22 2L26.4 16.6L41 22L26.4 27.4L22 42L17.6 27.4L3 22L17.6 16.6Z" fill="var(--acc)"/></svg>
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M24 3L28.8 17.6L43 24L28.8 30.4L24 45L19.2 30.4L5 24L19.2 17.6Z" fill="var(--acc)"/></svg>
       <div class="brand-name">Check your email</div>
     </div>
     <p class="hint-text">We sent a link to <strong id="verify-addr"></strong>. Click it to confirm, then come back and sign in.</p>
@@ -91,7 +98,7 @@
 <div id="s-mfa" class="screen">
   <div class="auth-card">
     <div class="brand">
-      <svg width="44" height="44" viewBox="0 0 44 44" fill="none"><path d="M22 2L26.4 16.6L41 22L26.4 27.4L22 42L17.6 27.4L3 22L17.6 16.6Z" fill="var(--acc)"/></svg>
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M24 3L28.8 17.6L43 24L28.8 30.4L24 45L19.2 30.4L5 24L19.2 17.6Z" fill="var(--acc)"/></svg>
       <div class="brand-name">Two-factor auth</div>
     </div>
     <p class="hint-text">Enter the 6-digit code from your authenticator app.</p>
@@ -108,13 +115,14 @@
 <div id="s-chat">
   <div id="ios-inset"></div>
 
+  <!-- Announcement bar -->
   <div class="ann" id="ann-bar">
-    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M22 8.93V3l-8 5H6a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h1l2 5h3l-1-5h3l8 5V8.93z"/></svg>
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M22 8.93V3l-8 5H6a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h1l2 5h3l-1-5h3l8 5V8.93z"/></svg>
     <span class="ann-text" id="ann-msg"></span>
     <button class="ann-x" onclick="dismissAnn()">&times;</button>
   </div>
 
-  <!-- SETTINGS MODAL -->
+  <!-- ── SETTINGS MODAL ── -->
   <div class="overlay" id="modal-settings" style="display:none" onclick="overlayClick(event,'modal-settings')">
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-head">
@@ -145,12 +153,13 @@
           </button>
         </nav>
         <div class="settings-body">
+          <!-- Account -->
           <div class="spane on" id="spane-general">
             <div class="srow">
               <div class="srow-name">Account</div>
               <div class="info-box" style="display:flex;align-items:center;gap:10px;margin-top:8px">
                 <div class="user-av" id="s-av" style="width:36px;height:36px;font-size:14px">?</div>
-                <div><div style="font-size:14px;font-weight:500" id="s-name">—</div><div style="font-size:12px;opacity:.55" id="s-email">—</div></div>
+                <div><div style="font-size:14px;font-weight:500" id="s-name">—</div><div style="font-size:12px;opacity:.5" id="s-email">—</div></div>
               </div>
             </div>
             <div class="srow">
@@ -170,6 +179,8 @@
               <button class="danger" style="margin-top:8px" onclick="doLogout()">Sign out of Cloak</button>
             </div>
           </div>
+
+          <!-- Appearance -->
           <div class="spane" id="spane-appearance">
             <div class="srow">
               <div class="srow-head"><div class="srow-name">Light / Dark mode</div></div>
@@ -210,6 +221,8 @@
               </div>
             </div>
           </div>
+
+          <!-- Security -->
           <div class="spane" id="spane-security">
             <div class="srow">
               <div class="srow-head"><div class="srow-name">Two-factor authentication</div></div>
@@ -218,7 +231,7 @@
               <div id="totp-section" style="display:none;margin-top:14px">
                 <div id="totp-qr" style="text-align:center;margin-bottom:10px"></div>
                 <div class="secret-box" id="totp-secret" style="margin-bottom:12px"></div>
-                <div style="font-size:12px;color:var(--ink);opacity:.55;margin-bottom:10px">Enter the 6-digit code to confirm:</div>
+                <div style="font-size:12px;opacity:.5;margin-bottom:10px">Enter the 6-digit code to confirm:</div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap">
                   <input class="input mono-input" id="totp-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" style="max-width:160px;font-size:18px">
                   <button class="cta" onclick="confirmTOTP()">Enable</button>
@@ -227,6 +240,8 @@
               </div>
             </div>
           </div>
+
+          <!-- Console -->
           <div class="spane" id="spane-console">
             <div class="srow" style="padding-top:0">
               <div class="stats-row">
@@ -248,6 +263,8 @@
               <div class="console-log" id="console-log"><div class="log-empty">No logs yet</div></div>
             </div>
           </div>
+
+          <!-- Admin -->
           <div class="spane" id="spane-admin">
             <div class="srow">
               <div class="srow-head"><div class="srow-name">Admin panel</div><span class="srow-badge">Owner</span></div>
@@ -255,12 +272,12 @@
             </div>
             <div class="srow">
               <div class="srow-name">Post announcement</div>
-              <textarea class="inp-field" id="ann-compose" placeholder="Write an announcement&hellip;" style="margin-top:8px;min-height:72px;resize:vertical;font-family:inherit;font-size:13px;line-height:1.6"></textarea>
+              <textarea class="inp-field" id="ann-compose" placeholder="Write an announcement…" style="margin-top:8px;min-height:76px;resize:vertical;font-family:inherit;font-size:13px;line-height:1.6"></textarea>
               <button class="cta" style="margin-top:8px" onclick="postAnn()">Post</button>
             </div>
             <div class="srow">
               <div class="srow-name">Active announcements</div>
-              <div class="ann-list" id="admin-ann-list" style="margin-top:8px"><div style="font-size:13px;opacity:.55">None active.</div></div>
+              <div class="ann-list" id="admin-ann-list" style="margin-top:8px"><div style="font-size:13px;opacity:.5">None active.</div></div>
             </div>
           </div>
         </div>
@@ -271,16 +288,16 @@
   <div class="chat-shell">
     <div class="sb-overlay" id="sb-overlay" onclick="closeMobileSidebar()"></div>
 
-    <!-- SIDEBAR -->
+    <!-- ── SIDEBAR ── -->
     <div class="sidebar collapsed" id="sidebar">
       <div class="sb-logo">
-        <svg class="sb-logo-star" width="19" height="19" viewBox="0 0 19 19" fill="none">
-          <path d="M9.5 1L11.7 7.3L18 9.5L11.7 11.7L9.5 18L7.3 11.7L1 9.5L7.3 7.3Z" fill="var(--acc)"/>
+        <svg class="sb-logo-star" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M10 1L12.2 7.8L19 10L12.2 12.2L10 19L7.8 12.2L1 10L7.8 7.8Z" fill="var(--acc)"/>
         </svg>
         <span class="sb-logo-name">Cloak</span>
       </div>
       <button class="sb-btn sb-new" onclick="newChat()">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
         New chat
       </button>
       <div class="sb-label">Recent</div>
@@ -288,18 +305,12 @@
       <div id="guest-note" style="display:none" class="guest-note">Guest &mdash; <a onclick="show('auth');closeMobileSidebar()">Sign up</a> to save chats.</div>
 
       <div class="sb-footer">
-        <div id="sb-ann-bar" style="display:none;margin-bottom:6px;padding:8px 10px;background:var(--yel);border:var(--bd);font-size:11px;font-weight:700;color:var(--ink);line-height:1.4;">
+        <div id="sb-ann-bar">
           <div style="display:flex;align-items:flex-start;gap:6px">
             <div id="sb-ann-msg" style="flex:1"></div>
             <button onclick="dismissAnn()" style="background:var(--ink);border:none;color:var(--paper);width:18px;height:18px;font-size:10px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">&times;</button>
           </div>
         </div>
-        <div class="sb-label" style="margin-bottom:2px">Tools</div>
-        <a class="sb-btn" href="agents.html" style="text-decoration:none;color:inherit;">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4"/><circle cx="17" cy="17" r="4"/><path d="M21 17h-8M17 13v8"/></svg>
-          Agent Office
-          <span style="margin-left:auto;font-size:8px;font-weight:800;padding:1px 5px;background:var(--yel);border:1px solid var(--ink);color:var(--ink);text-transform:uppercase;letter-spacing:.06em;">Beta</span>
-        </a>
         <div class="sb-label" style="margin-bottom:2px">Account</div>
         <div class="user-row">
           <div class="user-av" id="sb-av">?</div>
@@ -319,52 +330,65 @@
       </div>
     </div>
 
-    <!-- MAIN AREA -->
+    <!-- ── MAIN AREA ── -->
     <div class="main">
       <div class="topbar">
         <div class="topbar-left">
-          <button class="icon-btn" onclick="toggleSidebar()">
+          <button class="icon-btn" onclick="toggleSidebar()" title="Toggle sidebar">
             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
           </button>
         </div>
         <div class="topbar-right">
-          <button class="icon-btn" onclick="toggleDark()" title="Toggle Theme">
+          <button class="icon-btn" onclick="toggleDark()" title="Toggle theme">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24">
               <path class="moon" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
               <g class="sun"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></g>
             </svg>
           </button>
-          <div class="live-dot"></div>
-          <div id="model-btn" style="cursor:default;box-shadow:none;transform:none;border-color:var(--acc);">
-            Mode: <span id="model-btn-label" style="color:var(--acc);">Dynamic</span>
+          <div class="status-pill">
+            <div class="live-dot"></div>
+            <span class="status-label" id="model-btn-label">Dynamic</span>
           </div>
         </div>
       </div>
 
+      <!-- Chat area -->
       <div class="chat-area" id="chat-area">
+        <!-- Empty state -->
         <div class="empty" id="empty-state">
-          <div class="empty-star">
-            <svg class="empty-star-inner" width="52" height="52" viewBox="0 0 56 56" fill="none">
-              <path d="M28 3L32.8 21.2L51 28L32.8 34.8L28 53L23.2 34.8L5 28L23.2 21.2Z" fill="var(--acc)"/>
-            </svg>
+          <div class="empty-inner">
+            <div class="empty-star-wrap">
+              <div class="empty-star-bg"></div>
+              <svg class="empty-star-inner" width="38" height="38" viewBox="0 0 56 56" fill="none">
+                <path d="M28 3L32.8 21.2L51 28L32.8 34.8L28 53L23.2 34.8L5 28L23.2 21.2Z" fill="var(--acc)"/>
+              </svg>
+            </div>
+            <div class="empty-greeting" id="empty-greeting">Hey there!</div>
+            <div class="empty-slogan">A human resource, not a companion.</div>
+            <div class="chip-row" id="chip-row">
+              <button class="chip" onclick="chipSend('Explain something complex simply')">Explain simply</button>
+              <button class="chip" onclick="chipSend('Help me write or edit something')">Write &amp; edit</button>
+              <button class="chip" onclick="chipSend('Debug or review my code')">Debug code</button>
+              <button class="chip" onclick="chipSend('Research and summarize a topic')">Research</button>
+            </div>
           </div>
-          <div class="empty-greeting" id="empty-greeting">Hey there!</div>
-          <div class="empty-slogan">A human resource, not a companion.</div>
         </div>
         <div class="messages" id="messages" style="display:none"></div>
       </div>
 
+      <!-- Input area -->
       <div class="input-area">
         <div class="input-wrap">
           <div class="input-area-wrap">
+            <!-- Plus menu -->
             <div class="plus-menu" id="plus-menu">
               <button class="plus-item" id="menu-think" onclick="toggleThinkMode()">
-                <span class="plus-item-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path></svg></span>
+                <span class="plus-item-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg></span>
                 <span class="plus-item-text">
                   <span class="plus-item-label">Think mode</span>
                   <span class="plus-item-desc">Deep reasoning and outlines</span>
                 </span>
-                <span class="plus-item-check"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
+                <span class="plus-item-check"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
               </button>
               <button class="plus-item" id="menu-homework" onclick="toggleHwMode()">
                 <span class="plus-item-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
@@ -372,17 +396,11 @@
                   <span class="plus-item-label">Homework mode</span>
                   <span class="plus-item-desc">Guided learning, not just answers</span>
                 </span>
-                <span class="plus-item-check"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
+                <span class="plus-item-check"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
               </button>
-              <div style="height:1px;background:var(--bdt);margin:2px 0;"></div>
-              <a class="plus-item" href="agents.html" style="text-decoration:none;">
-                <span class="plus-item-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4"/><circle cx="17" cy="17" r="4"/><path d="M21 17h-8M17 13v8"/></svg></span>
-                <span class="plus-item-text">
-                  <span class="plus-item-label">Agent Office</span>
-                  <span class="plus-item-desc">Multi-agent task delegation</span>
-                </span>
-              </a>
             </div>
+
+            <!-- Mode labels -->
             <div style="display:flex;gap:6px;">
               <div class="hw-label" id="think-label">
                 Think mode
@@ -393,17 +411,21 @@
                 <button class="hw-label-x" onclick="toggleHwMode()">&times;</button>
               </div>
             </div>
+
+            <!-- Image strip -->
             <div class="img-strip" id="img-strip"></div>
+
+            <!-- Input box -->
             <div class="input-box" id="input-box">
               <input type="file" id="img-upload" accept="image/*" multiple style="display:none" onchange="onImgPick(this)">
-              <button class="plus-btn" id="plus-btn" onclick="togglePlusMenu(event)" title="Modes & Tools">+</button>
-              <textarea class="chat-input" id="chat-input" placeholder="Message Cloak&hellip;" rows="1"
+              <button class="plus-btn" id="plus-btn" onclick="togglePlusMenu(event)" title="Modes">+</button>
+              <textarea class="chat-input" id="chat-input" placeholder="Message Cloak…" rows="1"
                 oninput="onInput(this)" onkeydown="onKey(event)" onpaste="onPaste(event)"></textarea>
               <button class="send-btn" id="mic-btn" style="background:var(--surf);color:var(--ink);border:var(--bd);" onclick="startVoiceMode()" title="Voice mode">
-                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
               </button>
               <button class="send-btn" id="send-btn" onclick="send()" disabled>
-                <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>
               </button>
             </div>
           </div>
@@ -419,7 +441,7 @@
 
   <!-- VOICE OVERLAY -->
   <div class="voice-overlay" id="voice-overlay">
-    <button class="voice-close" onclick="stopVoiceMode()" title="Exit Voice Mode">&times;</button>
+    <button class="voice-close" onclick="stopVoiceMode()" title="Exit voice mode">&times;</button>
     <div class="voice-ascii" id="voice-ascii">[ - - - - - ]</div>
     <div class="voice-status" id="voice-status">Idle</div>
     <div class="voice-transcript" id="voice-transcript">Say something...</div>
@@ -451,7 +473,7 @@
           <div class="onboard-checkbox" id="onboard-checkbox"></div>
           <div class="onboard-check-label">I understand and agree</div>
         </div>
-        <button class="btn-primary" id="onboard-btn" onclick="confirmOnboarding()" disabled style="cursor:not-allowed;opacity:.35">Continue to Cloak</button>
+        <button class="btn-primary" id="onboard-btn" onclick="confirmOnboarding()" disabled style="cursor:not-allowed;opacity:.32">Continue to Cloak</button>
       </div>
     </div>
   </div>

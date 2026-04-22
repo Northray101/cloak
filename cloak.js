@@ -375,6 +375,16 @@ function renderConvs(){
     del.onclick=e=>{e.stopPropagation();delConv(c.id);};d.appendChild(lbl);d.appendChild(del);list.appendChild(d);
   });
 }
+/* ── CHIP SEND ── */
+function chipSend(text){
+  const inp=document.getElementById('chat-input');
+  if(!inp)return;
+  inp.value=text;
+  onInput(inp);
+  inp.focus();
+  send();
+}
+
 function newChat(){
   chatId=null;hist=[];document.getElementById('messages').innerHTML='';
   document.getElementById('messages').style.display='none';document.getElementById('empty-state').style.display='flex';renderConvs();
