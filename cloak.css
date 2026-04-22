@@ -252,7 +252,7 @@ a.sb-btn:hover{background:var(--p3);border-color:var(--ink);}
 .chat-area{flex:1;overflow-y:auto;scroll-behavior:smooth;padding:0;}
 .chat-area::-webkit-scrollbar{width:4px;}
 .chat-area::-webkit-scrollbar-thumb{background:var(--ink);opacity:.18;border-radius:0;}
-.messages{display:flex;flex-direction:column;gap:2px;padding:20px 20px 24px;max-width:880px;margin:0 auto;width:100%;}
+.messages{display:flex;flex-direction:column;gap:0;padding:0 0 32px;max-width:760px;margin:0 auto;width:100%;}
 
 /* ── EMPTY STATE ── */
 .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:320px;gap:0;padding:32px 20px;position:relative;overflow:hidden;}
@@ -303,37 +303,71 @@ a.sb-btn:hover{background:var(--p3);border-color:var(--ink);}
 .chip:hover{box-shadow:var(--sh);transform:translate(-1px,-1px);background:var(--p2);}
 .chip:active{box-shadow:none;transform:translate(2px,2px);}
 
-/* ── MESSAGES ── */
-.msg{display:flex;gap:10px;animation:msgIn .24s cubic-bezier(.16,1,.3,1);max-width:100%;position:relative;}
-.msg.user{flex-direction:row-reverse;}
-.av{width:30px;height:30px;border:var(--bd);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--fd);}
+/* ── MESSAGES — CLAUDE-STYLE ── */
+/* Each message is a full-width row. Bot = no bubble, full width. User = right-aligned compact bubble. */
+.messages{display:flex;flex-direction:column;gap:0;padding:0 0 32px;max-width:760px;margin:0 auto;width:100%;}
+.msg{display:flex;flex-direction:column;animation:msgIn .22s cubic-bezier(.16,1,.3,1);position:relative;width:100%;}
+
+/* User message — right aligned bubble */
+.msg.user{align-items:flex-end;padding:18px 24px 0;}
+.msg.bot{align-items:flex-start;padding:24px 24px 0;}
+.av{width:28px;height:28px;border:var(--bd);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--fd);}
 .av-user{background:var(--ink);color:var(--paper);}
 .av-bot{background:var(--acc);color:#fff;}
-.bubble{background:var(--p2);border:var(--bd);box-shadow:var(--shsm);padding:11px 15px;max-width:100%;font-size:14px;font-weight:500;line-height:1.65;color:var(--ink);overflow-wrap:break-word;word-break:normal;}
-.msg-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:4px;max-width:76%;}
 
-/* ── BOT MESSAGE ── */
-.bot-body{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0;}
-.bot-meta{display:flex;align-items:center;gap:7px;margin-bottom:3px;}
+/* User bubble */
+.bubble{
+  background:var(--p2);
+  border:var(--bd);
+  box-shadow:var(--shsm);
+  padding:10px 15px;
+  max-width:72%;
+  font-size:14px;
+  font-weight:500;
+  line-height:1.68;
+  color:var(--ink);
+  overflow-wrap:break-word;
+  word-break:normal;
+}
+.msg-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:3px;max-width:72%;}
+
+/* ── BOT MESSAGE — full width, no bubble ── */
+.bot-body{display:flex;flex-direction:column;gap:4px;width:100%;}
+.bot-meta{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
 .bot-dot{width:6px;height:6px;background:var(--acc);flex-shrink:0;animation:pdot 2.2s infinite;}
 .bot-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.15em;color:var(--acc);}
-.bot-content,.bot-content-final{font-size:14px;line-height:1.78;color:var(--ink);word-break:break-word;}
-.bot-content p,.bot-content-final p{margin-bottom:.72em;}
+
+/* Bot content — prose, wide, no border, no bg */
+.bot-content,.bot-content-final{
+  font-size:15px;
+  line-height:1.82;
+  color:var(--ink);
+  word-break:break-word;
+  max-width:100%;
+}
+.bot-content p,.bot-content-final p{margin-bottom:.85em;}
 .bot-content p:last-child,.bot-content-final p:last-child{margin-bottom:0;}
-.bot-content h1,.bot-content h2,.bot-content h3,.bot-content-final h1,.bot-content-final h2,.bot-content-final h3{font-family:var(--fd);font-weight:800;text-transform:uppercase;letter-spacing:-.2px;margin:1.1em 0 .45em;color:var(--ink);}
-.bot-content h1,.bot-content-final h1{font-size:18px;}
+.bot-content h1,.bot-content h2,.bot-content h3,
+.bot-content-final h1,.bot-content-final h2,.bot-content-final h3{
+  font-family:var(--fd);font-weight:800;text-transform:uppercase;
+  letter-spacing:-.2px;margin:1.2em 0 .5em;color:var(--ink);
+}
+.bot-content h1,.bot-content-final h1{font-size:19px;border-bottom:var(--bd);padding-bottom:.35em;}
 .bot-content h2,.bot-content-final h2{font-size:16px;}
-.bot-content h3,.bot-content-final h3{font-size:14px;}
-.bot-content ul,.bot-content ol,.bot-content-final ul,.bot-content-final ol{padding-left:20px;margin-bottom:.72em;}
-.bot-content li,.bot-content-final li{margin-bottom:.28em;}
+.bot-content h3,.bot-content-final h3{font-size:14px;opacity:.85;}
+.bot-content ul,.bot-content ol,.bot-content-final ul,.bot-content-final ol{padding-left:22px;margin-bottom:.85em;}
+.bot-content li,.bot-content-final li{margin-bottom:.35em;line-height:1.75;}
 .bot-content strong,.bot-content-final strong{font-weight:700;}
 .bot-content em,.bot-content-final em{font-style:italic;opacity:.82;}
-.bot-content hr,.bot-content-final hr{border:none;border-top:var(--bd);margin:1.1em 0;opacity:.25;}
-.bot-content blockquote,.bot-content-final blockquote{border-left:3px solid var(--acc);padding-left:13px;margin:0 0 .72em;opacity:.72;}
-.bot-content table,.bot-content-final table{width:100%;border-collapse:collapse;margin-bottom:.72em;font-size:13px;}
+.bot-content hr,.bot-content-final hr{border:none;border-top:var(--bd);margin:1.2em 0;opacity:.2;}
+.bot-content blockquote,.bot-content-final blockquote{
+  border-left:3px solid var(--acc);padding-left:14px;
+  margin:0 0 .85em;opacity:.75;font-style:italic;
+}
+.bot-content table,.bot-content-final table{width:100%;border-collapse:collapse;margin-bottom:.85em;font-size:13px;}
 .bot-content th,.bot-content-final th{background:var(--p2);font-weight:700;text-align:left;padding:8px 11px;border:var(--bd);}
 .bot-content td,.bot-content-final td{padding:6px 11px;border:var(--bdt);}
-.bot-content pre,.bot-content-final pre{position:relative;margin-bottom:.72em;border:var(--bd);box-shadow:var(--shsm);overflow:hidden;}
+.bot-content pre,.bot-content-final pre{position:relative;margin-bottom:.85em;border:var(--bd);box-shadow:var(--shsm);overflow:hidden;}
 .code-bar{display:flex;align-items:center;justify-content:space-between;padding:6px 11px;background:var(--ink);border-bottom:var(--bd);}
 .code-lang{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--paper);opacity:.5;}
 .code-actions{display:flex;gap:4px;}
@@ -342,6 +376,36 @@ a.sb-btn:hover{background:var(--p3);border-color:var(--ink);}
 .code-btn.ok{background:var(--yel);color:var(--ink);border-color:var(--yel);opacity:1;}
 .bot-content pre code,.bot-content-final pre code{font-family:'Courier New',monospace;font-size:13px;line-height:1.72;padding:14px 15px;display:block;overflow-x:auto;background:#141210;color:#E8E0D0;}
 .bot-content p code,.bot-content li code,.bot-content-final p code,.bot-content-final li code{font-family:'Courier New',monospace;font-size:12px;background:var(--p3);color:var(--acc);padding:1px 5px;border:1.5px solid var(--ink);font-weight:600;}
+
+
+/* ── TURN SEPARATOR — subtle line between bot/user turns ── */
+.msg.bot + .msg.user{
+  border-top:var(--bdt);
+  margin-top:8px;
+  padding-top:26px;
+}
+.msg.user + .msg.bot{
+  margin-top:0;
+}
+
+/* ── BOT COPY/ACTION BAR — bottom of bot turn ── */
+.msg.bot .msg-actions{
+  margin-top:12px;
+  opacity:0;
+  transition:opacity .15s ease;
+  display:flex;gap:4px;
+}
+.msg.bot:hover .msg-actions,
+.msg.bot .msg-actions:focus-within{opacity:1;}
+
+/* ── USER MSG ACTIONS ── */
+.user-msg-actions{
+  margin-top:4px;
+  opacity:0;
+  transition:opacity .15s;
+}
+.msg.user:hover .user-msg-actions,
+.msg.user .user-msg-actions:focus-within{opacity:1;}
 
 /* ── CITATION BUBBLES ── */
 .cit-bubble{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:var(--p3);color:var(--acc);font-family:var(--fu);font-size:10px;font-weight:800;text-decoration:none;vertical-align:super;margin:0 2px;border:1.5px solid var(--ink);transition:transform var(--t),background var(--t),color var(--t),box-shadow var(--t);}
@@ -665,8 +729,8 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
   .auth-card{padding:28px 22px;box-shadow:none;border-left:none;border-right:none;max-width:100%;}
   .screen{padding:max(20px,calc(env(safe-area-inset-top,0px) + 16px)) 0 max(20px,calc(env(safe-area-inset-bottom,0px) + 12px));justify-content:center;overflow-y:auto;min-height:100dvh;}
   .topbar{padding:0 14px;}
-  .messages{padding:14px 14px 18px;gap:8px;}
-  .bubble{max-width:88%;font-size:14px;}
+  .messages{padding:0 0 20px;gap:0;}
+  .bubble{max-width:88%;font-size:14px;}.msg.user{padding:14px 16px 0;}.msg.bot{padding:18px 16px 0;}
   .av{width:28px;height:28px;font-size:10px;}
   .msg{gap:8px;}
   .input-area{padding:8px 14px 8px;}
@@ -703,14 +767,7 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
 .kw{color:#E879F9;font-weight:600;}.str{color:#86EFAC;}.num{color:#FCD34D;}.cmt{color:#6B7280;font-style:italic;}
 
 /* ── CHAT FORMATTING IMPROVEMENTS ── */
-/* Wider prose area, better line rhythm */
-.messages{max-width:860px;margin:0 auto;width:100%;}
-.bot-content,.bot-content-final{
-  font-size:14.5px;
-  line-height:1.82;
-  max-width:72ch;
-  letter-spacing:.005em;
-}
+/* Wider prose area — handled by main .messages rule above */
 .bot-content p,.bot-content-final p{
   margin-bottom:.9em;
 }

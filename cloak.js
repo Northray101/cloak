@@ -197,17 +197,21 @@ function postProcessBotEl(msgEl, rawText){
   botBody.appendChild(actions);
 }
 
-/* ── ADD MESSAGE ── */
+/* ── ADD MESSAGE — Claude-style layout ── */
 function addMsg(role,content,noAnim=false,imgs=[]){
   const box=document.getElementById('messages');
   const d=document.createElement('div');
   d.className='msg '+(role==='user'?'user':'bot');
 
   if(role==='user'){
-    const i=name?name[0].toUpperCase():guest?'G':email?email[0].toUpperCase():'U';
+    // User: compact right-aligned bubble, no avatar
     let imgHtml='';
-    if(imgs.length){imgHtml='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">';imgs.forEach(img=>{imgHtml+='<img src="'+img.data+'" style="width:80px;height:80px;object-fit:cover;border:2px solid var(--ink)" alt="img">';});imgHtml+='</div>';}
-    d.innerHTML='<div class="av av-user">'+i+'</div><div class="msg-wrap"><div class="bubble">'+imgHtml+(content?'<div>'+hesc(content)+'</div>':'')+'</div></div>';
+    if(imgs.length){
+      imgHtml='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">';
+      imgs.forEach(img=>{imgHtml+='<img src="'+img.data+'" style="width:80px;height:80px;object-fit:cover;border:2px solid var(--ink)" alt="img">';});
+      imgHtml+='</div>';
+    }
+    d.innerHTML='<div class="msg-wrap"><div class="bubble">'+imgHtml+(content?'<div>'+hesc(content)+'</div>':'')+'</div></div>';
     if(content)d.dataset.raw=content;
     const actions=document.createElement('div');
     actions.className='msg-actions user-msg-actions';
@@ -219,8 +223,9 @@ function addMsg(role,content,noAnim=false,imgs=[]){
     actions.appendChild(editBtn);
     const wrap=d.querySelector('.msg-wrap');if(wrap)wrap.appendChild(actions);
   }else{
+    // Bot: full-width body, no bubble, subtle header
     const html=noAnim?marked.parse(content):'';
-    d.innerHTML='<div class="av av-bot"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1L7.4 4.6L11 6L7.4 7.4L6 11L4.6 7.4L1 6L4.6 4.6Z" fill="#fff"/></svg></div><div class="bot-body"><div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="bot-content">'+html+'</div></div>';
+    d.innerHTML='<div class="bot-body"><div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="bot-content">'+html+'</div></div>';
     if(noAnim){
       const bc=d.querySelector('.bot-content');
       if(bc)requestAnimationFrame(()=>animWords(bc));
@@ -418,7 +423,8 @@ function insertTypingBubble() {
   showMessages();
   const wrap = document.createElement('div');
   wrap.className = 'msg bot';
-  wrap.innerHTML = '<div class="av av-bot"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1L7.4 4.6L11 6L7.4 7.4L6 11L4.6 7.4L1 6L4.6 4.6Z" fill="#fff"/></svg></div><div class="bot-body"><div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="bot-content"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>';
+  // No avatar — Claude-style full-width bot layout
+  wrap.innerHTML = '<div class="bot-body"><div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="bot-content"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>';
   box.appendChild(wrap);
   scrollBottom();
   return wrap;
