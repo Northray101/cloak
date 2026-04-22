@@ -193,7 +193,10 @@ a.sb-btn:hover{background:var(--p3);border-color:var(--ink);}
 .conv-item{display:flex;align-items:center;border:1.5px solid transparent;transition:background var(--t),border-color var(--t);}
 .conv-item:hover{background:var(--p3);border-color:var(--ink);}
 .conv-item.active{background:var(--ink);border-color:var(--ink);}
-.conv-label{flex:1;padding:8px 10px;font-size:12px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;min-width:0;}
+.conv-label{flex:1;padding:8px 10px;font-size:12px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;min-width:0;display:flex;align-items:center;gap:7px;}
+.conv-icon{flex-shrink:0;opacity:.4;}
+.conv-label span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;}
+.conv-item.active .conv-icon{opacity:.7;}
 .conv-item.active .conv-label{color:var(--paper);}
 .conv-del{width:28px;height:28px;border:none;background:transparent;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;margin-right:4px;opacity:0;flex-shrink:0;transition:opacity var(--t),background var(--t),color var(--t);}
 .conv-item.active .conv-del{color:var(--paper);}
@@ -698,3 +701,146 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
 
 /* CODE SYNTAX */
 .kw{color:#E879F9;font-weight:600;}.str{color:#86EFAC;}.num{color:#FCD34D;}.cmt{color:#6B7280;font-style:italic;}
+
+/* ── CHAT FORMATTING IMPROVEMENTS ── */
+/* Wider prose area, better line rhythm */
+.messages{max-width:860px;margin:0 auto;width:100%;}
+.bot-content,.bot-content-final{
+  font-size:14.5px;
+  line-height:1.82;
+  max-width:72ch;
+  letter-spacing:.005em;
+}
+.bot-content p,.bot-content-final p{
+  margin-bottom:.9em;
+}
+.bot-content h1,.bot-content-final h1{font-size:19px;margin:1.3em 0 .5em;border-bottom:var(--bdt);padding-bottom:.3em;}
+.bot-content h2,.bot-content-final h2{font-size:16px;margin:1.1em 0 .4em;}
+.bot-content h3,.bot-content-final h3{font-size:14px;margin:.9em 0 .35em;opacity:.9;}
+.bot-content ul,.bot-content ol,.bot-content-final ul,.bot-content-final ol{padding-left:22px;margin-bottom:.9em;}
+.bot-content li,.bot-content-final li{margin-bottom:.38em;line-height:1.72;}
+/* Subtle first-line emphasis */
+.bot-content>p:first-child,.bot-content-final>p:first-child{font-weight:500;}
+
+/* ── MENTAL HEALTH INTERCEPT ── */
+.mh-intercept{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  padding:14px 16px;
+  background:var(--p2);
+  border:var(--bd);
+  border-left:4px solid var(--acc);
+  box-shadow:var(--shsm);
+  margin:4px 0 8px;
+  animation:msgIn .28s cubic-bezier(.16,1,.3,1);
+  position:relative;
+}
+.mh-icon{
+  color:var(--acc);
+  flex-shrink:0;
+  margin-top:2px;
+}
+.mh-body{
+  flex:1;
+  font-size:13.5px;
+  line-height:1.65;
+  color:var(--ink);
+}
+.mh-body strong{
+  font-weight:700;
+  display:block;
+  margin-bottom:5px;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.mh-body p{margin:0;opacity:.75;}
+.mh-body a{color:var(--acc);font-weight:700;text-underline-offset:3px;}
+.mh-dismiss{
+  position:absolute;
+  top:9px;right:9px;
+  background:transparent;
+  border:var(--bd);
+  width:22px;height:22px;
+  font-size:11px;font-weight:800;
+  cursor:pointer;
+  color:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  opacity:.45;
+  transition:opacity var(--t),background var(--t);
+}
+.mh-dismiss:hover{opacity:1;background:var(--p3);}
+
+/* ── FOOTER DISC LINK ── */
+.disc-link{
+  color:inherit;
+  font-weight:800;
+  text-decoration:underline;
+  text-underline-offset:2px;
+  transition:color var(--t);
+}
+.disc-link:hover{color:var(--acc);}
+.input-disc{
+  font-size:10.5px;
+  font-weight:600;
+  color:var(--ink);
+  opacity:.42;
+  text-align:center;
+  margin-top:5px;
+  line-height:1.55;
+  letter-spacing:.01em;
+}
+
+/* ── MOBILE QA POLISH ── */
+@media(max-width:640px){
+  /* Sidebar slide-in from left with safe area */
+  .sidebar{
+    padding-bottom:max(20px,calc(env(safe-area-inset-bottom,0px) + 12px))!important;
+  }
+  /* Input area — taller minimum for thumb reach */
+  .input-box{
+    min-height:52px;
+    padding:10px 10px;
+  }
+  /* Prevent input foot wrap on tiny screens */
+  .input-foot{
+    flex-direction:column;
+    align-items:center;
+    gap:2px;
+  }
+  /* Mental health intercept stacks on mobile */
+  .mh-intercept{
+    flex-direction:column;
+    gap:8px;
+  }
+  /* Modals: bottom-sheet style on mobile — add rounded top */
+  .modal{
+    border-radius:0;
+    animation:slideUp .28s cubic-bezier(.16,1,.3,1);
+  }
+  /* Onboarding card same */
+  .onboard-card{
+    padding:24px 20px 32px;
+  }
+  /* Chips wrap fully */
+  .chip-row{
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  /* Plus menu — full width on mobile */
+  .plus-menu{
+    left:0;
+    right:0;
+    min-width:unset;
+  }
+  /* Bot content — full width on mobile */
+  .bot-content,.bot-content-final{
+    max-width:100%;
+  }
+}
+
+@keyframes slideUp{
+  from{opacity:0;transform:translateY(24px)}
+  to{opacity:1;transform:translateY(0)}
+}

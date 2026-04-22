@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#F2EEE5">
+<meta name="description" content="Cloak — An ethical AI assistant. A human resource, not a companion. Private by design, honest by default.">
+<title>Cloak — A Human Resource</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2L19.5 12.5L30 16L19.5 19.5L16 30L12.5 19.5L2 16L12.5 12.5Z' fill='%23D44D2A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth;}
+:root{
+  --ink:#0A0A0A;--paper:#F2EEE5;--p2:#EAE5DB;--p3:#DDD8CC;--surf:#FAFAF7;
+  --acc:#D44D2A;--acc2:#B83B1D;
+  --bd:2px solid #0A0A0A;--bdt:1px solid rgba(10,10,10,.12);
+  --sh:4px 4px 0 #0A0A0A;--shlg:6px 6px 0 #0A0A0A;--shsm:2px 2px 0 #0A0A0A;
+  --t:140ms ease;--spring:cubic-bezier(.34,1.56,.64,1);
+  --fu:'Space Grotesk',system-ui,sans-serif;
+  --fd:'Syne',system-ui,sans-serif;
+}
+body{font-family:var(--fu);background:var(--paper);color:var(--ink);overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}
+
+/* ── KEYFRAMES ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes starSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ── NAV ── */
+nav{
+  position:sticky;top:0;z-index:100;
+  background:var(--surf);border-bottom:var(--bd);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;height:60px;
+}
+.nav-brand{display:flex;align-items:center;gap:10px;font-family:var(--fd);font-size:18px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;}
+.nav-star{width:22px;height:22px;flex-shrink:0;}
+.nav-links{display:flex;align-items:center;gap:8px;}
+.nav-link{height:36px;padding:0 14px;border:var(--bd);background:transparent;color:var(--ink);font-family:var(--fu);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;cursor:pointer;display:inline-flex;align-items:center;transition:box-shadow var(--t),transform var(--t),background var(--t);}
+.nav-link:hover{box-shadow:var(--shsm);transform:translate(-1px,-1px);background:var(--p2);}
+.nav-cta{background:var(--ink);color:var(--paper);box-shadow:var(--shsm);}
+.nav-cta:hover{background:var(--acc);color:#fff;box-shadow:var(--sh)!important;}
+
+/* ── HERO ── */
+.hero{
+  min-height:calc(100vh - 60px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:80px 32px;position:relative;overflow:hidden;
+  background:var(--p2);border-bottom:var(--bd);
+}
+/* grid bg */
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(var(--bdt) 1px,transparent 1px),
+    linear-gradient(90deg,var(--bdt) 1px,transparent 1px);
+  background-size:52px 52px;
+  pointer-events:none;
+}
+/* ink accent line at bottom */
+.hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:4px;background:var(--ink);}
+
+.hero-content{position:relative;z-index:1;max-width:820px;width:100%;text-align:center;}
+.hero-eyebrow{
+  font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.22em;
+  color:var(--acc);display:inline-flex;align-items:center;gap:10px;
+  margin-bottom:22px;animation:fadeUp .55s ease both;
+}
+.hero-eyebrow::before,.hero-eyebrow::after{content:'';display:block;width:28px;height:2px;background:var(--acc);}
+.hero-title{
+  font-family:var(--fd);font-size:clamp(48px,9vw,96px);font-weight:800;
+  text-transform:uppercase;letter-spacing:-2px;line-height:.92;color:var(--ink);
+  margin-bottom:28px;animation:fadeUp .55s .1s ease both;
+}
+.hero-title span{color:var(--acc);}
+.hero-desc{
+  font-size:16px;font-weight:500;color:var(--ink);opacity:.62;line-height:1.72;
+  max-width:540px;margin:0 auto 40px;animation:fadeUp .55s .2s ease both;
+}
+.hero-cta-row{
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  flex-wrap:wrap;animation:fadeUp .55s .3s ease both;
+}
+.btn-hero{
+  height:52px;padding:0 28px;border:var(--bd);background:var(--ink);color:var(--paper);
+  font-family:var(--fu);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;
+  cursor:pointer;display:inline-flex;align-items:center;gap:10px;
+  box-shadow:var(--sh);transition:box-shadow var(--t),transform var(--t),background var(--t);
+}
+.btn-hero:hover{box-shadow:var(--shlg);transform:translate(-2px,-2px);background:var(--acc);}
+.btn-hero:active{box-shadow:none;transform:translate(4px,4px);}
+.btn-hero-ghost{
+  height:52px;padding:0 28px;border:var(--bd);background:transparent;color:var(--ink);
+  font-family:var(--fu);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;
+  cursor:pointer;display:inline-flex;align-items:center;gap:10px;
+  box-shadow:var(--shsm);transition:box-shadow var(--t),transform var(--t),background var(--t);
+}
+.btn-hero-ghost:hover{box-shadow:var(--sh);transform:translate(-1px,-1px);background:var(--p3);}
+.btn-hero-ghost:active{box-shadow:none;transform:translate(2px,2px);}
+
+/* deco star */
+.hero-star-deco{
+  position:absolute;right:calc(50% - 520px);top:50%;transform:translateY(-50%);
+  width:200px;height:200px;opacity:.04;
+  animation:starSpin 40s linear infinite;
+  pointer-events:none;
+}
+@media(max-width:900px){.hero-star-deco{display:none;}}
+
+/* ── PRINCIPLES ROW ── */
+.principles{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  border-bottom:var(--bd);
+}
+.principle{
+  padding:36px 32px;border-right:var(--bd);
+  transition:background var(--t);
+}
+.principle:last-child{border-right:none;}
+.principle:hover{background:var(--p2);}
+.principle-num{
+  font-family:var(--fd);font-size:42px;font-weight:800;
+  color:var(--acc);line-height:1;margin-bottom:12px;
+}
+.principle-title{
+  font-family:var(--fd);font-size:13px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.08em;color:var(--ink);margin-bottom:8px;
+}
+.principle-text{font-size:13.5px;color:var(--ink);opacity:.58;line-height:1.68;}
+
+/* ── FEATURES ── */
+.features{max-width:1080px;margin:0 auto;padding:80px 32px;}
+.section-label{
+  font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.2em;
+  color:var(--acc);margin-bottom:32px;display:flex;align-items:center;gap:14px;
+}
+.section-label::after{content:'';flex:1;height:2px;background:var(--ink);opacity:.08;}
+.features-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.feat{
+  padding:28px 26px;background:var(--surf);border:var(--bd);box-shadow:var(--shsm);
+  transition:box-shadow var(--t),transform var(--t);
+}
+.feat:hover{box-shadow:var(--sh);transform:translate(-2px,-2px);}
+.feat-icon{
+  width:38px;height:38px;background:var(--ink);border:var(--bd);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:14px;color:#fff;flex-shrink:0;
+}
+.feat-title{font-family:var(--fd);font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--ink);margin-bottom:6px;}
+.feat-text{font-size:13.5px;color:var(--ink);opacity:.55;line-height:1.68;}
+
+/* ── MANIFESTO STRIP ── */
+.manifesto{
+  border-top:var(--bd);border-bottom:var(--bd);
+  background:var(--ink);color:var(--paper);
+  padding:52px 32px;text-align:center;
+  overflow:hidden;position:relative;
+}
+.manifesto::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+  background-size:42px 42px;
+}
+.manifesto-text{
+  font-family:var(--fd);font-size:clamp(26px,5vw,52px);font-weight:800;
+  text-transform:uppercase;letter-spacing:-1px;line-height:1.05;
+  position:relative;z-index:1;max-width:820px;margin:0 auto;
+}
+.manifesto-text em{color:var(--acc);font-style:normal;}
+.manifesto-sub{
+  font-size:13px;font-weight:500;opacity:.45;margin-top:16px;
+  position:relative;z-index:1;letter-spacing:.03em;
+}
+
+/* ── COMMITMENT SECTION ── */
+.commitment{max-width:1080px;margin:0 auto;padding:80px 32px;}
+.commit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.commit-card{
+  background:var(--p2);border:var(--bd);padding:24px 22px;
+  display:flex;flex-direction:column;gap:10px;
+  transition:box-shadow var(--t),transform var(--t),background var(--t);
+}
+.commit-card:hover{box-shadow:var(--sh);transform:translate(-2px,-2px);background:var(--surf);}
+.commit-badge{
+  display:inline-flex;align-items:center;height:22px;padding:0 9px;
+  background:var(--ink);color:var(--paper);
+  font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;
+  width:fit-content;
+}
+.commit-title{font-family:var(--fd);font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink);}
+.commit-text{font-size:13px;color:var(--ink);opacity:.55;line-height:1.65;}
+
+/* ── CTA FOOTER ── */
+.cta-section{
+  background:var(--p2);border-top:var(--bd);
+  padding:80px 32px;text-align:center;
+}
+.cta-title{font-family:var(--fd);font-size:clamp(32px,6vw,64px);font-weight:800;text-transform:uppercase;letter-spacing:-1.5px;color:var(--ink);margin-bottom:18px;line-height:.95;}
+.cta-sub{font-size:15px;color:var(--ink);opacity:.5;margin-bottom:36px;line-height:1.65;}
+
+/* ── PAGE FOOTER ── */
+footer{
+  background:var(--ink);color:var(--paper);
+  padding:28px 32px;display:flex;align-items:center;justify-content:space-between;
+  gap:16px;flex-wrap:wrap;
+}
+.footer-brand{font-family:var(--fd);font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;opacity:.6;}
+.footer-links{display:flex;gap:16px;align-items:center;}
+.footer-link{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;opacity:.4;transition:opacity var(--t);cursor:pointer;}
+.footer-link:hover{opacity:.9;}
+.footer-disc{font-size:10px;opacity:.25;width:100%;line-height:1.6;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .principles{grid-template-columns:1fr 1fr;}
+  .principle:nth-child(2){border-right:none;}
+  .principle:nth-child(3){border-right:none;border-top:var(--bd);}
+  .features-grid{grid-template-columns:1fr;}
+  .commit-grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:640px){
+  nav{padding:0 16px;}
+  .hero{padding:52px 20px;}
+  .hero-title{letter-spacing:-1.5px;}
+  .principles{grid-template-columns:1fr;}
+  .principle{border-right:none;border-bottom:var(--bd);}
+  .principle:last-child{border-bottom:none;}
+  .features{padding:52px 20px;}
+  .manifesto{padding:40px 20px;}
+  .commitment{padding:52px 20px;}
+  .commit-grid{grid-template-columns:1fr;}
+  .cta-section{padding:52px 20px;}
+  footer{padding:24px 20px;}
+  .footer-disc{font-size:9px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <a class="nav-brand" href="landing.html">
+    <svg class="nav-star" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <path d="M11 1L13.4 8.6L21 11L13.4 13.4L11 21L8.6 13.4L1 11L8.6 8.6Z" fill="var(--acc)"/>
+    </svg>
+    Cloak
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="values.html">Values</a>
+    <a class="nav-link nav-cta" href="index.html">Open Cloak &rarr;</a>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-eyebrow">Ethical AI</div>
+    <h1 class="hero-title">
+      A human<br>resource.<br><span>Not a companion.</span>
+    </h1>
+    <p class="hero-desc">
+      Cloak is an AI assistant built around one idea: tools serve people — not the other way around.
+      No personality cult, no engagement traps, no dark patterns.
+    </p>
+    <div class="hero-cta-row">
+      <a class="btn-hero" href="index.html">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        Start using Cloak
+      </a>
+      <a class="btn-hero-ghost" href="values.html">Read our values</a>
+    </div>
+  </div>
+  <!-- deco star -->
+  <svg class="hero-star-deco" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+    <path d="M100 5L120 80L195 100L120 120L100 195L80 120L5 100L80 80Z" fill="var(--ink)"/>
+  </svg>
+</section>
+
+<!-- ── PRINCIPLES ROW ── -->
+<div class="principles">
+  <div class="principle">
+    <div class="principle-num">I</div>
+    <div class="principle-title">Tool, not therapist</div>
+    <div class="principle-text">Cloak is a resource for getting things done — not a substitute for human connection, professional care, or your own judgment.</div>
+  </div>
+  <div class="principle">
+    <div class="principle-num">II</div>
+    <div class="principle-title">Honest by design</div>
+    <div class="principle-text">No engagement optimisation, no flattery loops. Cloak tells you when it doesn't know, declines harmful requests, and never pretends to be human.</div>
+  </div>
+  <div class="principle">
+    <div class="principle-num">III</div>
+    <div class="principle-title">Low energy default</div>
+    <div class="principle-text">Built to use the minimum compute needed, rotating between efficient models. Less carbon, less waste, same quality output.</div>
+  </div>
+</div>
+
+<!-- ── FEATURES ── -->
+<section class="features">
+  <div class="section-label">What Cloak does</div>
+  <div class="features-grid">
+    <div class="feat">
+      <div class="feat-icon">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <div class="feat-title">Thoughtful conversation</div>
+      <div class="feat-text">Ask anything — from explaining complex topics simply to writing, research, code review, and brainstorming. Cloak cycles models to give you the best response for each task.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      </div>
+      <div class="feat-title">Homework mode</div>
+      <div class="feat-text">Guided learning, not just answers. Cloak walks you through the thinking so you understand — not just so you can copy and paste.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
+      </div>
+      <div class="feat-title">Think mode</div>
+      <div class="feat-text">For hard problems. Cloak outlines its reasoning process before replying — showing you how it approaches the question, not just what it concludes.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
+      </div>
+      <div class="feat-title">Voice interface</div>
+      <div class="feat-text">Speak naturally and hear responses read back. Hands-free mode for when you're working, commuting, or just prefer to listen.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── MANIFESTO STRIP ── -->
+<div class="manifesto">
+  <div class="manifesto-text">
+    AI should <em>serve</em> you &mdash;<br>not shape you.
+  </div>
+  <div class="manifesto-sub">
+    Cloak is built without engagement metrics, retention loops, or companion personas.
+  </div>
+</div>
+
+<!-- ── COMMITMENT ── -->
+<section class="commitment">
+  <div class="section-label">Our commitments</div>
+  <div class="commit-grid">
+    <div class="commit-card">
+      <div class="commit-badge">Privacy</div>
+      <div class="commit-title">Your data, your chats</div>
+      <div class="commit-text">Conversations are stored to your account only. Cloak doesn't sell data or use your chats to train models.</div>
+    </div>
+    <div class="commit-card">
+      <div class="commit-badge">Safety</div>
+      <div class="commit-title">Hard limits, always</div>
+      <div class="commit-text">Cloak will not assist with anything that could harm groups of people. No exceptions, no workarounds, no jailbreaks.</div>
+    </div>
+    <div class="commit-card">
+      <div class="commit-badge">Transparency</div>
+      <div class="commit-title">Honest about limits</div>
+      <div class="commit-text">When Cloak doesn't know something, it says so. It surfaces its reasoning and never pretends to certainty it doesn't have.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta-section">
+  <h2 class="cta-title">Ready to use<br>a real tool?</h2>
+  <p class="cta-sub">No account required to start. 10 free messages as a guest.</p>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+    <a class="btn-hero" href="index.html">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      Open Cloak
+    </a>
+    <a class="btn-hero-ghost" href="values.html">Read our values</a>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-brand">Cloak</div>
+  <div class="footer-links">
+    <a class="footer-link" href="values.html">Values</a>
+    <a class="footer-link" href="index.html">App</a>
+  </div>
+  <div class="footer-disc">
+    Not a mental health resource. If you are struggling, please contact a real person or visit <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;">findahelpline.com</a> for free crisis support. &middot; Cloak can make mistakes. Verify important information.
+  </div>
+</footer>
+
+</body>
+</html>

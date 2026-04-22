@@ -369,7 +369,10 @@ function renderConvs(){
   const list=document.getElementById('conv-list');list.innerHTML='';
   convs.forEach(c=>{
     const d=document.createElement('div');d.className='conv-item'+(c.id===chatId?' active':'');
-    const lbl=document.createElement('div');lbl.className='conv-label';lbl.textContent=c.title;lbl.title=c.title;lbl.onclick=()=>loadConv(c.id);
+    const lbl=document.createElement('div');lbl.className='conv-label';
+    // Chat icon + title
+    lbl.innerHTML='<svg class="conv-icon" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>'+hesc(c.title)+'</span>';
+    lbl.title=c.title;lbl.onclick=()=>loadConv(c.id);
     const del=document.createElement('button');del.className='conv-del';del.title='Delete';
     del.innerHTML='<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>';
     del.onclick=e=>{e.stopPropagation();delConv(c.id);};d.appendChild(lbl);d.appendChild(del);list.appendChild(d);
@@ -667,14 +670,40 @@ function clearLogs(){logs=[];stats={req:0,res:0,err:0,lat:[]};renderLogs();updat
 /* ── STORAGE ── */
 async function loadConvs(){const{data,error}=await sb.from('chats').select('id,title,updated_at').eq('user_id',uid).order('updated_at',{ascending:false});if(error){log('err','Load convs: '+error.message);return;}convs=(data||[]).map(r=>({id:r.id,title:r.title}));renderConvs();log('inf','Loaded '+convs.length+' chat(s)');}
 async function loadConv(id){const{data,error}=await sb.from('chats').select('*').eq('id',id).single();if(error){log('err','Load chat: '+error.message);return;}chatId=id;hist=data.messages||[];document.getElementById('messages').innerHTML='';hist.forEach(m=>addMsg(m.role==='CHATBOT'?'bot':'user',m.message,true));showMessages();renderConvs();}
-async function saveConv(first){if(!uid||guest)return;let currentUid=uid;try{const{data:{session}}=await sb.auth.getSession();if(!session?.user){log('err','Save aborted: no session');return;}currentUid=session.user.id;uid=currentUid;}catch(e){log('err','Save: session check failed');return;}const ex=convs.find(c=>c.id===chatId);const title=ex?ex.title:(first.slice(0,50)+(first.length>50?'\u2026':''));if(!ex)convs.unshift({id:chatId,title});renderConvs();const{error}=await sb.from('chats').upsert({id:chatId,user_id:currentUid,title,messages:hist,updated_at:new Date().toISOString()},{onConflict:'user_id,id'});if(error){log('err','Save: '+error.message);}else{log('inf','Chat saved: '+title.slice(0,30));}}
+function _makeTitle(first){
+  // Use first meaningful sentence or phrase, cap at 60 chars
+  const clean=first.replace(/\n+/g,' ').replace(/\s+/g,' ').trim();
+  const sentenceEnd=clean.search(/[.!?](?:\s|$)/);
+  let candidate=sentenceEnd>4&&sentenceEnd<70?clean.slice(0,sentenceEnd+1):clean;
+  if(candidate.length>60)candidate=candidate.slice(0,58).replace(/\s+\S*$/,'')+'\u2026';
+  return candidate||'New chat';
+}
+async function saveConv(first){if(!uid||guest)return;let currentUid=uid;try{const{data:{session}}=await sb.auth.getSession();if(!session?.user){log('err','Save aborted: no session');return;}currentUid=session.user.id;uid=currentUid;}catch(e){log('err','Save: session check failed');return;}const ex=convs.find(c=>c.id===chatId);const title=ex?ex.title:_makeTitle(first);if(!ex)convs.unshift({id:chatId,title});renderConvs();const{error}=await sb.from('chats').upsert({id:chatId,user_id:currentUid,title,messages:hist,updated_at:new Date().toISOString()},{onConflict:'user_id,id'});if(error){log('err','Save: '+error.message);}else{log('inf','Chat saved: '+title.slice(0,30));}}
 async function delConv(id){const{error}=await sb.from('chats').delete().eq('id',id).eq('user_id',uid);if(error){log('err','Delete: '+error.message);return;}convs=convs.filter(c=>c.id!==id);if(chatId===id)newChat();else renderConvs();}
+
+/* ── MENTAL HEALTH INTERCEPT ── */
+const MH_PATTERNS=/\b(suicide|suicidal|kill myself|end my life|want to die|self[- ]?harm|cut myself|overdose|no reason to live|don't want to be here|can't go on|hopeless|worthless|crisis)\b/i;
+let _mhShown=false;
+function checkMentalHealth(txt){
+  if(_mhShown||!MH_PATTERNS.test(txt))return false;
+  _mhShown=true;
+  // Insert a banner before the message sends
+  const box=document.getElementById('messages');
+  showMessages();
+  const d=document.createElement('div');
+  d.className='mh-intercept';
+  d.innerHTML='<div class="mh-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="mh-body"><strong>A note before you continue</strong><p>Cloak is not a mental health resource. If you\'re going through something hard, please reach out to a real person or a helpline — <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer">findahelpline.com</a> lists free crisis support in your country.</p></div><button class="mh-dismiss" onclick="this.parentElement.style.display=\'none\'">Got it</button>';
+  box.appendChild(d);
+  scrollBottom();
+  return false; // still allow message to send
+}
 
 /* ── SEND ── */
 async function send(){
   const inp=document.getElementById('chat-input');const txt=inp.value.trim();
   if((!txt&&!attachedImgs.length)||busy)return;
   if(guest&&guestN>=GUEST_MAX){showLimit();return;}
+  checkMentalHealth(txt);
   if(!chatId){chatId=Date.now().toString();hist=[];}
   
   if(voiceMode) {
@@ -698,11 +727,22 @@ async function send(){
 
   try{
     let ocrText='',ocrFailed=false;
-    if(imgs.length&&typeof Tesseract!=='undefined'){
-      try{
-        const results=await Promise.all(imgs.map(img=>Tesseract.recognize(img.data,'eng',{logger:()=>{}}).then(r=>{const conf=r.data.confidence;const raw=r.data.text.trim();if(conf<60||raw.length<4)return '';return raw.split('\n').map(l=>l.trim()).filter(l=>l.length>1&&!/^[^a-zA-Z0-9]{1,3}$/.test(l)).join('\n');}).catch(()=>'')));
-        ocrText=results.filter(Boolean).join('\n\n');if(!ocrText)ocrFailed=true;
-      }catch(e){ocrFailed=true;}
+    if(imgs.length){
+      // Lazy-load Tesseract on demand
+      if(typeof Tesseract==='undefined'){
+        await new Promise((resolve,reject)=>{
+          const s=document.createElement('script');
+          s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+          s.onload=resolve;s.onerror=()=>{ocrFailed=true;resolve();};
+          document.head.appendChild(s);
+        });
+      }
+      if(typeof Tesseract!=='undefined'){
+        try{
+          const results=await Promise.all(imgs.map(img=>Tesseract.recognize(img.data,'eng',{logger:()=>{}}).then(r=>{const conf=r.data.confidence;const raw=r.data.text.trim();if(conf<60||raw.length<4)return '';return raw.split('\n').map(l=>l.trim()).filter(l=>l.length>1&&!/^[^a-zA-Z0-9]{1,3}$/.test(l)).join('\n');}).catch(()=>'')));
+          ocrText=results.filter(Boolean).join('\n\n');if(!ocrText)ocrFailed=true;
+        }catch(e){ocrFailed=true;}
+      }
     }
     if(imgs.length&&ocrFailed&&!ocrText&&!txt){
       replaceThinkWithContent(thinkEl,'The image could not be read clearly. OCR works best with printed or typed text.');

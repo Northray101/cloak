@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#131110">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -17,7 +17,6 @@
 <link rel="stylesheet" href="cloak.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
   if(localStorage.getItem('cloak_dark')!=='0') document.documentElement.classList.add('dark');
   (function(){var t=localStorage.getItem('cloak_theme')||'default';document.documentElement.setAttribute('data-theme',t);})();
@@ -73,7 +72,7 @@
       <button class="btn-ghost" onclick="startGuest()">Continue as guest</button>
     </div>
     <div class="auth-note">
-      <a href="values.html">Read our values &rarr;</a>
+      <a href="landing.html">What is Cloak?</a> &middot; <a href="values.html">Our values &rarr;</a>
     </div>
   </div>
 </div>
@@ -430,10 +429,10 @@
             </div>
           </div>
           <div class="input-foot">
-            <span class="input-sub">Cloak can make mistakes.</span>
-            <span class="input-sub">Enter to send &middot; Shift+Enter new line</span>
+            <span class="input-sub">Cloak can make mistakes. Verify important information.</span>
+            <span class="input-sub">Enter to send &middot; Shift+Enter for new line</span>
           </div>
-          <div class="input-disc">Not a mental health resource &middot; Low-energy by default</div>
+          <div class="input-disc">Not a mental health resource &mdash; if you're struggling, please contact a real person or <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer" class="disc-link">a helpline</a>.</div>
         </div>
       </div>
     </div>
