@@ -901,3 +901,36 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
   from{opacity:0;transform:translateY(24px)}
   to{opacity:1;transform:translateY(0)}
 }
+
+/* ── DYNAMIC THINKING ANIMATION ── */
+@keyframes phaseEnter{0%{opacity:0;transform:translateY(5px)}100%{opacity:.75;transform:translateY(0)}}
+@keyframes phaseExit{0%{opacity:.75;transform:translateY(0)}100%{opacity:0;transform:translateY(-5px)}}
+@keyframes dotPulse{0%,100%{opacity:.25;transform:scale(.7)}50%{opacity:1;transform:scale(1)}}
+
+.think-anim{display:flex;flex-direction:column;gap:9px;padding:3px 0;}
+
+.think-phase-label{
+  font-size:13px;
+  color:var(--ink);
+  opacity:.75;
+  transition:none;
+  display:block;
+}
+.think-phase-label.phase-exit{
+  animation:phaseExit .18s ease forwards;
+}
+.think-phase-label.phase-enter{
+  animation:phaseEnter .35s ease forwards;
+}
+
+.think-anim-dots{display:flex;gap:5px;align-items:center;}
+.think-anim-dots span{
+  display:inline-block;
+  width:6px;height:6px;
+  border-radius:50%;
+  background:var(--acc);
+  animation:dotPulse 1.4s ease-in-out infinite;
+  opacity:.25;
+}
+.think-anim-dots span:nth-child(2){animation-delay:.22s;}
+.think-anim-dots span:nth-child(3){animation-delay:.44s;}

@@ -16,11 +16,16 @@ let annId=null;
 let hwMode=false, thinkModeActive=false, attachedImgs=[];
 let onboardingDone=false;
 let _fetchController=null;
-let _streamAbort=false;
+let _thinkTimer=null, _thinkPhaseIdx=0;
 
-/* Dynamic Model Variables - Cohere Primary, Gemini Secondary */
-let dynamicModels = ['cohere/command-r-plus-08-2024', 'google/gemini-2.5-flash'];
-let modelCycleIndex = 0;
+/* Thinking animation phases */
+const THINK_PHASES=[
+  {label:'Connecting…'},
+  {label:'Analyzing request…'},
+  {label:'Generating response…'},
+  {label:'Putting it together…'},
+];
+const THINK_PHASE_MS=[2000,5000,14000]; // ms from start to next phase
 
 /* Voice Mode Variables */
 let voiceMode = false;
@@ -418,31 +423,60 @@ function setBusy(b){
 
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 
-function insertTypingBubble() {
+function insertThinkingBubble() {
   const box = document.getElementById('messages');
   showMessages();
   const wrap = document.createElement('div');
   wrap.className = 'msg bot';
-  // No avatar — Claude-style full-width bot layout
-  wrap.innerHTML = '<div class="bot-body"><div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="bot-content"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>';
+  wrap.innerHTML = '<div class="bot-body"><div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="bot-content"><div class="think-anim"><span class="think-phase-label">'+THINK_PHASES[0].label+'</span><div class="think-anim-dots"><span></span><span></span><span></span></div></div></div></div>';
   box.appendChild(wrap);
   scrollBottom();
+  _startThinkAnimation(wrap);
   return wrap;
 }
 
-function replaceThinkWithContent(thinkEl, rawText) {
-  let postTyping = thinkEl.querySelector('.think-post-typing');
-  if (postTyping) {
-    const finalContent = document.createElement('div');
-    finalContent.className = 'bot-content-final';
-    postTyping.parentNode.replaceChild(finalContent, postTyping);
-    streamContent(finalContent, rawText, () => { setBusy(false); });
-  } else {
-    let bc = thinkEl.querySelector('.bot-content');
-    if (bc) {
-      bc.innerHTML = '';
-      streamContent(bc, rawText, () => { setBusy(false); });
+function _startThinkAnimation(wrap) {
+  _thinkPhaseIdx = 0;
+  stopThinkAnimation();
+  const t0 = Date.now();
+  function advance() {
+    if (!wrap.isConnected) return;
+    const elapsed = Date.now() - t0;
+    let nextIdx = _thinkPhaseIdx;
+    for (let i = _thinkPhaseIdx + 1; i < THINK_PHASES.length; i++) {
+      if (elapsed >= THINK_PHASE_MS[i - 1]) nextIdx = i;
     }
+    if (nextIdx !== _thinkPhaseIdx) {
+      _thinkPhaseIdx = nextIdx;
+      const labelEl = wrap.querySelector('.think-phase-label');
+      if (labelEl) {
+        labelEl.classList.add('phase-exit');
+        setTimeout(() => {
+          if (!wrap.isConnected) return;
+          labelEl.textContent = THINK_PHASES[_thinkPhaseIdx].label;
+          labelEl.classList.remove('phase-exit');
+          labelEl.classList.add('phase-enter');
+          setTimeout(() => labelEl.classList.remove('phase-enter'), 350);
+        }, 180);
+      }
+    }
+    if (_thinkPhaseIdx < THINK_PHASES.length - 1) {
+      _thinkTimer = setTimeout(advance, 400);
+    }
+  }
+  _thinkTimer = setTimeout(advance, 400);
+}
+
+function stopThinkAnimation() {
+  if (_thinkTimer) { clearTimeout(_thinkTimer); _thinkTimer = null; }
+}
+
+function replaceThinkWithContent(thinkEl, rawText) {
+  stopThinkAnimation();
+  let bc = thinkEl.querySelector('.bot-content');
+  if (bc) {
+    bc.innerHTML = '';
+    streamContent(bc, rawText, () => { setBusy(false); });
   }
   scrollBottom();
 }
@@ -724,12 +758,9 @@ async function send(){
   addMsg('user',txt,false,imgs);
   const t0=Date.now();
 
-  let currentModel = dynamicModels.length > 0 ? dynamicModels[modelCycleIndex] : 'cohere/command-r-plus-08-2024';
-  if (dynamicModels.length > 0) { modelCycleIndex = (modelCycleIndex + 1) % dynamicModels.length; }
-
-  stats.req++;log('req',`"${(txt||'[image]').slice(0,60)}" model=${currentModel} guest=${guest} hwMode=${hwMode} thinkMode=${thinkModeActive} imgs=${imgs.length}`);
+  stats.req++;log('req',`"${(txt||'[image]').slice(0,60)}" guest=${guest} hwMode=${hwMode} thinkMode=${thinkModeActive} imgs=${imgs.length}`);
   
-  const thinkEl = insertTypingBubble();
+  const thinkEl = insertThinkingBubble();
 
   try{
     let ocrText='',ocrFailed=false;
@@ -761,77 +792,17 @@ async function send(){
     else if(ocrText){userMsg=(txt?txt+'\n\n':'What does this say or show?\n\n')+'Text from image:\n"""\n'+ocrText+'\n"""';}
     else if(imgs.length&&ocrFailed&&txt){userMsg=txt+' (An image was attached but could not be read.)';}
 
-    // -- THINK MODE PRE-REQUEST --
-    if(thinkModeActive) {
-      try {
-         let preBodyObj = {
-            message: "Analyze the following request and provide a 3-step thinking process outline. Outline how you will approach reasoning and use tools. Return STRICTLY a JSON array of 3 short strings. Request: " + userMsg,
-            model: currentModel,
-            chat_history: hist.slice(0,-1).map(m=>({role:m.role,message:m.message})),
-            temperature: 0.2
-         };
-         if(guest) preBodyObj.guest = true;
-         
-         let preHdrs={'Content-Type':'application/json'};
-         if(!guest) {
-            try {
-               const {data:{session}} = await sb.auth.getSession();
-               if(session?.access_token) preHdrs['Authorization']='Bearer '+session.access_token;
-            } catch(e){}
-         }
-
-         const outlineRes = await fetch(SB_URL+'/functions/v1/chat-message',{
-            method:'POST', headers:preHdrs, body:JSON.stringify(preBodyObj)
-         });
-
-         if(outlineRes.ok) {
-            const outData = await outlineRes.json();
-            let text = outData.text.replace(/```json/g, '').replace(/```/g, '').trim();
-            let steps = ["Analyzing request", "Formulating strategy", "Drafting response"];
-            try {
-               let parsed = JSON.parse(text);
-               if(Array.isArray(parsed) && parsed.length > 0) steps = parsed.slice(0, 3);
-            } catch(e){}
-
-            const botContent = thinkEl.querySelector('.bot-content');
-            botContent.innerHTML = `
-              <details class="think-dropdown" open>
-                <summary class="think-summary"><span class="think-title">Thinking...</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
-                <div class="think-steps" id="think-steps-container"></div>
-              </details>
-              <div class="think-post-typing"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
-            `;
-            const stepsContainer = botContent.querySelector('#think-steps-container');
-            for (let i = 0; i < steps.length; i++) {
-                await sleep(600 + Math.random() * 800);
-                const stepEl = document.createElement('div');
-                stepEl.className = 'think-step-item';
-                stepEl.innerHTML = `<span class="think-step-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span><span style="flex:1">${hesc(steps[i])}</span>`;
-                stepsContainer.appendChild(stepEl);
-                scrollBottom();
-            }
-            await sleep(600);
-            const thinkTitle = botContent.querySelector('.think-title');
-            if (thinkTitle) thinkTitle.textContent = "Thought process complete";
-            const dropdown = botContent.querySelector('.think-dropdown');
-            if (dropdown) dropdown.removeAttribute('open');
-         }
-      } catch(e) {
-         console.error("Think mode pre-request failed", e);
-      }
-    }
-
     hist.push({role:'USER',message:userMsg||(imgs.length?'[Image]':'')});
 
     // -- ACTUAL REQUEST --
     let hdrs={'Content-Type':'application/json'};
     let bodyObj={
       message: userMsg,
-      model: currentModel,
       chat_history: hist.slice(0,-1).map(m=>({role:m.role,message:m.message})),
       temperature: temp,
-      think_mode: thinkModeActive // <--- TELLS BACKEND TO TRIGGER WEB SEARCH
+      extended_thinking: thinkModeActive,
     };
+    if(extraPrompt) bodyObj.system_prompt=extraPrompt;
 
     if(guest){
       bodyObj.guest=true;
@@ -859,10 +830,10 @@ async function send(){
     });
     _fetchController=null;
 
-    let d;try{d=await res.json();}catch(_){throw new Error('Bad response from server');}
+    let d;try{d=await res.json();}catch(_){throw new Error('Server returned an unreadable response.');}
     const ms=Date.now()-t0;
     if(!res.ok||d.error)throw new Error(d.error||'HTTP '+res.status);
-    stats.lat.push(ms);stats.res++;log('res',`${ms}ms | model=${currentModel} | replyLen=${d.text?.length??0} | uid=${d.userId??'?'}`);
+    stats.lat.push(ms);stats.res++;log('res',`${ms}ms | provider=${d.provider||'?'} | tools=[${(d.tools_used||[]).join(',')}] | replyLen=${d.text?.length??0} | uid=${d.userId??'?'}`);
     hist.push({role:'CHATBOT',message:d.text});
     if(hist.length>20)hist=hist.slice(-20);
 
@@ -874,18 +845,20 @@ async function send(){
     else saveConv(txt||'[Image]').catch(e=>log('err','Save: '+e.message));
   }catch(ex){
     _fetchController=null;
+    stopThinkAnimation();
     if(ex.name==='AbortError'){
       thinkEl.remove();
-      if(!hist.length||hist[hist.length-1].role!=='CHATBOT'){
-        if(hist.length&&hist[hist.length-1].role==='USER')hist.pop();
-      }
+      if(hist.length&&hist[hist.length-1].role==='USER')hist.pop();
+      setBusy(false);
     }else{
       stats.err++;
-      log('err',`${ex.message} | model=${currentModel} | guest=${guest}`);
-      replaceThinkWithContent(thinkEl,'Error: '+hesc(ex.message));
+      log('err',`${ex.message} | guest=${guest}`);
+      const _errTxt=ex.message.match(/^(HTTP 5|Service|No response|Empty)/i)?
+        'Service temporarily unavailable — please try again in a moment.':hesc(ex.message);
+      replaceThinkWithContent(thinkEl,'Error: '+_errTxt);
       if(voiceMode) playVoice("Sorry, I ran into an error.");
+      // setBusy(false) is called by streamContent's onComplete callback
     }
-    setBusy(false);
   }
 }
 
