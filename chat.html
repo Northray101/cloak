@@ -1,0 +1,93 @@
+<!-- chat.html - Multi-Agent Chat Interface for Pneuma, Logos, Kairos -->
+<!-- This file needs to be created by copying index.html and making the following modifications:
+
+1. Change title to 'Pneuma · Logos · Kairos'
+2. Add agent selector UI before the chat input
+3. Modify the send() function in cloak.js to:
+   - Get the selected agent (pneuma, logos, or kairos)
+   - Call https://api.usecloak.org/chat instead of Supabase
+   - Pass the agent name in the request body
+
+4. Update branding from 'Cloak' to show selected agent name
+
+For now, this is a placeholder. To complete:
+- Copy all HTML from index.html
+- Add this agent selector after the empty-state div:
+
+<div id="agent-selector" style="padding: 1rem; background: var(--bd); border-bottom: 1px solid var(--sh);">
+  <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+    <button class="agent-btn" data-agent="pneuma" onclick="selectAgent('pneuma')" style="padding: 0.5rem 1rem; border-radius: 8px; border: 2px solid var(--acc); background: transparent; cursor: pointer; font-weight: 600;">Pneuma</button>
+    <button class="agent-btn" data-agent="logos" onclick="selectAgent('logos')" style="padding: 0.5rem 1rem; border-radius: 8px; border: 2px solid var(--bd); background: transparent; cursor: pointer;">Logos</button>
+    <button class="agent-btn" data-agent="kairos" onclick="selectAgent('kairos')" style="padding: 0.5rem 1rem; border-radius: 8px; border: 2px solid var(--bd); background: transparent; cursor: pointer;">Kairos</button>
+  </div>
+  <div id="selected-agent" style="text-align: center; margin-top: 0.5rem; font-size: 0.875rem; color: var(--t2);">Chatting with: <span style="color: var(--acc); font-weight: 600;">Pneuma</span></div>
+</div>
+
+- Add this script before </body>:
+
+<script>
+let selectedAgent = 'pneuma';
+
+function selectAgent(agent) {
+  selectedAgent = agent;
+  document.querySelectorAll('.agent-btn').forEach(btn => {
+    btn.style.borderColor = btn.dataset.agent === agent ? 'var(--acc)' : 'var(--bd)';
+    btn.style.fontWeight = btn.dataset.agent === agent ? '600' : '400';
+  });
+  document.querySelector('#selected-agent span').textContent = agent.charAt(0).toUpperCase() + agent.slice(1);
+}
+
+// Override the send function to call api.usecloak.org
+const originalSend = window.send;
+window.send = async function() {
+  const inp = document.getElementById('chat-input');
+  const userMsg = inp.value.trim();
+  if (!userMsg || busy) return;
+  
+  setBusy(true);
+  showMessages();
+  addMsg('user', userMsg);
+  hist.push({ role: 'USER', message: userMsg });
+  inp.value = '';
+  onInput(inp);
+  
+  try {
+    const response = await fetch('https://api.usecloak.org/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        agent: selectedAgent,
+        message: userMsg,
+        history: hist
+      })
+    });
+    
+    const data = await response.json();
+    const botMsg = addMsg('bot', '', false);
+    const botContent = botMsg.querySelector('.bot-content');
+    streamContent(botContent, data.response, () => {
+      setBusy(false);
+      hist.push({ role: 'ASSISTANT', message: data.response });
+    });
+  } catch (error) {
+    console.error('Chat error:', error);
+    addMsg('bot', 'Sorry, I encountered an error. Please try again.');
+    setBusy(false);
+  }
+};
+</script>
+
+TODO: Replace this placeholder with the full index.html content + modifications above
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pneuma · Logos · Kairos</title>
+<meta name="description" content="Multi-agent AI chat interface">
+</head>
+<body>
+<h1>Placeholder - See comments in source for implementation details</h1>
+<p>This file needs to be completed by copying index.html and adding agent selector functionality.</p>
+</body>
+</html>
