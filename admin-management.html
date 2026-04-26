@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cloak — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Grotesk:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --black: #0a0a0a;
+      --white: #f5f0e8;
+      --accent: #c8ff00;
+      --red: #ff3c3c;
+      --blue: #3c8fff;
+      --border: 2px solid #0a0a0a;
+      --shadow: 4px 4px 0px #0a0a0a;
+      --shadow-lg: 6px 6px 0px #0a0a0a;
+      --radius: 0px;
+      --font-display: 'Syne', sans-serif;
+      --font-body: 'Space Grotesk', sans-serif;
+      --font-mono: 'Space Mono', monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--white);
+      color: var(--black);
+      font-family: var(--font-body);
+      min-height: 100vh;
+    }
+
+    /* ---- AUTH SCREEN ---- */
+    #auth-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--black);
+    }
+
+    .auth-box {
+      background: var(--white);
+      border: var(--border);
+      box-shadow: var(--shadow-lg);
+      padding: 48px;
+      width: 420px;
+      max-width: 95vw;
+    }
+
+    .auth-box h1 {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+
+    .auth-box .subtitle {
+      font-size: 0.8rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 32px;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 12px 14px;
+      border: var(--border);
+      background: var(--white);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      outline: none;
+      transition: box-shadow 0.1s;
+    }
+
+    .field input:focus {
+      box-shadow: var(--shadow);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: var(--black);
+      border: var(--border);
+      box-shadow: var(--shadow);
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s;
+      margin-top: 8px;
+    }
+
+    .btn:hover { transform: translate(-2px, -2px); box-shadow: var(--shadow-lg); }
+    .btn:active { transform: translate(2px, 2px); box-shadow: none; }
+
+    .btn.danger { background: var(--red); color: var(--white); }
+    .btn.secondary { background: var(--white); }
+    .btn.small { width: auto; padding: 8px 14px; font-size: 0.75rem; }
+
+    .error-msg {
+      color: var(--red);
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      margin-top: 12px;
+      display: none;
+    }
+
+    /* ---- MAIN DASHBOARD ---- */
+    #dashboard { display: none; }
+
+    header {
+      background: var(--black);
+      color: var(--white);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: var(--border);
+    }
+
+    header h1 {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    header h1 span {
+      color: var(--accent);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .user-badge {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: #888;
+    }
+
+    .sign-out {
+      background: none;
+      border: 1px solid #444;
+      color: var(--white);
+      padding: 6px 14px;
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .sign-out:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ---- ADMIN TOKEN BAR ---- */
+    .token-bar {
+      background: #111;
+      color: var(--white);
+      padding: 10px 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: var(--border);
+    }
+
+    .token-bar label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #888;
+      white-space: nowrap;
+    }
+
+    .token-bar input {
+      flex: 1;
+      max-width: 340px;
+      padding: 6px 10px;
+      background: #222;
+      border: 1px solid #333;
+      color: var(--white);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      outline: none;
+    }
+
+    .token-bar input:focus { border-color: var(--accent); }
+
+    .token-status {
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      color: #555;
+    }
+
+    .token-status.ok { color: var(--accent); }
+
+    /* ---- LAYOUT ---- */
+    .layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: calc(100vh - 100px);
+    }
+
+    /* ---- SIDEBAR ---- */
+    .sidebar {
+      border-right: var(--border);
+      padding: 24px 0;
+      background: var(--white);
+    }
+
+    .nav-item {
+      display: block;
+      padding: 12px 24px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: all 0.1s;
+      color: #555;
+    }
+
+    .nav-item:hover { color: var(--black); background: #f0ebe0; }
+    .nav-item.active { color: var(--black); border-left-color: var(--accent); background: #f0ebe0; font-weight: 700; }
+
+    .nav-section {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #aaa;
+      padding: 20px 24px 8px;
+    }
+
+    /* ---- MAIN CONTENT ---- */
+    .main {
+      padding: 32px;
+      overflow-y: auto;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .panel-title {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+
+    .panel-sub {
+      font-size: 0.8rem;
+      color: #888;
+      margin-bottom: 28px;
+    }
+
+    /* ---- CARDS ---- */
+    .card {
+      border: var(--border);
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+      background: var(--white);
+    }
+
+    .card-header {
+      padding: 14px 20px;
+      border-bottom: var(--border);
+      background: var(--black);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-header h3 {
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .provider-badge {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      border: 1px solid #444;
+      color: #aaa;
+    }
+
+    .card-body { padding: 20px; }
+
+    /* ---- KEY LIST ---- */
+    .key-list { list-style: none; }
+
+    .key-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      margin-bottom: 8px;
+      background: #fafaf5;
+    }
+
+    .key-item:last-child { margin-bottom: 0; }
+
+    .key-value {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: #333;
+      flex: 1;
+    }
+
+    .key-delete {
+      background: none;
+      border: 1px solid #ddd;
+      color: var(--red);
+      font-size: 0.7rem;
+      padding: 4px 10px;
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .key-delete:hover { background: var(--red); color: var(--white); border-color: var(--red); }
+
+    .empty-state {
+      font-size: 0.8rem;
+      color: #aaa;
+      font-family: var(--font-mono);
+      padding: 12px 0;
+    }
+
+    /* ---- ADD KEY FORM ---- */
+    .add-key-form {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #eee;
+    }
+
+    .add-key-form input {
+      flex: 1;
+      padding: 10px 12px;
+      border: var(--border);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      outline: none;
+      background: var(--white);
+    }
+
+    .add-key-form input:focus { box-shadow: var(--shadow); }
+
+    /* ---- API KEYS TABLE ---- */
+    .api-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    .api-table th {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: var(--border);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: #f0ebe0;
+    }
+
+    .api-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #eee;
+      font-family: var(--font-mono);
+    }
+
+    .api-table tr:hover td { background: #fafaf5; }
+
+    .plan-badge {
+      font-size: 0.65rem;
+      padding: 2px 8px;
+      font-family: var(--font-body);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .plan-badge.pro { background: var(--accent); color: var(--black); }
+    .plan-badge.free { background: #eee; color: #666; }
+
+    /* ---- CREATE KEY FORM ---- */
+    .create-key-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr 120px auto;
+      gap: 10px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #eee;
+      align-items: end;
+    }
+
+    .create-key-form .form-group label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 5px;
+    }
+
+    .create-key-form input,
+    .create-key-form select {
+      width: 100%;
+      padding: 10px 12px;
+      border: var(--border);
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      outline: none;
+      background: var(--white);
+    }
+
+    .create-key-form input:focus,
+    .create-key-form select:focus { box-shadow: var(--shadow); }
+
+    /* ---- TOAST ---- */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--black);
+      color: var(--white);
+      padding: 12px 20px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      border: var(--border);
+      box-shadow: var(--shadow-lg);
+      display: none;
+      z-index: 9999;
+    }
+
+    #toast.success { border-left: 4px solid var(--accent); }
+    #toast.error { border-left: 4px solid var(--red); }
+
+    .loading {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: #888;
+      padding: 12px 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <h1>Cloak</h1>
+    <p class="subtitle">Admin Management</p>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="auth-email" placeholder="admin@usecloak.org" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="auth-password" placeholder="••••••••••" />
+    </div>
+    <button class="btn" onclick="signIn()">Sign In</button>
+    <p class="error-msg" id="auth-error"></p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <header>
+    <h1>CLOAK <span>ADMIN</span></h1>
+    <div class="header-right">
+      <span class="user-badge" id="user-email"></span>
+      <button class="sign-out" onclick="signOut()">Sign Out</button>
+    </div>
+  </header>
+
+  <!-- Admin Token Bar -->
+  <div class="token-bar">
+    <label>Admin Token</label>
+    <input type="password" id="admin-token" placeholder="Enter your ADMIN_TOKEN from Cloudflare..." oninput="saveToken()" />
+    <span class="token-status" id="token-status">Not set</span>
+  </div>
+
+  <div class="layout">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="nav-section">Provider Keys</div>
+      <div class="nav-item active" onclick="showPanel('provider-keys')">API Keys by Provider</div>
+      <div class="nav-section">Access</div>
+      <div class="nav-item" onclick="showPanel('api-keys')">Cloak API Keys</div>
+    </nav>
+
+    <!-- Main -->
+    <main class="main">
+
+      <!-- Provider Keys Panel -->
+      <div class="panel active" id="panel-provider-keys">
+        <div class="panel-title">Provider Keys</div>
+        <p class="panel-sub">Manage Groq, Nvidia, and Gemini API keys. Keys are rotated randomly on each request.</p>
+
+        <div id="provider-keys-container">
+          <p class="loading">Enter your admin token above then click a panel to load data.</p>
+        </div>
+
+        <button class="btn small secondary" onclick="loadProviderKeys()" style="margin-top:8px;">↻ Refresh</button>
+      </div>
+
+      <!-- API Keys Panel -->
+      <div class="panel" id="panel-api-keys">
+        <div class="panel-title">Cloak API Keys</div>
+        <p class="panel-sub">Issue and revoke API keys for users calling the Cloak API.</p>
+
+        <div class="card">
+          <div class="card-header"><h3>Active Keys</h3></div>
+          <div class="card-body">
+            <div id="api-keys-list"><p class="loading">Loading...</p></div>
+
+            <!-- Create Key Form -->
+            <div class="create-key-form">
+              <div class="form-group">
+                <label>Owner</label>
+                <input type="text" id="new-key-owner" placeholder="e.g. weston" />
+              </div>
+              <div class="form-group">
+                <label>Plan</label>
+                <select id="new-key-plan">
+                  <option value="free">Free</option>
+                  <option value="pro">Pro</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Rate Limit/day</label>
+                <input type="number" id="new-key-limit" value="100" />
+              </div>
+              <button class="btn small" onclick="createApiKey()">+ Create</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+  // ---- Supabase Config — replace these ----
+  const SUPABASE_URL = "https://kdawsqrrmwirilyhcolk.supabase.co";
+  const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY_HERE";
+  const WORKER_URL = "https://cloak-api.weston07052010.workers.dev";
+
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ---- Token ----
+  function getToken() { return document.getElementById("admin-token").value.trim(); }
+  function saveToken() {
+    const t = getToken();
+    sessionStorage.setItem("admin_token", t);
+    document.getElementById("token-status").textContent = t ? "Set ✓" : "Not set";
+    document.getElementById("token-status").className = "token-status" + (t ? " ok" : "");
+  }
+
+  // ---- Toast ----
+  function toast(msg, type = "success") {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.className = type;
+    el.style.display = "block";
+    setTimeout(() => el.style.display = "none", 3000);
+  }
+
+  // ---- Auth ----
+  async function signIn() {
+    const email = document.getElementById("auth-email").value;
+    const password = document.getElementById("auth-password").value;
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+      const el = document.getElementById("auth-error");
+      el.textContent = error.message;
+      el.style.display = "block";
+    } else {
+      showDashboard();
+    }
+  }
+
+  async function signOut() {
+    await sb.auth.signOut();
+    document.getElementById("dashboard").style.display = "none";
+    document.getElementById("auth-screen").style.display = "flex";
+  }
+
+  async function showDashboard() {
+    const { data: { user } } = await sb.auth.getUser();
+    document.getElementById("auth-screen").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    document.getElementById("user-email").textContent = user.email;
+    const saved = sessionStorage.getItem("admin_token");
+    if (saved) {
+      document.getElementById("admin-token").value = saved;
+      saveToken();
+    }
+    loadProviderKeys();
+  }
+
+  // ---- Nav ----
+  function showPanel(name) {
+    document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+    document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+    document.getElementById("panel-" + name).classList.add("active");
+    event.target.classList.add("active");
+    if (name === "provider-keys") loadProviderKeys();
+    if (name === "api-keys") loadApiKeys();
+  }
+
+  // ---- Provider Keys ----
+  async function loadProviderKeys() {
+    const token = getToken();
+    if (!token) { toast("Enter your admin token first", "error"); return; }
+
+    const res = await fetch(`${WORKER_URL}/admin/provider-keys`, {
+      headers: { "X-Admin-Token": token }
+    });
+
+    if (!res.ok) { toast("Auth failed — check your admin token", "error"); return; }
+    const data = await res.json();
+
+    const providers = ["groq", "nvidia", "gemini"];
+    const colors = { groq: "#f55036", nvidia: "#76b900", gemini: "#4285f4" };
+
+    const html = providers.map(provider => `
+      <div class="card">
+        <div class="card-header">
+          <h3>${provider.toUpperCase()}</h3>
+          <span class="provider-badge" style="color:${colors[provider]}">${(data[provider] || []).length} key${(data[provider] || []).length !== 1 ? "s" : ""}</span>
+        </div>
+        <div class="card-body">
+          <ul class="key-list" id="keys-${provider}">
+            ${(data[provider] || []).length === 0
+              ? `<li class="empty-state">No keys added yet.</li>`
+              : (data[provider] || []).map(k => `
+                <li class="key-item">
+                  <span class="key-value">${k.masked}</span>
+                  <button class="key-delete" onclick="deleteProviderKey('${provider}', '${k.full}')">Remove</button>
+                </li>`).join("")}
+          </ul>
+          <div class="add-key-form">
+            <input type="text" id="new-key-${provider}" placeholder="Paste ${provider.toUpperCase()} API key..." />
+            <button class="btn small" onclick="addProviderKey('${provider}')">+ Add</button>
+          </div>
+        </div>
+      </div>
+    `).join("");
+
+    document.getElementById("provider-keys-container").innerHTML = html;
+  }
+
+  async function addProviderKey(provider) {
+    const token = getToken();
+    const key = document.getElementById(`new-key-${provider}`).value.trim();
+    if (!key) { toast("Key cannot be empty", "error"); return; }
+
+    const res = await fetch(`${WORKER_URL}/admin/provider-keys`, {
+      method: "POST",
+      headers: { "X-Admin-Token": token, "Content-Type": "application/json" },
+      body: JSON.stringify({ provider, key })
+    });
+
+    const data = await res.json();
+    if (res.ok) { toast(`${provider.toUpperCase()} key added`); loadProviderKeys(); }
+    else toast(data.error || "Failed", "error");
+  }
+
+  async function deleteProviderKey(provider, key) {
+    const token = getToken();
+    const res = await fetch(`${WORKER_URL}/admin/provider-keys`, {
+      method: "DELETE",
+      headers: { "X-Admin-Token": token, "Content-Type": "application/json" },
+      body: JSON.stringify({ provider, key })
+    });
+    if (res.ok) { toast(`${provider.toUpperCase()} key removed`); loadProviderKeys(); }
+    else toast("Failed to remove key", "error");
+  }
+
+  // ---- API Keys ----
+  async function loadApiKeys() {
+    const token = getToken();
+    if (!token) { toast("Enter your admin token first", "error"); return; }
+
+    const res = await fetch(`${WORKER_URL}/admin/api-keys`, {
+      headers: { "X-Admin-Token": token }
+    });
+
+    if (!res.ok) { toast("Auth failed", "error"); return; }
+    const keys = await res.json();
+
+    const rows = keys.length === 0
+      ? `<tr><td colspan="5" style="text-align:center;color:#aaa;padding:20px;">No API keys yet.</td></tr>`
+      : keys.map(k => `
+        <tr>
+          <td>${k.owner}</td>
+          <td style="font-size:0.72rem">${k.key}</td>
+          <td><span class="plan-badge ${k.plan}">${k.plan}</span></td>
+          <td>${k.rateLimit}/day</td>
+          <td><button class="key-delete" onclick="deleteApiKey('${k.key}')">Revoke</button></td>
+        </tr>`).join("");
+
+    document.getElementById("api-keys-list").innerHTML = `
+      <table class="api-table">
+        <thead><tr><th>Owner</th><th>Key</th><th>Plan</th><th>Limit</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  async function createApiKey() {
+    const token = getToken();
+    const owner = document.getElementById("new-key-owner").value.trim();
+    const plan = document.getElementById("new-key-plan").value;
+    const rateLimit = parseInt(document.getElementById("new-key-limit").value);
+    if (!owner) { toast("Owner required", "error"); return; }
+
+    const res = await fetch(`${WORKER_URL}/admin/api-keys`, {
+      method: "POST",
+      headers: { "X-Admin-Token": token, "Content-Type": "application/json" },
+      body: JSON.stringify({ owner, plan, rateLimit })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      toast(`Key created: ${data.key}`);
+      document.getElementById("new-key-owner").value = "";
+      loadApiKeys();
+    } else toast(data.error || "Failed", "error");
+  }
+
+  async function deleteApiKey(key) {
+    const token = getToken();
+    const res = await fetch(`${WORKER_URL}/admin/api-keys`, {
+      method: "DELETE",
+      headers: { "X-Admin-Token": token, "Content-Type": "application/json" },
+      body: JSON.stringify({ key })
+    });
+    if (res.ok) { toast("Key revoked"); loadApiKeys(); }
+    else toast("Failed", "error");
+  }
+
+  // ---- Init ----
+  sb.auth.getSession().then(({ data: { session } }) => {
+    if (session) showDashboard();
+  });
+</script>
+</body>
+</html>
