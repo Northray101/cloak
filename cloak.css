@@ -68,7 +68,6 @@ body{font-family:var(--fu);font-size:14px;background:var(--paper);color:var(--in
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.2;transform:scale(.6)}}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
-@keyframes starPop{0%{transform:scale(1) rotate(0deg)}35%{transform:scale(1.28) rotate(14deg)}70%{transform:scale(.94) rotate(-5deg)}100%{transform:scale(1) rotate(0deg)}}
 @keyframes settingsSlideIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
 @keyframes dropIn{0%{opacity:0;transform:scaleY(0.6) translateY(-8px);transform-origin:top}65%{transform:scaleY(1.03) translateY(2px)}100%{opacity:1;transform:scaleY(1) translateY(0)}}
 @keyframes blink{0%,100%{opacity:.8}50%{opacity:0}}
@@ -84,7 +83,7 @@ body{font-family:var(--fu);font-size:14px;background:var(--paper);color:var(--in
 /* ── LOADING ── */
 #s-loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--paper);z-index:999;transition:opacity .3s;}
 #s-loading.hidden{opacity:0;pointer-events:none;}
-.load-star{animation:spin .9s linear infinite;}
+
 
 /* ── SCREENS ── */
 .screen{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;min-height:100dvh;padding:24px 20px;padding-top:max(24px,calc(env(safe-area-inset-top,0px) + 20px));padding-bottom:max(24px,calc(env(safe-area-inset-bottom,0px) + 20px));background:var(--paper);position:relative;overflow:hidden;}
@@ -106,8 +105,7 @@ body{font-family:var(--fu);font-size:14px;background:var(--paper);color:var(--in
   position:relative;z-index:1;
 }
 .brand{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:28px;text-align:center;}
-.brand-icon{cursor:default;transition:transform .3s var(--spring);}
-.brand-icon:hover{animation:starPop .5s var(--spring);}
+
 .brand-name{font-family:var(--fd);font-size:30px;font-weight:800;text-transform:uppercase;letter-spacing:-.5px;color:var(--ink);}
 .brand-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--acc);opacity:.85;}
 
@@ -169,8 +167,7 @@ body{font-family:var(--fu);font-size:14px;background:var(--paper);color:var(--in
 .sidebar{width:var(--sw);flex-shrink:0;background:var(--p2);border-right:var(--bd);display:flex;flex-direction:column;padding:0 8px 14px;gap:2px;overflow:hidden;transition:width var(--tm),opacity var(--tm),padding var(--tm);}
 .sidebar.collapsed{width:0;padding:0;opacity:0;pointer-events:none;}
 .sb-logo{display:flex;align-items:center;gap:10px;padding:0 16px;white-space:nowrap;border-bottom:var(--bd);margin:0 -8px 14px -8px;height:52px;}
-.sb-logo-star{flex-shrink:0;cursor:default;transition:transform .22s ease;}
-.sb-logo-star:hover{transform:rotate(18deg) scale(1.15);}
+
 .sb-logo-name{font-family:var(--fd);font-size:17px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--ink);}
 
 .sb-btn{display:flex;align-items:center;gap:9px;padding:8px 10px;border:1.5px solid transparent;background:transparent;color:var(--ink);font-family:var(--fu);font-size:13px;font-weight:600;cursor:pointer;width:100%;text-align:left;white-space:nowrap;min-height:36px;transition:background var(--t),border-color var(--t),box-shadow var(--t);}
@@ -269,12 +266,9 @@ a.sb-btn:hover{background:var(--p3);border-color:var(--ink);}
 
 .empty-inner{display:flex;flex-direction:column;align-items:center;gap:16px;position:relative;z-index:1;}
 
-.empty-star-wrap{position:relative;width:72px;height:72px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;}
-.empty-star-bg{
-  position:absolute;inset:0;
-  background:var(--p2);border:var(--bd);box-shadow:var(--sh);
-}
-.empty-star-inner{display:block;position:relative;z-index:1;animation:spin 18s linear infinite;}
+
+
+
 
 .empty-greeting{
   font-family:var(--fd);font-size:clamp(28px,5vw,38px);font-weight:800;text-transform:uppercase;
