@@ -83,11 +83,561 @@ TODO: Replace this placeholder with the full index.html content + modifications 
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Pneuma · Logos · Kairos</title>
-<meta name="description" content="Multi-agent AI chat interface">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#131110">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cloak">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<meta name="description" content="Cloak — A human resource, not a companion. Ethical AI that serves you.">
+<title>Pneuma · Logos · Kairos</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2L19.5 12.5L30 16L19.5 19.5L16 30L12.5 19.5L2 16L12.5 12.5Z' fill='%23D44D2A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="cloak.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+  if(localStorage.getItem('cloak_dark')!=='0') document.documentElement.classList.add('dark');
+  (function(){var t=localStorage.getItem('cloak_theme')||'default';document.documentElement.setAttribute('data-theme',t);})();
+</script>
 </head>
 <body>
-<h1>Placeholder - See comments in source for implementation details</h1>
-<p>This file needs to be completed by copying index.html and adding agent selector functionality.</p>
+
+<!-- ── LOADING ── -->
+<div id="s-loading">
+  
+</div>
+
+<!-- ── AUTH ── -->
+<div id="s-auth" class="screen">
+  <div class="auth-card">
+    <div class="brand">
+      
+      <div class="brand-name">Cloak</div>
+      <div class="brand-tag">A human resource, not a companion.</div>
+    </div>
+    <div class="seg">
+      <button class="seg-btn active" id="tab-in" onclick="authMode('in')">Sign in</button>
+      <button class="seg-btn" id="tab-up" onclick="authMode('up')">Create account</button>
+    </div>
+    <div class="form">
+      <div id="field-name" style="display:none">
+        <label class="field-label">Your name</label>
+        <input class="input" id="inp-name" type="text" placeholder="Weston" autocomplete="name" onkeydown="authKey(event,'inp-email')">
+      </div>
+      <div>
+        <label class="field-label">Email</label>
+        <input class="input" id="inp-email" type="email" placeholder="you@example.com" autocomplete="email" onkeydown="authKey(event,'inp-pass')">
+      </div>
+      <div>
+        <label class="field-label">Password</label>
+        <input class="input" id="inp-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="authKey(event,'inp-confirm',true)">
+      </div>
+      <div id="field-confirm" style="display:none">
+        <label class="field-label">Confirm password</label>
+        <input class="input" id="inp-confirm" type="password" placeholder="••••••••" onkeydown="authKey(event,null)">
+      </div>
+      <div class="err-msg" id="auth-err"></div>
+      <button class="btn-primary" id="btn-submit" onclick="handleAuth()">Sign in</button>
+      <div class="auth-divider">
+        <div class="auth-divider-line"></div>
+        <div class="auth-divider-text">or</div>
+        <div class="auth-divider-line"></div>
+      </div>
+      <button class="btn-ghost" onclick="startGuest()">Continue as guest</button>
+    </div>
+    <div class="auth-note">
+      <a href="landing.html">What is Cloak?</a> &middot; <a href="values.html">Our values &rarr;</a>
+    </div>
+  </div>
+</div>
+
+<!-- ── VERIFY ── -->
+<div id="s-verify" class="screen">
+  <div class="auth-card">
+    <div class="brand">
+      
+      <div class="brand-name">Check your email</div>
+    </div>
+    <p class="hint-text">We sent a link to <strong id="verify-addr"></strong>. Click it to confirm, then come back and sign in.</p>
+    <div class="form">
+      <div class="ok-msg">Verification email sent</div>
+      <button class="btn-primary" onclick="show('auth')">Back to sign in</button>
+      <div class="link-row"><a onclick="resendVerify()">Resend email</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MFA ── -->
+<div id="s-mfa" class="screen">
+  <div class="auth-card">
+    <div class="brand">
+      
+      <div class="brand-name">Two-factor auth</div>
+    </div>
+    <p class="hint-text">Enter the 6-digit code from your authenticator app.</p>
+    <div class="form">
+      <input class="input mono-input" id="mfa-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" onkeydown="if(event.key==='Enter')handleMfa()">
+      <div class="err-msg" id="mfa-err"></div>
+      <button class="btn-primary" onclick="handleMfa()">Verify</button>
+      <div class="link-row"><a onclick="show('auth')">Back to sign in</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CHAT ── -->
+<div id="s-chat">
+  <div id="ios-inset"></div>
+
+  <!-- Announcement bar -->
+  <div class="ann" id="ann-bar">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M22 8.93V3l-8 5H6a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h1l2 5h3l-1-5h3l8 5V8.93z"/></svg>
+    <span class="ann-text" id="ann-msg"></span>
+    <button class="ann-x" onclick="dismissAnn()">&times;</button>
+  </div>
+
+  <!-- ── SETTINGS MODAL ── -->
+  <div class="overlay" id="modal-settings" style="display:none" onclick="overlayClick(event,'modal-settings')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-head">
+        <div class="modal-title">Settings</div>
+        <button class="modal-x" onclick="closeModal('modal-settings')">&times;</button>
+      </div>
+      <div class="settings-layout">
+        <nav class="settings-nav">
+          <button class="snav-btn on" id="snav-general" onclick="switchSettingsTab('general')">
+            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+            Account
+          </button>
+          <button class="snav-btn" id="snav-appearance" onclick="switchSettingsTab('appearance')">
+            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
+            Appearance
+          </button>
+          <button class="snav-btn" id="snav-security" onclick="switchSettingsTab('security')">
+            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+            Security
+          </button>
+          <button class="snav-btn" id="snav-console" onclick="switchSettingsTab('console')">
+            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></span>
+            Console
+          </button>
+          <button class="snav-btn" id="snav-admin" style="display:none" onclick="switchSettingsTab('admin')">
+            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg></span>
+            Admin
+          </button>
+        </nav>
+        <div class="settings-body">
+          <!-- Account -->
+          <div class="spane on" id="spane-general">
+            <div class="srow">
+              <div class="srow-name">Account</div>
+              <div class="info-box" style="display:flex;align-items:center;gap:10px;margin-top:8px">
+                <div class="user-av" id="s-av" style="width:36px;height:36px;font-size:14px">?</div>
+                <div><div style="font-size:14px;font-weight:500" id="s-name">—</div><div style="font-size:12px;opacity:.5" id="s-email">—</div></div>
+              </div>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Display name</div>
+              <div class="srow-desc">Shown in conversations and the greeting.</div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <input class="inp-field" id="s-name-inp" placeholder="Your name" style="flex:1">
+                <button class="cta" onclick="saveName()">Save</button>
+              </div>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Clear all chats</div>
+              <button class="danger" style="margin-top:8px" onclick="clearAllChats()">Delete all conversations</button>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Sign out</div>
+              <button class="danger" style="margin-top:8px" onclick="doLogout()">Sign out of Cloak</button>
+            </div>
+          </div>
+
+          <!-- Appearance -->
+          <div class="spane" id="spane-appearance">
+            <div class="srow">
+              <div class="srow-head"><div class="srow-name">Light / Dark mode</div></div>
+              <div class="srow-desc">Currently <span id="mode-label">dark</span> mode.</div>
+              <button class="cta" style="margin-top:8px" onclick="toggleDark()">Toggle light / dark</button>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Theme</div>
+              <div class="srow-desc">Choose a color palette. All themes support light and dark mode.</div>
+              <div class="theme-grid" style="margin-top:10px">
+                <div class="theme-card" id="theme-default" onclick="setTheme('default')">
+                  <div class="theme-swatch">
+                    <div class="theme-dot" style="background:#F2EEE5;border-color:#0A0A0A"></div>
+                    <div class="theme-dot" style="background:#D44D2A"></div>
+                    <div class="theme-dot" style="background:#0A0A0A"></div>
+                  </div>
+                  <div class="theme-name">Default</div>
+                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                </div>
+                <div class="theme-card" id="theme-eco" onclick="setTheme('eco')">
+                  <div class="theme-swatch">
+                    <div class="theme-dot" style="background:#F0F7EC;border-color:#1A2E10"></div>
+                    <div class="theme-dot" style="background:#3A7D2C"></div>
+                    <div class="theme-dot" style="background:#8BC34A"></div>
+                  </div>
+                  <div class="theme-name">Eco</div>
+                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                </div>
+                <div class="theme-card" id="theme-aqua" onclick="setTheme('aqua')">
+                  <div class="theme-swatch">
+                    <div class="theme-dot" style="background:#EAF4F8;border-color:#0A1E2E"></div>
+                    <div class="theme-dot" style="background:#0B7EA8"></div>
+                    <div class="theme-dot" style="background:#00B4D8"></div>
+                  </div>
+                  <div class="theme-name">Aqua</div>
+                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Security -->
+          <div class="spane" id="spane-security">
+            <div class="srow">
+              <div class="srow-head"><div class="srow-name">Two-factor authentication</div></div>
+              <div class="srow-desc">Add an authenticator app as a second step on sign-in.</div>
+              <button class="cta" style="margin-top:10px" onclick="start2FA()">Set up 2FA</button>
+              <div id="totp-section" style="display:none;margin-top:14px">
+                <div id="totp-qr" style="text-align:center;margin-bottom:10px"></div>
+                <div class="secret-box" id="totp-secret" style="margin-bottom:12px"></div>
+                <div style="font-size:12px;opacity:.5;margin-bottom:10px">Enter the 6-digit code to confirm:</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <input class="input mono-input" id="totp-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" style="max-width:160px;font-size:18px">
+                  <button class="cta" onclick="confirmTOTP()">Enable</button>
+                </div>
+                <div class="err-msg" id="totp-err" style="margin-top:8px"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Console -->
+          <div class="spane" id="spane-console">
+            <div class="srow" style="padding-top:0">
+              <div class="stats-row">
+                <div class="stat s-req"><div class="stat-n" id="st-req">0</div><div class="stat-l">Requests</div></div>
+                <div class="stat s-res"><div class="stat-n" id="st-res">0</div><div class="stat-l">Responses</div></div>
+                <div class="stat s-err"><div class="stat-n" id="st-err">0</div><div class="stat-l">Errors</div></div>
+                <div class="stat s-lat"><div class="stat-n" id="st-lat">—</div><div class="stat-l">Avg ms</div></div>
+              </div>
+              <div class="filter-row">
+                <div class="filter-pills">
+                  <button class="filter-pill on" onclick="setFilter('all',this)">All</button>
+                  <button class="filter-pill" onclick="setFilter('req',this)">Req</button>
+                  <button class="filter-pill" onclick="setFilter('res',this)">Res</button>
+                  <button class="filter-pill" onclick="setFilter('err',this)">Err</button>
+                  <button class="filter-pill" onclick="setFilter('inf',this)">Info</button>
+                </div>
+                <button class="clear-log" onclick="clearLogs()">Clear</button>
+              </div>
+              <div class="console-log" id="console-log"><div class="log-empty">No logs yet</div></div>
+            </div>
+          </div>
+
+          <!-- Admin -->
+          <div class="spane" id="spane-admin">
+            <div class="srow">
+              <div class="srow-head"><div class="srow-name">Admin panel</div><span class="srow-badge">Owner</span></div>
+              <div class="srow-desc">Announcements appear as a banner to all signed-in users.</div>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Post announcement</div>
+              <textarea class="inp-field" id="ann-compose" placeholder="Write an announcement…" style="margin-top:8px;min-height:76px;resize:vertical;font-family:inherit;font-size:13px;line-height:1.6"></textarea>
+              <button class="cta" style="margin-top:8px" onclick="postAnn()">Post</button>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Active announcements</div>
+              <div class="ann-list" id="admin-ann-list" style="margin-top:8px"><div style="font-size:13px;opacity:.5">None active.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-shell">
+    <div class="sb-overlay" id="sb-overlay" onclick="closeMobileSidebar()"></div>
+
+    <!-- ── SIDEBAR ── -->
+    <div class="sidebar collapsed" id="sidebar">
+      <div class="sb-logo">
+        
+        <span class="sb-logo-name">Cloak</span>
+      </div>
+      <button class="sb-btn sb-new" onclick="newChat()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        New chat
+      </button>
+      <div class="sb-label">Recent</div>
+      <div class="conv-list" id="conv-list"></div>
+      <div id="guest-note" style="display:none" class="guest-note">Guest &mdash; <a onclick="show('auth');closeMobileSidebar()">Sign up</a> to save chats.</div>
+
+      <div class="sb-footer">
+        <div id="sb-ann-bar">
+          <div style="display:flex;align-items:flex-start;gap:6px">
+            <div id="sb-ann-msg" style="flex:1"></div>
+            <button onclick="dismissAnn()" style="background:var(--ink);border:none;color:var(--paper);width:18px;height:18px;font-size:10px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">&times;</button>
+          </div>
+        </div>
+        <div class="sb-label" style="margin-bottom:2px">Account</div>
+        <div class="user-row">
+          <div class="user-av" id="sb-av">?</div>
+          <div class="user-info">
+            <div class="user-name" id="sb-name">—</div>
+            <div class="user-email" id="sb-email">—</div>
+          </div>
+        </div>
+        <button class="sb-btn" onclick="openSettings()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+          Settings
+        </button>
+        <button class="sb-btn" onclick="window.location.href='values.html'">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+          Our Values
+        </button>
+      </div>
+    </div>
+
+    <!-- ── MAIN AREA ── -->
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-left">
+          <button class="icon-btn" onclick="toggleSidebar()" title="Toggle sidebar">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+          </button>
+        </div>
+        <div class="topbar-right">
+          <button class="icon-btn" onclick="toggleDark()" title="Toggle theme">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24">
+              <path class="moon" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              <g class="sun"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></g>
+            </svg>
+          </button>
+          <div class="status-pill">
+            <div class="live-dot"></div>
+            <span class="status-label" id="model-btn-label">Dynamic</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat area -->
+      <div class="chat-area" id="chat-area">
+        <!-- Empty state -->
+        <div class="empty" id="empty-state">
+          <div class="empty-inner">
+            
+            <div class="empty-greeting" id="empty-greeting">Hey there!</div>
+            <div class="empty-slogan">A human resource, not a companion.</div>
+            <div class="chip-row" id="chip-row">
+              <button class="chip" onclick="chipSend('Explain something complex simply')">Explain simply</button>
+              <button class="chip" onclick="chipSend('Help me write or edit something')">Write &amp; edit</button>
+              <button class="chip" onclick="chipSend('Debug or review my code')">Debug code</button>
+              <button class="chip" onclick="chipSend('Research and summarize a topic')">Research</button>
+            </div>
+          </div>
+        </div>
+
+                 <!-- Agent Selector -->
+        <div id="agent-selector" style="padding: 1rem; background: var(--bd); border-bottom: 1px solid var(--sh);">
+          <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+            <button class="agent-btn" data-agent="pneuma" onclick="selectAgent('pneuma')" style="padding: 0.5rem 1rem; border-radius: 8px; border: 2px solid var(--acc); background: transparent; cursor: pointer; font-weight: 600; color: var(--t1);">Pneuma</button>
+            <button class="agent-btn" data-agent="logos" onclick="selectAgent('logos')" style="padding: 0.5rem 1rem; border-radius: 8px; border: 2px solid var(--bd); background: transparent; cursor: pointer; color: var(--t1);">Logos</button>
+            <button class="agent-btn" data-agent="kairos" onclick="selectAgent('kairos')" style="padding: 0.5rem 1rem; border-radius: 8px; border: 2px solid var(--bd); background: transparent; cursor: pointer; color: var(--t1);">Kairos</button>
+          </div>
+          <div id="selected-agent" style="text-align: center; margin-top: 0.5rem; font-size: 0.875rem; color: var(--t2);">Chatting with: <span style="color: var(--acc); font-weight: 600;">Pneuma</span></div>
+        </div>
+        <div class="messages" id="messages" style="display:none"></div>
+      </div>
+
+      <!-- Input area -->
+      <div class="input-area">
+        <div class="input-wrap">
+          <div class="input-area-wrap">
+            <!-- Plus menu -->
+            <div class="plus-menu" id="plus-menu">
+              <button class="plus-item" id="menu-think" onclick="toggleThinkMode()">
+                <span class="plus-item-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg></span>
+                <span class="plus-item-text">
+                  <span class="plus-item-label">Think mode</span>
+                  <span class="plus-item-desc">Deep reasoning and outlines</span>
+                </span>
+                <span class="plus-item-check"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
+              </button>
+              <button class="plus-item" id="menu-homework" onclick="toggleHwMode()">
+                <span class="plus-item-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
+                <span class="plus-item-text">
+                  <span class="plus-item-label">Homework mode</span>
+                  <span class="plus-item-desc">Guided learning, not just answers</span>
+                </span>
+                <span class="plus-item-check"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
+              </button>
+            </div>
+
+            <!-- Mode labels -->
+            <div style="display:flex;gap:6px;">
+              <div class="hw-label" id="think-label">
+                Think mode
+                <button class="hw-label-x" onclick="toggleThinkMode()">&times;</button>
+              </div>
+              <div class="hw-label" id="hw-label">
+                Homework mode
+                <button class="hw-label-x" onclick="toggleHwMode()">&times;</button>
+              </div>
+            </div>
+
+            <!-- Image strip -->
+            <div class="img-strip" id="img-strip"></div>
+
+            <!-- Input box -->
+            <div class="input-box" id="input-box">
+              <input type="file" id="img-upload" accept="image/*" multiple style="display:none" onchange="onImgPick(this)">
+              <button class="plus-btn" id="plus-btn" onclick="togglePlusMenu(event)" title="Modes">+</button>
+              <textarea class="chat-input" id="chat-input" placeholder="Message Cloak…" rows="1"
+                oninput="onInput(this)" onkeydown="onKey(event)" onpaste="onPaste(event)"></textarea>
+              <button class="send-btn" id="mic-btn" style="background:var(--surf);color:var(--ink);border:var(--bd);" onclick="startVoiceMode()" title="Voice mode">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
+              </button>
+              <button class="send-btn" id="send-btn" onclick="send()" disabled>
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="input-foot">
+            <span class="input-sub">Cloak can make mistakes. Verify important information.</span>
+            <span class="input-sub">Enter to send &middot; Shift+Enter for new line</span>
+          </div>
+          <div class="input-disc">Not a mental health resource &mdash; if you're struggling, please contact a real person or <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer" class="disc-link">a helpline</a>.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VOICE OVERLAY -->
+  <div class="voice-overlay" id="voice-overlay">
+    <button class="voice-close" onclick="stopVoiceMode()" title="Exit voice mode">&times;</button>
+    <div class="voice-ascii" id="voice-ascii">[ - - - - - ]</div>
+    <div class="voice-status" id="voice-status">Idle</div>
+    <div class="voice-transcript" id="voice-transcript">Say something...</div>
+  </div>
+
+  <!-- ONBOARDING -->
+  <div class="onboard-overlay" id="onboard-modal" style="display:none">
+    <div class="onboard-card">
+      <div class="onboard-head">
+        <div class="onboard-title">Before you begin</div>
+        <div class="onboard-sub">A human resource, not a companion.</div>
+      </div>
+      <div class="onboard-body">
+        <div class="onboard-item">
+          <div class="onboard-num">I</div>
+          <div class="onboard-text"><strong>AI is a tool &mdash; not a companion.</strong> Cloak exists to serve you, not replace human connection or judgment.</div>
+        </div>
+        <div class="onboard-item">
+          <div class="onboard-num">II</div>
+          <div class="onboard-text"><strong>Not a mental health resource.</strong> If you're struggling, please reach out to a trusted person or professional &mdash; not a chatbot.</div>
+        </div>
+        <div class="onboard-item">
+          <div class="onboard-num">III</div>
+          <div class="onboard-text"><strong>No mass harm, ever.</strong> Cloak will not assist with anything that could harm or endanger groups of people.</div>
+        </div>
+      </div>
+      <div class="onboard-foot">
+        <div class="onboard-check" onclick="toggleOnboardCheck()">
+          <div class="onboard-checkbox" id="onboard-checkbox"></div>
+          <div class="onboard-check-label">I understand and agree</div>
+        </div>
+        <button class="btn-primary" id="onboard-btn" onclick="confirmOnboarding()" disabled style="cursor:not-allowed;opacity:.32">Continue to Cloak</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AD CONSENT -->
+  <div class="ad-overlay" id="ad-modal" style="display:none">
+    <div class="ad-card">
+      <div class="ad-title">Allow ads?</div>
+      <div class="ad-text">Ads allow Cloak to offset carbon emissions and improve services for everyone.</div>
+      <div class="ad-actions">
+        <button class="btn-agree" onclick="handleAdAgree()">Agree</button>
+        <button class="btn-disagree" id="ad-disagree-btn" onclick="handleAdDisagree()">Disagree</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LINK INTERCEPT -->
+  <div class="link-overlay" id="link-modal" style="display:none">
+    <div class="link-card">
+      <div class="link-title">Leaving Cloak</div>
+      <div class="link-url" id="link-url-display"></div>
+      <div class="link-actions">
+        <button class="link-cancel" onclick="closeLinkModal()">Cancel</button>
+        <button class="link-go" id="link-go-btn">Open link &#x2197;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="cloak.js" defer></script>
+
+   <!-- Multi-Agent Chat JavaScript -->
+<script>
+let selectedAgent = 'pneuma';
+
+function selectAgent(agent) {
+  selectedAgent = agent;
+  document.querySelectorAll('.agent-btn').forEach(btn => {
+    btn.style.borderColor = btn.dataset.agent === agent ? 'var(--acc)' : 'var(--bd)';
+    btn.style.fontWeight = btn.dataset.agent === agent ? '600' : '400';
+  });
+  document.querySelector('#selected-agent span').textContent = agent.charAt(0).toUpperCase() + agent.slice(1);
+}
+
+// Override the send function to call api.usecloak.org
+window.addEventListener('DOMContentLoaded', function() {
+  const originalSend = window.send;
+  window.send = async function() {
+    const inp = document.getElementById('chat-input');
+    const userMsg = inp.value.trim();
+    if (!userMsg || busy) return;
+    
+    setBusy(true);
+    showMessages();
+    addMsg('user', userMsg, false, attachedImgs);
+    hist.push({ role: 'USER', message: userMsg });
+    inp.value = '';
+    onInput(inp);
+    attachedImgs = [];
+    renderImgStrip();
+    
+    try {
+      const response = await fetch('https://api.usecloak.org/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agent: selectedAgent,
+          message: userMsg,
+          history: hist
+        })
+      });
+      
+      const data = await response.json();
+      const botMsg = addMsg('bot', '', false);
+      const botContent = botMsg.querySelector('.bot-content');
+      streamContent(botContent, data.response, () => {
+        setBusy(false);
+        hist.push({ role: 'ASSISTANT', message: data.response });
+      });
+    } catch (error) {
+      console.error('Chat error:', error);
+      addMsg('bot', 'Sorry, I encountered an error. Please try again.', true);
+      setBusy(false);
+    }
+  };
+});
+</script>
 </body>
 </html>
