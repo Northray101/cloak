@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="cloak.css">
 <style>
 /* ── CURSOR ── */
-*{cursor:none!important;}
+html, body, *, *::before, *::after { cursor: none !important; }
 .cursor{
   position:fixed;width:11px;height:11px;
   background:var(--acc);border:2px solid var(--ink);
@@ -136,14 +136,19 @@ body.landing-page{overflow:auto;background:var(--paper);color:var(--ink);}
 }
 .dark .lp-hero-right{background:var(--p3);}
 
-/* C mark */
+/* C mark — text-based, uses CLOAK font */
 .lp-c-mark{
   width:120px;height:120px;
   background:var(--surf);border:var(--bd);box-shadow:var(--sh);
   display:flex;align-items:center;justify-content:center;
   margin-bottom:32px;flex-shrink:0;
 }
-.lp-c-mark svg{width:70px;height:70px;}
+.lp-c-mark-letter{
+  font-family:var(--fd);font-size:72px;font-weight:800;
+  color:var(--acc);line-height:1;
+  text-transform:uppercase;letter-spacing:-.04em;
+  user-select:none;
+}
 
 /* Model pills — styled like status-pill */
 .lp-models{display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px;}
@@ -262,6 +267,10 @@ body.landing-page{overflow:auto;background:var(--paper);color:var(--ink);}
 }
 .dark .lp-footer{background:var(--p3);}
 .lp-footer-logo{display:flex;align-items:center;gap:9px;}
+.lp-footer-c{
+  font-family:var(--fd);font-size:16px;font-weight:800;
+  color:var(--acc);line-height:1;user-select:none;
+}
 .lp-footer-name{font-family:var(--fd);font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink);}
 .lp-footer-links{display:flex;gap:20px;}
 .lp-footer-links a{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink);opacity:.4;text-decoration:none;transition:opacity var(--t);}
@@ -303,12 +312,6 @@ body.landing-page{overflow:auto;background:var(--paper);color:var(--ink);}
 <!-- NAV -->
 <nav class="lp-nav">
   <a href="/" class="lp-nav-logo">
-    <!-- C mark logo -->
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-      <rect width="28" height="28" fill="var(--ink)"/>
-      <path d="M20 9C17.8 6.8 15.2 5.5 12 5.5C7 5.5 3.5 9 3.5 14C3.5 19 7 22.5 12 22.5C15.2 22.5 17.8 21.2 20 19" stroke="var(--acc)" stroke-width="2.2" stroke-linecap="square"/>
-      <path d="M20 9C17.8 6.8 15.2 5.5 12 5.5C7 5.5 3.5 9 3.5 14C3.5 19 7 22.5 12 22.5C15.2 22.5 17.8 21.2 20 19" stroke="var(--yel)" stroke-width="2.2" stroke-linecap="square" stroke-dasharray="3 18" stroke-dashoffset="-6" opacity="0.7"/>
-    </svg>
     <span class="lp-nav-wordmark">Cloak</span>
   </a>
   <div class="lp-nav-links">
@@ -334,10 +337,7 @@ body.landing-page{overflow:auto;background:var(--paper);color:var(--ink);}
   </div>
   <div class="lp-hero-right">
     <div class="lp-c-mark">
-      <svg viewBox="0 0 70 70" fill="none">
-        <path d="M52 22C45.5 15.5 38 12 29 12C16 12 7 21 7 35C7 49 16 58 29 58C38 58 45.5 54.5 52 48" stroke="var(--acc)" stroke-width="6" stroke-linecap="square"/>
-        <path d="M52 22C45.5 15.5 38 12 29 12C16 12 7 21 7 35C7 49 16 58 29 58C38 58 45.5 54.5 52 48" stroke="var(--yel)" stroke-width="6" stroke-linecap="square" stroke-dasharray="10 55" stroke-dashoffset="-14" opacity="0.6"/>
-      </svg>
+      <span class="lp-c-mark-letter">C</span>
     </div>
     <div class="lp-models">
       <div class="lp-model-pill">
@@ -477,11 +477,7 @@ body.landing-page{overflow:auto;background:var(--paper);color:var(--ink);}
 <!-- FOOTER -->
 <footer class="lp-footer">
   <div class="lp-footer-logo">
-    <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
-      <rect width="28" height="28" fill="var(--ink)"/>
-      <path d="M20 9C17.8 6.8 15.2 5.5 12 5.5C7 5.5 3.5 9 3.5 14C3.5 19 7 22.5 12 22.5C15.2 22.5 17.8 21.2 20 19" stroke="var(--acc)" stroke-width="2.2" stroke-linecap="square"/>
-      <path d="M20 9C17.8 6.8 15.2 5.5 12 5.5C7 5.5 3.5 9 3.5 14C3.5 19 7 22.5 12 22.5C15.2 22.5 17.8 21.2 20 19" stroke="var(--yel)" stroke-width="2.2" stroke-linecap="square" stroke-dasharray="3 18" stroke-dashoffset="-6" opacity="0.7"/>
-    </svg>
+    <span class="lp-footer-c">C</span>
     <span class="lp-footer-name">Cloak</span>
   </div>
   <div class="lp-footer-links">
