@@ -22,69 +22,136 @@
   (function(){var t=localStorage.getItem('cloak_theme')||'default';document.documentElement.setAttribute('data-theme',t);})();
 </script>
 <style>
-  /* ── Persona selector ── */
-  .persona-select-wrap {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    position: relative;
-  }
-  .persona-select {
-    appearance: none;
-    -webkit-appearance: none;
-    background: var(--surf, #1a1a18);
-    border: var(--bd, 1px solid #2a2a26);
-    color: var(--ink, #f2eee5);
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    padding: 5px 28px 5px 10px;
-    border-radius: 7px;
-    cursor: pointer;
-    outline: none;
-    transition: border-color 0.15s;
-    min-width: 120px;
-  }
-  .persona-select:hover,
-  .persona-select:focus { border-color: var(--accent, #D44D2A); }
-  .persona-select-caret {
-    pointer-events: none;
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    opacity: 0.5;
-  }
-  .persona-badge {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 20px;
-    background: var(--accent-dim, rgba(212,77,42,0.15));
-    color: var(--accent, #D44D2A);
-    letter-spacing: 0.02em;
-    white-space: nowrap;
-  }
-  /* Persona badge colors per model */
-  .persona-badge.pneuma { background: rgba(212,77,42,0.15); color: #D44D2A; }
-  .persona-badge.logos  { background: rgba(42,120,212,0.15); color: #2A78D4; }
-  .persona-badge.kairos { background: rgba(120,42,212,0.15); color: #782AD4; }
-  .persona-select.logos  { border-color: rgba(42,120,212,0.4); }
-  .persona-select.kairos { border-color: rgba(120,42,212,0.4); }
+/* ════════════════════════════════════════════
+   PERSONA SELECTOR — strict neobrutalist
+   Hard border · box-shadow · Syne uppercase
+   Segmented tabs, no dropdowns, no emojis
+════════════════════════════════════════════ */
+
+/* Outer group — sits in topbar-right */
+.persona-wrap {
+  display: flex;
+  align-items: stretch;
+  border: var(--bd);
+  box-shadow: var(--shsm);
+  height: 36px;
+  flex-shrink: 0;
+}
+
+/* Individual tab */
+.persona-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 11px;
+  border: none;
+  border-right: var(--bd);
+  background: var(--surf);
+  color: var(--ink);
+  font-family: var(--fd);
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .13em;
+  cursor: pointer;
+  white-space: nowrap;
+  opacity: .38;
+  transition: background var(--t), color var(--t), opacity var(--t);
+  position: relative;
+}
+.persona-tab:last-child { border-right: none; }
+
+.persona-tab:hover {
+  opacity: .72;
+  background: var(--p2);
+}
+
+/* Active state: ink fill, accent bottom line */
+.persona-tab.active {
+  background: var(--ink);
+  color: var(--paper);
+  opacity: 1;
+}
+.persona-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--acc);
+}
+.persona-tab.active .persona-sym svg {
+  stroke: var(--paper);
+}
+
+/* SVG symbol icon */
+.persona-sym {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  opacity: .8;
+}
+.persona-tab.active .persona-sym { opacity: 1; }
+
+/* Hide descriptor on narrow viewports */
+.persona-tab-desc {
+  font-family: var(--fu);
+  font-size: 8px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: .55;
+  border-left: 1px solid currentColor;
+  padding-left: 6px;
+  margin-left: 1px;
+}
+
+/* Live status pill — tighter, same border language */
+.live-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 9px;
+  border: var(--bd);
+  box-shadow: var(--shsm);
+  background: var(--surf);
+  font-family: var(--fd);
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .13em;
+  color: var(--acc);
+  height: 36px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.live-pill .live-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--acc);
+  flex-shrink: 0;
+  animation: pdot 2s infinite;
+}
+
+/* Responsive */
+@media (max-width: 860px) {
+  .persona-tab-desc { display: none; }
+}
+@media (max-width: 540px) {
+  .persona-tab { padding: 0 9px; }
+  .persona-tab-label { display: none; }
+  .live-pill { display: none; }
+}
 </style>
 </head>
 <body>
 
 <!-- ── LOADING ── -->
-<div id="s-loading">
-  
-</div>
+<div id="s-loading"></div>
 
 <!-- ── AUTH ── -->
 <div id="s-auth" class="screen">
   <div class="auth-card">
     <div class="brand">
-      
       <div class="brand-name">Cloak</div>
       <div class="brand-tag">A human resource, not a companion.</div>
     </div>
@@ -128,7 +195,6 @@
 <div id="s-verify" class="screen">
   <div class="auth-card">
     <div class="brand">
-      
       <div class="brand-name">Check your email</div>
     </div>
     <p class="hint-text">We sent a link to <strong id="verify-addr"></strong>. Click it to confirm, then come back and sign in.</p>
@@ -144,7 +210,6 @@
 <div id="s-mfa" class="screen">
   <div class="auth-card">
     <div class="brand">
-      
       <div class="brand-name">Two-factor auth</div>
     </div>
     <p class="hint-text">Enter the 6-digit code from your authenticator app.</p>
@@ -199,13 +264,17 @@
           </button>
         </nav>
         <div class="settings-body">
+
           <!-- Account -->
           <div class="spane on" id="spane-general">
             <div class="srow">
               <div class="srow-name">Account</div>
               <div class="info-box" style="display:flex;align-items:center;gap:10px;margin-top:8px">
                 <div class="user-av" id="s-av" style="width:36px;height:36px;font-size:14px">?</div>
-                <div><div style="font-size:14px;font-weight:500" id="s-name">—</div><div style="font-size:12px;opacity:.5" id="s-email">—</div></div>
+                <div>
+                  <div style="font-size:14px;font-weight:500" id="s-name">—</div>
+                  <div style="font-size:12px;opacity:.5" id="s-email">—</div>
+                </div>
               </div>
             </div>
             <div class="srow">
@@ -337,7 +406,6 @@
     <!-- ── SIDEBAR ── -->
     <div class="sidebar collapsed" id="sidebar">
       <div class="sb-logo">
-        
         <span class="sb-logo-name">Cloak</span>
       </div>
       <button class="sb-btn sb-new" onclick="newChat()">
@@ -382,37 +450,82 @@
             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
           </button>
         </div>
-        <div class="topbar-right">
-          <!-- ── PERSONA SELECTOR ── -->
-          <div class="persona-select-wrap">
-            <select class="persona-select" id="persona-select" onchange="onPersonaChange(this)">
-              <option value="pneuma" selected>⚡ Pneuma</option>
-              <option value="logos">🔵 Logos</option>
-              <option value="kairos">🟣 Kairos</option>
-            </select>
-            <svg class="persona-select-caret" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
-          </div>
-          <span class="persona-badge pneuma" id="persona-badge">Fast &amp; Brief</span>
 
+        <div class="topbar-right">
+
+          <!-- ── PERSONA SEGMENTED CONTROL ── -->
+          <div class="persona-wrap" role="group" aria-label="Select persona">
+
+            <!-- Pneuma: lightning bolt = fast, direct -->
+            <button class="persona-tab active" id="ptab-pneuma"
+              onclick="selectPersona('pneuma', this)"
+              title="Pneuma — Fast &amp; Brief">
+              <span class="persona-sym">
+                <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.4"
+                  stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+              </span>
+              <span class="persona-tab-label">Pneuma</span>
+              <span class="persona-tab-desc">Fast</span>
+            </button>
+
+            <!-- Logos: scales = balance, reason -->
+            <button class="persona-tab" id="ptab-logos"
+              onclick="selectPersona('logos', this)"
+              title="Logos — Balanced &amp; Observant">
+              <span class="persona-sym">
+                <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.4"
+                  stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                  <path d="M12 3v18M3 9l9-6 9 6M5 13l-2 5h6l-2-5M16 13l-2 5h6l-2-5"/>
+                </svg>
+              </span>
+              <span class="persona-tab-label">Logos</span>
+              <span class="persona-tab-desc">Balanced</span>
+            </button>
+
+            <!-- Kairos: magnifier + crosshair = analytical, deep -->
+            <button class="persona-tab" id="ptab-kairos"
+              onclick="selectPersona('kairos', this)"
+              title="Kairos — Advanced &amp; Analytical">
+              <span class="persona-sym">
+                <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.4"
+                  stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                  <circle cx="11" cy="11" r="8"/>
+                  <path d="M21 21l-4.35-4.35M11 7v8M7 11h8"/>
+                </svg>
+              </span>
+              <span class="persona-tab-label">Kairos</span>
+              <span class="persona-tab-desc">Deep</span>
+            </button>
+          </div>
+
+          <!-- Live status pill -->
+          <div class="live-pill">
+            <div class="live-dot"></div>
+            <span id="model-btn-label">Fast</span>
+          </div>
+
+          <!-- Dark mode toggle -->
           <button class="icon-btn" onclick="toggleDark()" title="Toggle theme">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24">
               <path class="moon" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-              <g class="sun"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></g>
+              <g class="sun">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+              </g>
             </svg>
           </button>
-          <div class="status-pill">
-            <div class="live-dot"></div>
-            <span class="status-label" id="model-btn-label">Live</span>
-          </div>
         </div>
       </div>
 
       <!-- Chat area -->
       <div class="chat-area" id="chat-area">
-        <!-- Empty state -->
         <div class="empty" id="empty-state">
           <div class="empty-inner">
-            
             <div class="empty-greeting" id="empty-greeting">Hey there!</div>
             <div class="empty-slogan">A human resource, not a companion.</div>
             <div class="chip-row" id="chip-row">
@@ -430,10 +543,13 @@
       <div class="input-area">
         <div class="input-wrap">
           <div class="input-area-wrap">
+
             <!-- Plus menu -->
             <div class="plus-menu" id="plus-menu">
               <button class="plus-item" id="menu-think" onclick="toggleThinkMode()">
-                <span class="plus-item-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg></span>
+                <span class="plus-item-icon">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
+                </span>
                 <span class="plus-item-text">
                   <span class="plus-item-label">Think mode</span>
                   <span class="plus-item-desc">Deep reasoning and outlines</span>
@@ -441,7 +557,9 @@
                 <span class="plus-item-check"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
               </button>
               <button class="plus-item" id="menu-homework" onclick="toggleHwMode()">
-                <span class="plus-item-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
+                <span class="plus-item-icon">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                </span>
                 <span class="plus-item-text">
                   <span class="plus-item-label">Homework mode</span>
                   <span class="plus-item-desc">Guided learning, not just answers</span>
@@ -471,7 +589,9 @@
               <button class="plus-btn" id="plus-btn" onclick="togglePlusMenu(event)" title="Modes">+</button>
               <textarea class="chat-input" id="chat-input" placeholder="Message Cloak…" rows="1"
                 oninput="onInput(this)" onkeydown="onKey(event)" onpaste="onPaste(event)"></textarea>
-              <button class="send-btn" id="mic-btn" style="background:var(--surf);color:var(--ink);border:var(--bd);" onclick="startVoiceMode()" title="Voice mode">
+              <button class="send-btn" id="mic-btn"
+                style="background:var(--surf);color:var(--ink);border:var(--bd);"
+                onclick="startVoiceMode()" title="Voice mode">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
               </button>
               <button class="send-btn" id="send-btn" onclick="send()" disabled>
@@ -479,6 +599,7 @@
               </button>
             </div>
           </div>
+
           <div class="input-foot">
             <span class="input-sub">Cloak can make mistakes. Verify important information.</span>
             <span class="input-sub">Enter to send &middot; Shift+Enter for new line</span>
@@ -555,79 +676,58 @@
 
 <script src="cloak.js" defer></script>
 
-<!-- ── CLOAK CHAT API ── -->
+<!-- ── PERSONA × API.USECLOAK.ORG ── -->
 <script>
-/* ─────────────────────────────────────────────
-   PERSONA CONFIG
+/* ─────────────────────────────────────────────────────
    api.usecloak.org — no API key required
-   POST /v1/messages  { model, messages }
-   model values: "pneuma" | "logos" | "kairos"
-───────────────────────────────────────────── */
+   POST /v1/messages  →  { model, messages }
+   model: "pneuma" | "logos" | "kairos"
+───────────────────────────────────────────────────── */
 const CLOAK_API = 'https://api.usecloak.org/v1/messages';
 
-const PERSONAS = {
-  pneuma: {
-    label:  '⚡ Pneuma',
-    badge:  'Fast &amp; Brief',
-    cls:    'pneuma',
-  },
-  logos: {
-    label:  '🔵 Logos',
-    badge:  'Balanced &amp; Observant',
-    cls:    'logos',
-  },
-  kairos: {
-    label:  '🟣 Kairos',
-    badge:  'Advanced &amp; Analytical',
-    cls:    'kairos',
-  },
+const PERSONA_DESCS = {
+  pneuma: 'Fast',
+  logos:  'Balanced',
+  kairos: 'Deep',
 };
 
-// Track current persona — default Pneuma
-let cloakModel = 'pneuma';
+let cloakModel   = 'pneuma';   // default
+let cloakHistory = [];          // per-session message history
 
-// Conversation history per session (reset on newChat)
-let cloakHistory = [];
+/* Called by the persona tab buttons in the topbar */
+function selectPersona(model, btn) {
+  cloakModel = model;
 
-/* ── Persona selector handler ── */
-function onPersonaChange(sel) {
-  cloakModel = sel.value;
-  const info = PERSONAS[cloakModel];
-  const badge = document.getElementById('persona-badge');
-  if (badge) {
-    badge.innerHTML = info.badge;
-    badge.className = 'persona-badge ' + info.cls;
-  }
-  sel.className = 'persona-select ' + (cloakModel !== 'pneuma' ? cloakModel : '');
+  // Update tab active state
+  document.querySelectorAll('.persona-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  // Sync live-pill label
+  const lbl = document.getElementById('model-btn-label');
+  if (lbl) lbl.textContent = PERSONA_DESCS[model] || 'Live';
 }
 
-/* ── Send message to api.usecloak.org ──
-   Called by cloak.js via window.cloakSendMessage(userText, callback)
-   callback(responseText, error)
+/* Main send function exposed to cloak.js
+   window.cloakSendMessage(userText, callback(responseText, errorStr|null))
 */
-window.cloakSendMessage = async function(userText, callback) {
+window.cloakSendMessage = async function (userText, callback) {
   cloakHistory.push({ role: 'user', content: userText });
-
-  const payload = {
-    model: cloakModel,
-    messages: cloakHistory,
-  };
 
   try {
     const res = await fetch(CLOAK_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ model: cloakModel, messages: cloakHistory }),
     });
 
     if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`API error ${res.status}: ${errText}`);
+      const errBody = await res.text().catch(() => 'Unknown');
+      throw new Error(`API ${res.status}: ${errBody}`);
     }
 
     const data = await res.json();
 
-    // Support both {content} string and {choices[0].message.content} shapes
+    // Normalise varied response shapes from the API
     let reply = '';
     if (typeof data.content === 'string') {
       reply = data.content;
@@ -635,7 +735,7 @@ window.cloakSendMessage = async function(userText, callback) {
       reply = data.content.map(b => b.text || '').join('');
     } else if (data.choices?.[0]?.message?.content) {
       reply = data.choices[0].message.content;
-    } else if (data.response) {
+    } else if (typeof data.response === 'string') {
       reply = data.response;
     } else {
       reply = JSON.stringify(data);
@@ -648,20 +748,19 @@ window.cloakSendMessage = async function(userText, callback) {
   }
 };
 
-/* ── Reset history on new chat ── */
+/* Reset conversation history on new chat */
+window.resetCloakHistory = () => { cloakHistory = []; };
+
 document.addEventListener('DOMContentLoaded', () => {
-  // Hook into cloak.js newChat if it exposes one, or watch for the button
+  // Wrap cloak.js newChat() so history is cleared alongside UI
   const origNewChat = window.newChat;
   if (typeof origNewChat === 'function') {
-    window.newChat = function() {
-      cloakHistory = [];
-      origNewChat();
-    };
+    window.newChat = function () { cloakHistory = []; origNewChat(); };
   }
+  // Sync pill on load
+  const lbl = document.getElementById('model-btn-label');
+  if (lbl) lbl.textContent = PERSONA_DESCS[cloakModel];
 });
-
-// Also expose reset so cloak.js can call it directly
-window.resetCloakHistory = function() { cloakHistory = []; };
 </script>
 </body>
 </html>
