@@ -23,11 +23,10 @@ let _streamAbort=false;
 let _thinkTimer=null, _thinkPhaseIdx=0;
 
 /* ── THOUGHT SYSTEM STATE ── */
-let _thoughts=[];           // [{title, body, done}]
-let _thoughtEls=[];         // DOM elements for each thought
+let _thoughts=[];
+let _thoughtEls=[];
 let _currentThoughtIdx=-1;
 let _statusBox=null;
-let _wordCursorSpan=null;
 
 /* ── THOUGHT PHASES for each model tier ── */
 // "balanced" = logos/kairos, "fast" = pneuma (only if thinkModeActive)
@@ -143,179 +142,159 @@ rend.link=(href,title,text)=>{
 marked.use({renderer:rend,mangle:false,headerIds:false});
 
 /* ════════════════════════════════════════
-   THOUGHT SYSTEM
+   THOUGHT SYSTEM v4 — subtle inline
    ════════════════════════════════════════ */
 
+/* Stored thoughts for expand view */
+let _thoughtLog = []; // [{title, body}]
+let _thoughtChainEl = null;
+let _thoughtCurrentEl = null;
+let _thoughtHistoryEl = null;
+let _thoughtExpandBtn = null;
+
 /**
- * Creates the thought chain UI inside a bot message wrapper.
- * Returns { chain, statusBox } for further manipulation.
+ * Build the thought UI inside the bot message.
+ * Structure:
+ *   .thought-chain
+ *     .thought-current   ← replaces in place as thoughts cycle
+ *       .thought-current-label  (italic, faded)
+ *       .thought-expand-btn     (chevron, shows count)
+ *     .thought-history (hidden until expanded)
+ *       .thought-history-item × N
  */
 function createThoughtChain(botMsgEl) {
   const botBody = botMsgEl.querySelector('.bot-body');
   if(!botBody) return null;
+  const existing = botBody.querySelector('.thought-chain');
+  if(existing) existing.remove();
 
-  // Clear any existing content
-  const existingChain = botBody.querySelector('.thought-chain');
-  if(existingChain) existingChain.remove();
+  _thoughtLog = [];
 
   const chain = document.createElement('div');
   chain.className = 'thought-chain';
+
+  // Current thought row
+  const currentRow = document.createElement('div');
+  currentRow.className = 'thought-current';
+
+  const label = document.createElement('span');
+  label.className = 'thought-current-label';
+  label.textContent = 'Thinking…';
+
+  const expandBtn = document.createElement('button');
+  expandBtn.className = 'thought-expand-btn';
+  expandBtn.title = 'View thoughts';
+  expandBtn.innerHTML = `<svg width="8" height="5" viewBox="0 0 8 5" fill="none"><path d="M1 1L4 4L7 1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+  expandBtn.addEventListener('click', () => toggleThoughtHistory());
+
+  currentRow.appendChild(label);
+  currentRow.appendChild(expandBtn);
+
+  // History panel
+  const history = document.createElement('div');
+  history.className = 'thought-history';
+
+  chain.appendChild(currentRow);
+  chain.appendChild(history);
   botBody.insertBefore(chain, botBody.querySelector('.bot-content'));
 
-  // Status box (pulsing square) — sits below chain
-  const statusBox = document.createElement('div');
-  statusBox.className = 'cloak-status-box';
-  statusBox.innerHTML = '<div class="cloak-status-square"></div><span class="cloak-status-label">Thinking…</span>';
-  botBody.insertBefore(statusBox, botBody.querySelector('.bot-content'));
+  _thoughtChainEl   = chain;
+  _thoughtCurrentEl = label;
+  _thoughtExpandBtn = expandBtn;
+  _thoughtHistoryEl = history;
 
-  _statusBox = statusBox;
-  return { chain, statusBox };
+  // Start the bot-dot reactive animation
+  const botDot = botMsgEl.querySelector('.bot-dot');
+  if(botDot) botDot.classList.add('thinking');
+
+  return chain;
 }
 
 /**
- * Adds a thought item to the chain.
- * idx — 0-based index for numbering.
+ * Toggle the history panel open/closed.
  */
-function addThoughtItem(chain, idx, title, body, isActive) {
-  const item = document.createElement('div');
-  item.className = 'thought-item' + (isActive ? ' thought-active' : '');
-  item.style.animationDelay = (idx * 60) + 'ms';
-
-  const num = String(idx + 1).padStart(2,'0');
-
-  item.innerHTML = `
-    <div class="thought-header" onclick="toggleThought(this.parentElement)">
-      <span class="thought-num">${num}</span>
-      <span class="thought-title">${hesc(title)}</span>
-      <span class="thought-status-dot"></span>
-      <span class="thought-chevron">
-        <svg width="9" height="5" viewBox="0 0 9 5" fill="none">
-          <path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-        </svg>
-      </span>
-    </div>
-    <div class="thought-body">${hesc(body)}</div>
-  `;
-
-  chain.appendChild(item);
-
-  // SVG trace box — injected as overlay on the item
-  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-  svg.classList.add('thought-trace-svg');
-  svg.style.display = 'none';
-  svg.setAttribute('width','100%');
-  svg.setAttribute('height','100%');
-  const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
-  rect.classList.add('thought-trace-rect');
-  rect.setAttribute('x','1');
-  rect.setAttribute('y','1');
-  rect.setAttribute('rx','0');
-  // width/height set dynamically
-  svg.appendChild(rect);
-  item.appendChild(svg);
-
-  return item;
+function toggleThoughtHistory() {
+  if(!_thoughtHistoryEl || !_thoughtExpandBtn) return;
+  const isOpen = _thoughtHistoryEl.classList.toggle('open');
+  _thoughtExpandBtn.classList.toggle('open', isOpen);
 }
 
 /**
- * Show/hide the trace SVG on the thought item and size it correctly.
+ * Push a new thought into the UI: update the current label, add to history.
  */
-function setThoughtTrace(itemEl, visible) {
-  const svg = itemEl.querySelector('.thought-trace-svg');
-  if(!svg) return;
-  if(visible) {
-    svg.style.display = 'block';
-    const w = itemEl.offsetWidth;
-    const h = itemEl.offsetHeight;
-    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
-    const rect = svg.querySelector('.thought-trace-rect');
-    rect.setAttribute('width', w - 2);
-    rect.setAttribute('height', h - 2);
-  } else {
-    svg.style.display = 'none';
+function pushThought(title, body) {
+  _thoughtLog.push({title, body});
+
+  // Update current label with slide animation
+  if(_thoughtCurrentEl) {
+    _thoughtCurrentEl.classList.remove('entering');
+    // force reflow
+    void _thoughtCurrentEl.offsetWidth;
+    _thoughtCurrentEl.textContent = title;
+    _thoughtCurrentEl.classList.add('entering');
+  }
+
+  // Update expand button count
+  if(_thoughtExpandBtn) {
+    const count = _thoughtLog.length;
+    _thoughtExpandBtn.title = count === 1 ? '1 thought' : `${count} thoughts`;
+  }
+
+  // Add to history panel
+  if(_thoughtHistoryEl) {
+    const item = document.createElement('div');
+    item.className = 'thought-history-item';
+    item.innerHTML = `<span class="thought-history-num">${String(_thoughtLog.length).padStart(2,'0')}</span><div><div class="thought-history-title">${hesc(title)}</div><div class="thought-history-body">${hesc(body)}</div></div>`;
+    _thoughtHistoryEl.appendChild(item);
+  }
+
+  scrollBottom();
+}
+
+/**
+ * Stop thinking — remove the dot animation, fade the thought UI.
+ */
+function endThoughts(botMsgEl) {
+  const botDot = botMsgEl.querySelector('.bot-dot');
+  if(botDot) botDot.classList.remove('thinking');
+
+  if(_thoughtCurrentEl) {
+    _thoughtCurrentEl.style.transition = 'opacity 0.3s ease';
+    _thoughtCurrentEl.style.opacity    = '0.22';
+  }
+  if(_thoughtExpandBtn) {
+    _thoughtExpandBtn.style.transition = 'opacity 0.3s ease';
+    _thoughtExpandBtn.style.opacity    = '0.18';
   }
 }
 
 /**
- * Mark a thought as done (not active, dim dot).
- */
-function markThoughtDone(itemEl) {
-  itemEl.classList.remove('thought-active');
-  setThoughtTrace(itemEl, false);
-  const dot = itemEl.querySelector('.thought-status-dot');
-  if(dot) { dot.style.animation='none'; dot.style.opacity='0.18'; }
-}
-
-/**
- * Transition the trace box from thought → response content.
- * Removes trace from thought, marks status box as responding (fades it),
- * then moves bot-dot back to its normal position.
+ * Transition thought UI when response starts streaming.
  */
 function transitionToResponse(botMsgEl) {
-  if(_thoughtEls.length) {
-    _thoughtEls.forEach(el => { markThoughtDone(el); });
-  }
-  if(_statusBox) {
-    _statusBox.classList.add('responding');
-    setTimeout(() => { if(_statusBox) _statusBox.remove(); _statusBox=null; }, 350);
-  }
-  // Restore the bot-dot to its meta row
-  const botDot = botMsgEl.querySelector('.bot-dot');
-  if(botDot) {
-    botDot.style.animation = '';
-    botDot.style.opacity   = '';
-  }
-}
-
-/**
- * Toggle expand/collapse on a thought item.
- */
-function toggleThought(itemEl) {
-  itemEl.classList.toggle('thought-open');
+  endThoughts(botMsgEl);
 }
 
 /* ── THOUGHT SEQUENCE RUNNER ── */
-/**
- * Runs the thought sequence for a given model before the response comes in.
- * Returns a promise that resolves when all thoughts are shown.
- * While running, the API fetch can happen in parallel.
- */
 async function runThoughtSequence(botMsgEl, model, responsePromise) {
   const script = THOUGHT_SCRIPTS[_thoughtScriptFor(model)];
   const delays = THOUGHT_DELAYS(model, script.length);
 
-  const { chain } = createThoughtChain(botMsgEl);
+  createThoughtChain(botMsgEl);
 
   _thoughts = [];
   _thoughtEls = [];
   _currentThoughtIdx = -1;
 
-  // Show thoughts one by one, but let the actual API response abort the sequence
-  // if it resolves faster than the thought timing.
-  let resolved = false;
   let responseReady = false;
   responsePromise.then(() => { responseReady = true; });
 
   for(let i = 0; i < script.length; i++) {
-    if(resolved) break;
-
-    const isActive = true;
     const t = script[i];
-    const itemEl = addThoughtItem(chain, i, t.title, t.body, isActive);
-
+    pushThought(t.title, t.body);
     _thoughts.push(t);
-    _thoughtEls.push(itemEl);
     _currentThoughtIdx = i;
 
-    // Deactivate previous thought
-    if(i > 0) markThoughtDone(_thoughtEls[i-1]);
-
-    // Show trace on current
-    setTimeout(() => setThoughtTrace(itemEl, true), 40);
-
-    scrollBottom();
-
-    // Wait for delay (or until response is ready, whichever comes first)
     const delay = delays[i] || delays[delays.length-1];
     await Promise.race([
       sleep(delay),
@@ -325,12 +304,9 @@ async function runThoughtSequence(botMsgEl, model, responsePromise) {
         }, 80);
       })
     ]);
+
+    if(responseReady) break;
   }
-
-  // All thoughts shown — mark final thought done
-  if(_thoughtEls.length) markThoughtDone(_thoughtEls[_thoughtEls.length-1]);
-
-  return chain;
 }
 
 function THOUGHT_DELAYS(model, count) {
@@ -340,95 +316,63 @@ function THOUGHT_DELAYS(model, count) {
   return out;
 }
 
+// kept for legacy compat
+function toggleThought() {}
+function markThoughtDone() {}
+function setThoughtTrace() {}
+
 /* ════════════════════════════════════════
-   STREAM CONTENT WITH WORD CURSOR
+   STREAM CONTENT
    ════════════════════════════════════════ */
-
-/**
- * Streams rawText into container char by char.
- * As words appear, the "active word" gets a cursor-box highlight.
- * When done, all special spans are cleaned up.
- */
 function streamContent(container, rawText, onComplete) {
-  _streamAbort = false;
-  let pos = 0;
-  const total = rawText.length;
-  let lastWordSpan = null;
+  _streamAbort=false;
+  let pos=0;
+  const total=rawText.length;
 
-  function clearWordCursor() {
-    if(lastWordSpan) {
-      lastWordSpan.classList.remove('word-cursor-box','word-active');
-      lastWordSpan.outerHTML = lastWordSpan.textContent; // flatten to text
-      lastWordSpan = null;
-    }
-  }
-
-  function renderPartial(text) {
-    if(!text) { container.innerHTML = '<span class="sc"></span>'; return; }
-
-    const lastNewline = text.lastIndexOf('\n\n');
+  function renderPartial(text){
+    if(!text){container.innerHTML='<span class="sc"></span>';return;}
+    const lastBlock=text.lastIndexOf('\n\n');
     let html;
-    if(lastNewline === -1) {
-      // Split into complete words and the in-progress word
-      const words = text.split(/(\s+)/);
-      const lastWord = words.pop() || '';
-      const rest = words.join('');
-      html = '<p>' + hesc(rest);
-      if(lastWord.trim()) {
-        html += '<span class="word-cursor-box word-active">' + hesc(lastWord) + '</span>';
-      }
-      html += '</p>';
-    } else {
-      const complete = text.slice(0, lastNewline + 2);
-      const trailing = text.slice(lastNewline + 2);
-      html = marked.parse(complete);
-      if(trailing) {
-        const words = trailing.split(/(\s+)/);
-        const lastWord = words.pop() || '';
-        const rest = words.join('');
-        html += '<p>' + hesc(rest);
-        if(lastWord.trim()) {
-          html += '<span class="word-cursor-box word-active">' + hesc(lastWord) + '</span>';
-        }
-        html += '</p>';
-      }
+    if(lastBlock===-1){
+      html='<p>'+hesc(text)+'<span class="sc"></span></p>';
+    }else{
+      const complete=text.slice(0,lastBlock+2);
+      const trailing=text.slice(lastBlock+2);
+      html=marked.parse(complete);
+      if(trailing)html+='<p>'+hesc(trailing)+'<span class="sc"></span></p>';
+      else html+='<span class="sc"></span>';
     }
-    container.innerHTML = html;
+    container.innerHTML=html;
     scrollBottom();
   }
 
-  function tick() {
-    if(_streamAbort || pos >= total) {
-      // Done — clean up cursor, render final
-      container.innerHTML = marked.parse(rawText);
-      postProcessBotEl(container.closest('.msg'), rawText);
+  function tick(){
+    if(_streamAbort||pos>=total){
+      container.innerHTML=marked.parse(rawText);
+      postProcessBotEl(container.closest('.msg'),rawText);
       scrollBottom();
-      if(onComplete) onComplete();
+      if(onComplete)onComplete();
       return;
     }
-
-    const prevChar = pos > 0 ? rawText[pos-1] : '';
-    let chunk, delay;
-
-    if('.!?'.includes(prevChar) && rawText[pos] === ' ') {
-      chunk=1; delay=60+Math.random()*80;
-    } else if(',;'.includes(prevChar)) {
-      chunk=1; delay=14+Math.random()*18;
-    } else if(prevChar==='\n') {
-      chunk=1; delay=28+Math.random()*44;
+    const prevChar=pos>0?rawText[pos-1]:'';
+    let chunk,delay;
+    if('.!?'.includes(prevChar)&&rawText[pos]===' '){
+      chunk=1;delay=55+Math.random()*75;
+    } else if(',;'.includes(prevChar)){
+      chunk=1;delay=12+Math.random()*18;
+    } else if(prevChar==='\n'){
+      chunk=1;delay=25+Math.random()*40;
     } else {
-      const r = Math.random();
-      if(r<0.08)       { chunk=1; delay=44+Math.random()*32; }
-      else if(r<0.25)  { chunk=1; delay=13+Math.random()*10; }
-      else if(r<0.65)  { chunk=Math.floor(2+Math.random()*3); delay=9+Math.random()*6; }
-      else             { chunk=Math.floor(4+Math.random()*6); delay=4+Math.random()*4; }
+      const r=Math.random();
+      if(r<0.08){chunk=1;delay=40+Math.random()*30;}
+      else if(r<0.25){chunk=1;delay=12+Math.random()*10;}
+      else if(r<0.65){chunk=Math.floor(2+Math.random()*3);delay=8+Math.random()*6;}
+      else{chunk=Math.floor(4+Math.random()*6);delay=4+Math.random()*4;}
     }
-
-    pos = Math.min(pos+chunk, total);
-    renderPartial(rawText.slice(0, pos));
-    setTimeout(tick, delay);
+    pos=Math.min(pos+chunk,total);
+    renderPartial(rawText.slice(0,pos));
+    setTimeout(tick,delay);
   }
-
   tick();
 }
 
