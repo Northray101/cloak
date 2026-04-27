@@ -28,49 +28,140 @@ let _thoughtEls=[];
 let _currentThoughtIdx=-1;
 let _statusBox=null;
 
-/* ── THOUGHT PHASES for each model tier ── */
-// "balanced" = logos/kairos, "fast" = pneuma (only if thinkModeActive)
-const THOUGHT_SCRIPTS = {
-  default: [
-    {title:'Parsing request',   body:'Breaking down what you\'re asking — intent, scope, any constraints embedded in the phrasing.'},
-    {title:'Retrieving context',body:'Pulling in relevant knowledge, cross-referencing what I know with what the conversation has established.'},
-    {title:'Structuring answer', body:'Deciding on the best form for the response — length, format, level of detail, tone.'},
-    {title:'Drafting response',  body:'Composing the actual reply with the structure decided above, refining as I go.'},
-  ],
-  reasoning: [
-    {title:'Decomposing problem',  body:'Identifying the core question and any sub-problems that need to be resolved first.'},
-    {title:'Exploring approaches', body:'Considering multiple ways to attack this — weighing trade-offs between them.'},
-    {title:'Stress-testing logic', body:'Checking for edge cases, contradictions, or gaps in the reasoning chain.'},
-    {title:'Synthesizing answer',  body:'Integrating the best approach into a coherent, well-reasoned response.'},
-    {title:'Final review',         body:'Scanning for accuracy, completeness, and clarity before committing.'},
-  ],
-  creative: [
-    {title:'Setting the tone',   body:'Calibrating voice, register, and style to match what this moment calls for.'},
-    {title:'Finding the angle',  body:'Looking for the unexpected entry point — the framing that makes the response memorable.'},
-    {title:'Building structure', body:'Laying out the arc or flow — what comes first, what pays off, what lands the ending.'},
-    {title:'Writing',            body:'Generating the actual content with an eye toward rhythm, specificity, and surprise.'},
-    {title:'Polishing',          body:'Tightening language, cutting what\'s weak, elevating what\'s strong.'},
-  ],
-};
+/* ════════════════════════════════════════════════════════
+   DYNAMIC THOUGHT GENERATION
+   Instead of hardcoded scripts, we ask the model to plan
+   its own reasoning steps for each specific message.
+   ════════════════════════════════════════════════════════ */
 
-/* Model → script key */
-function _thoughtScriptFor(model) {
-  if(model==='logos')  return 'reasoning';
-  if(model==='kairos') return 'creative';
-  return 'default';
+/**
+ * Generate contextual thought steps for this specific user message.
+ * Makes a fast, cheap API call that returns a JSON array of steps.
+ * Falls back to sensible defaults if the call fails or times out.
+ */
+async function generateThoughtSteps(userMessage, model, conversationContext) {
+  const systemPrompt = `You are a reasoning planner. Given a user message, produce a JSON array of 3-6 concise reasoning steps that an AI would actually work through to answer it well. Each step has a "title" (2-4 words, title case) and "body" (1 sentence describing what's being done). Be specific to THIS message — don't use generic steps.
+
+Calibrate depth to the message:
+- Simple/factual → 3 steps, concise
+- Complex/analytical → 5-6 steps, substantive  
+- Creative → 4-5 steps focused on craft choices
+- Code/technical → 4-5 steps covering understanding, planning, implementation
+
+Return ONLY valid JSON array, no markdown, no preamble. Example:
+[{"title":"Parsing the Question","body":"Identifying what kind of comparison is being asked and what criteria matter most."},{"title":"Retrieving Knowledge","body":"Pulling together relevant facts about both subjects from memory."}]`;
+
+  const contextSnippet = conversationContext
+    ? conversationContext.slice(-3).map(m => `${m.role}: ${(m.message||'').slice(0,120)}`).join('\n')
+    : '';
+
+  const userContent = contextSnippet
+    ? `Recent context:\n${contextSnippet}\n\nNew message: ${userMessage.slice(0, 300)}`
+    : `Message: ${userMessage.slice(0, 300)}`;
+
+  // Race against a timeout — if slow, use fallback immediately
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('timeout')), 4000)
+  );
+
+  const fetchPromise = (async () => {
+    const res = await fetch(CLOAK_API + '/v1/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'pneuma', // always use fast model for step generation
+        messages: [
+          { role: 'user', content: userContent }
+        ],
+        system: systemPrompt,
+        max_tokens: 400,
+      }),
+    });
+    if (!res.ok) throw new Error('step-gen failed');
+    const data = await res.json();
+    const raw = data.response || data.text || '';
+    // Strip any accidental markdown fences
+    const clean = raw.replace(/```json|```/gi, '').trim();
+    const steps = JSON.parse(clean);
+    if (!Array.isArray(steps) || !steps.length) throw new Error('bad shape');
+    // Validate and clamp
+    return steps.slice(0, 6).map(s => ({
+      title: String(s.title || 'Processing').slice(0, 40),
+      body:  String(s.body  || '').slice(0, 140),
+    }));
+  })();
+
+  try {
+    return await Promise.race([fetchPromise, timeoutPromise]);
+  } catch (e) {
+    log('inf', 'Thought gen fallback: ' + e.message);
+    return _fallbackSteps(userMessage, model);
+  }
 }
 
-/* Should this model do forced thoughts? */
+/**
+ * Fallback steps when API call fails/times out.
+ * Still tries to be somewhat contextual based on message content.
+ */
+function _fallbackSteps(message, model) {
+  const msg = (message || '').toLowerCase();
+
+  if (/\b(code|function|bug|error|debug|script|class|api|sql|python|javascript|css|html)\b/.test(msg)) {
+    return [
+      { title: 'Reading the Code', body: 'Parsing the structure, logic, and intent of what was written.' },
+      { title: 'Spotting Issues', body: 'Identifying bugs, inefficiencies, or gaps in the implementation.' },
+      { title: 'Planning the Fix', body: 'Deciding on the cleanest approach that solves the problem.' },
+      { title: 'Writing the Solution', body: 'Generating corrected or improved code with clear explanations.' },
+    ];
+  }
+  if (/\b(write|draft|essay|email|letter|story|poem|blog|article|describe)\b/.test(msg)) {
+    return [
+      { title: 'Setting the Tone', body: 'Calibrating voice and register for the context and audience.' },
+      { title: 'Finding the Angle', body: 'Choosing the framing that makes this piece memorable.' },
+      { title: 'Structuring the Piece', body: 'Laying out what comes first, what builds, what lands the ending.' },
+      { title: 'Drafting', body: 'Generating content with attention to rhythm and specificity.' },
+      { title: 'Refining', body: 'Cutting what is weak and elevating what is strong.' },
+    ];
+  }
+  if (/\b(explain|how does|what is|why|difference|compare|vs|versus)\b/.test(msg)) {
+    return [
+      { title: 'Parsing the Question', body: 'Clarifying exactly what is being asked and what level of depth fits.' },
+      { title: 'Retrieving Context', body: 'Pulling relevant knowledge and framing the right conceptual lens.' },
+      { title: 'Building the Explanation', body: 'Structuring a clear, logical answer with useful examples.' },
+    ];
+  }
+  if (model === 'logos') {
+    return [
+      { title: 'Decomposing the Problem', body: 'Breaking into sub-questions and identifying what must be resolved first.' },
+      { title: 'Exploring Approaches', body: 'Considering multiple ways to tackle this and weighing their trade-offs.' },
+      { title: 'Stress-Testing', body: 'Checking for edge cases, contradictions, or gaps in the reasoning.' },
+      { title: 'Synthesizing', body: 'Integrating the best approach into a well-reasoned answer.' },
+    ];
+  }
+  // Generic default
+  return [
+    { title: 'Reading Carefully', body: 'Making sure I fully understand what is being asked before proceeding.' },
+    { title: 'Gathering Context', body: 'Drawing on relevant knowledge and the conversation so far.' },
+    { title: 'Forming a Response', body: 'Deciding on structure, depth, and the best way to present this.' },
+  ];
+}
+
+/** Should thoughts run for this model/mode? */
 function _shouldThink(model) {
-  return model==='logos' || model==='kairos' || thinkModeActive;
+  return model === 'logos' || model === 'kairos' || thinkModeActive;
 }
 
-/* Timing between thoughts (ms) */
-const THOUGHT_DELAY_MS = {
-  logos:  [1400, 2800, 4200, 6000, 8000],
-  kairos: [1200, 2600, 4000, 5800, 8000],
-  pneuma: [900,  2000, 3400, 5000, 7000],
-};
+/**
+ * Timing between thought steps (ms). Logos gets more time to feel deliberate.
+ */
+function _thoughtDelay(model, stepIndex) {
+  const base = {
+    logos:  [1600, 3000, 4800, 6800, 9000, 11000],
+    kairos: [1300, 2700, 4200, 6000, 8000, 10000],
+    pneuma: [1000, 2200, 3600, 5200, 7000, 9000],
+  }[model] || [1200, 2600, 4200, 6000, 8000, 10000];
+  return base[stepIndex] || base[base.length - 1];
+}
 
 /* Voice Mode Variables */
 let voiceMode = false;
@@ -141,185 +232,225 @@ rend.link=(href,title,text)=>{
 };
 marked.use({renderer:rend,mangle:false,headerIds:false});
 
-/* ════════════════════════════════════════
-   THOUGHT SYSTEM v4 — subtle inline
-   ════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════
+   THOUGHT UI SYSTEM
+   Renders dynamic steps as they're generated/completed.
+   Each step shows: spinner → checkmark when done.
+   ════════════════════════════════════════════════════════ */
 
-/* Stored thoughts for expand view */
-let _thoughtLog = []; // [{title, body}]
+let _thoughtLog = [];
 let _thoughtChainEl = null;
 let _thoughtCurrentEl = null;
 let _thoughtHistoryEl = null;
 let _thoughtExpandBtn = null;
 
 /**
- * Build the thought UI inside the bot message.
- * Structure:
- *   .thought-chain
- *     .thought-current   ← replaces in place as thoughts cycle
- *       .thought-current-label  (italic, faded)
- *       .thought-expand-btn     (chevron, shows count)
- *     .thought-history (hidden until expanded)
- *       .thought-history-item × N
+ * Build the step-list UI inside the bot message.
+ * Matches the step-list-wrap / step-list-inner CSS already in cloak.css.
  */
 function createThoughtChain(botMsgEl) {
   const botBody = botMsgEl.querySelector('.bot-body');
-  if(!botBody) return null;
+  if (!botBody) return null;
   const existing = botBody.querySelector('.thought-chain');
-  if(existing) existing.remove();
+  if (existing) existing.remove();
 
   _thoughtLog = [];
 
-  const chain = document.createElement('div');
-  chain.className = 'thought-chain';
+  // Outer wrapper — uses existing .step-list-wrap styles
+  const wrap = document.createElement('div');
+  wrap.className = 'step-list-wrap thought-chain';
 
-  // Current thought row
-  const currentRow = document.createElement('div');
-  currentRow.className = 'thought-current';
+  // Header
+  const header = document.createElement('div');
+  header.className = 'step-list-header';
+  header.innerHTML = `
+    <div class="step-list-header-left">
+      <span class="step-header-dot" id="thought-pulse-dot"></span>
+      <span class="step-header-label">Thinking</span>
+    </div>
+    <button class="step-collapse-btn rotated" id="thought-collapse-btn" title="Collapse">
+      <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
+        <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>`;
+  wrap.appendChild(header);
 
-  const label = document.createElement('span');
-  label.className = 'thought-current-label';
-  label.textContent = 'Thinking…';
+  // Collapsible inner list
+  const inner = document.createElement('div');
+  inner.className = 'step-list-inner';
+  inner.id = 'thought-step-list';
+  wrap.appendChild(inner);
 
-  const expandBtn = document.createElement('button');
-  expandBtn.className = 'thought-expand-btn';
-  expandBtn.title = 'View thoughts';
-  expandBtn.innerHTML = `<svg width="8" height="5" viewBox="0 0 8 5" fill="none"><path d="M1 1L4 4L7 1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`;
-  expandBtn.addEventListener('click', () => toggleThoughtHistory());
+  // Wire up collapse
+  header.querySelector('#thought-collapse-btn').addEventListener('click', () => {
+    const btn = header.querySelector('#thought-collapse-btn');
+    inner.classList.toggle('collapsed');
+    btn.classList.toggle('rotated');
+  });
 
-  currentRow.appendChild(label);
-  currentRow.appendChild(expandBtn);
+  botBody.insertBefore(wrap, botBody.querySelector('.bot-content'));
 
-  // History panel
-  const history = document.createElement('div');
-  history.className = 'thought-history';
+  _thoughtChainEl = wrap;
+  _thoughtCurrentEl = inner;
 
-  chain.appendChild(currentRow);
-  chain.appendChild(history);
-  botBody.insertBefore(chain, botBody.querySelector('.bot-content'));
-
-  _thoughtChainEl   = chain;
-  _thoughtCurrentEl = label;
-  _thoughtExpandBtn = expandBtn;
-  _thoughtHistoryEl = history;
-
-  // Start the bot-dot reactive animation
+  // Activate the bot-dot reactive animation
   const botDot = botMsgEl.querySelector('.bot-dot');
-  if(botDot) botDot.classList.add('thinking');
+  if (botDot) botDot.classList.add('thinking');
 
-  return chain;
+  return wrap;
 }
 
 /**
- * Toggle the history panel open/closed.
+ * Add a step row to the list. Returns the DOM element.
+ * Starts in "active" state (spinner). Call completeStep() to check it off.
  */
-function toggleThoughtHistory() {
-  if(!_thoughtHistoryEl || !_thoughtExpandBtn) return;
-  const isOpen = _thoughtHistoryEl.classList.toggle('open');
-  _thoughtExpandBtn.classList.toggle('open', isOpen);
-}
+function addThoughtStep(title, body) {
+  const inner = document.getElementById('thought-step-list');
+  if (!inner) return null;
 
-/**
- * Push a new thought into the UI: update the current label, add to history.
- */
-function pushThought(title, body) {
-  _thoughtLog.push({title, body});
+  _thoughtLog.push({ title, body });
+  const idx = _thoughtLog.length - 1;
 
-  // Update current label with slide animation
-  if(_thoughtCurrentEl) {
-    _thoughtCurrentEl.classList.remove('entering');
-    // force reflow
-    void _thoughtCurrentEl.offsetWidth;
-    _thoughtCurrentEl.textContent = title;
-    _thoughtCurrentEl.classList.add('entering');
-  }
+  const row = document.createElement('div');
+  row.className = 'step-row step-row-entering';
+  row.id = 'thought-step-' + idx;
 
-  // Update expand button count
-  if(_thoughtExpandBtn) {
-    const count = _thoughtLog.length;
-    _thoughtExpandBtn.title = count === 1 ? '1 thought' : `${count} thoughts`;
-  }
+  row.innerHTML = `
+    <div class="step-icon">
+      <svg class="step-spinner" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--acc)" stroke-width="2" stroke-linecap="round">
+        <path d="M7 1v2M7 11v2M1 7h2M11 7h2M2.93 2.93l1.41 1.41M9.66 9.66l1.41 1.41M2.93 11.07l1.41-1.41M9.66 4.34l1.41-1.41"/>
+      </svg>
+    </div>
+    <div class="step-text">
+      <div class="step-title step-title-active">${hesc(title)}</div>
+      <div class="step-body">${hesc(body)}</div>
+    </div>`;
 
-  // Add to history panel
-  if(_thoughtHistoryEl) {
-    const item = document.createElement('div');
-    item.className = 'thought-history-item';
-    item.innerHTML = `<span class="thought-history-num">${String(_thoughtLog.length).padStart(2,'0')}</span><div><div class="thought-history-title">${hesc(title)}</div><div class="thought-history-body">${hesc(body)}</div></div>`;
-    _thoughtHistoryEl.appendChild(item);
-  }
+  inner.appendChild(row);
+
+  // Animate in
+  requestAnimationFrame(() => {
+    row.classList.remove('step-row-entering');
+    row.classList.add('step-row-visible');
+  });
 
   scrollBottom();
+  return row;
 }
 
 /**
- * Stop thinking — remove the dot animation, fade the thought UI.
+ * Mark a step as done — swap spinner for checkmark, fade text.
  */
-function endThoughts(botMsgEl) {
-  const botDot = botMsgEl.querySelector('.bot-dot');
-  if(botDot) botDot.classList.remove('thinking');
+function completeThoughtStep(idx) {
+  const row = document.getElementById('thought-step-' + idx);
+  if (!row) return;
 
-  if(_thoughtCurrentEl) {
-    _thoughtCurrentEl.style.transition = 'opacity 0.3s ease';
-    _thoughtCurrentEl.style.opacity    = '0.22';
+  const icon = row.querySelector('.step-icon');
+  const title = row.querySelector('.step-title');
+  const body = row.querySelector('.step-body');
+
+  if (icon) {
+    icon.innerHTML = `
+      <svg class="step-check step-icon-done" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--acc)" stroke-width="2" stroke-linecap="round">
+        <path d="M2 7l3.5 3.5L12 3"/>
+      </svg>`;
   }
-  if(_thoughtExpandBtn) {
-    _thoughtExpandBtn.style.transition = 'opacity 0.3s ease';
-    _thoughtExpandBtn.style.opacity    = '0.18';
-  }
+  if (title) { title.classList.remove('step-title-active'); title.classList.add('step-title-done'); }
+  if (body)  { body.classList.add('step-body-done'); }
 }
 
 /**
- * Transition thought UI when response starts streaming.
+ * Called when the actual response starts arriving.
+ * Completes any remaining active steps, stops animations.
  */
-function transitionToResponse(botMsgEl) {
-  endThoughts(botMsgEl);
+function finaliseThoughts(botMsgEl) {
+  // Complete all unchecked steps
+  _thoughtLog.forEach((_, i) => completeThoughtStep(i));
+
+  // Stop the pulsing dot in the header
+  const pulseDot = document.getElementById('thought-pulse-dot');
+  if (pulseDot) pulseDot.classList.add('step-header-dot-done');
+
+  // Update header label
+  const label = _thoughtChainEl?.querySelector('.step-header-label');
+  if (label) label.textContent = 'Thought for a moment';
+
+  // Stop the bot-dot reactive animation
+  const botDot = botMsgEl?.querySelector('.bot-dot');
+  if (botDot) botDot.classList.remove('thinking');
+
+  // Auto-collapse the step list after a brief delay
+  setTimeout(() => {
+    const inner = document.getElementById('thought-step-list');
+    const btn = document.getElementById('thought-collapse-btn');
+    if (inner && !inner.classList.contains('collapsed')) {
+      inner.classList.add('collapsed');
+      if (btn) btn.classList.remove('rotated');
+    }
+  }, 800);
 }
 
-/* ── THOUGHT SEQUENCE RUNNER ── */
-async function runThoughtSequence(botMsgEl, model, responsePromise) {
-  const script = THOUGHT_SCRIPTS[_thoughtScriptFor(model)];
-  const delays = THOUGHT_DELAYS(model, script.length);
+/* ════════════════════════════════════════════════════════
+   THOUGHT SEQUENCE RUNNER
+   Generates steps dynamically, then animates them in sync
+   with the actual fetch so timing feels natural.
+   ════════════════════════════════════════════════════════ */
 
+async function runThoughtSequence(botMsgEl, model, userMessage, responsePromise) {
+  // 1. Start generating steps (fast pre-call) in parallel with main fetch
+  const stepsPromise = generateThoughtSteps(userMessage, model, hist);
+
+  // 2. Build the UI shell immediately
   createThoughtChain(botMsgEl);
 
-  _thoughts = [];
-  _thoughtEls = [];
-  _currentThoughtIdx = -1;
+  // Show a "planning..." placeholder while steps are generated
+  let placeholderRow = addThoughtStep('Planning', 'Working out how to approach this…');
+
+  let steps;
+  try {
+    steps = await stepsPromise;
+  } catch (e) {
+    steps = _fallbackSteps(userMessage, model);
+  }
+
+  // Remove placeholder, inject real steps
+  if (placeholderRow) {
+    completeThoughtStep(0); // check off placeholder
+    _thoughtLog = []; // reset so real steps index from 0
+    const inner = document.getElementById('thought-step-list');
+    if (inner) inner.innerHTML = '';
+  }
 
   let responseReady = false;
-  responsePromise.then(() => { responseReady = true; });
+  responsePromise.then(() => { responseReady = true; }).catch(() => { responseReady = true; });
 
-  for(let i = 0; i < script.length; i++) {
-    const t = script[i];
-    pushThought(t.title, t.body);
-    _thoughts.push(t);
-    _currentThoughtIdx = i;
+  // 3. Animate through each step with realistic timing
+  for (let i = 0; i < steps.length; i++) {
+    const step = steps[i];
+    addThoughtStep(step.title, step.body);
 
-    const delay = delays[i] || delays[delays.length-1];
+    // Mark previous step done
+    if (i > 0) completeThoughtStep(i - 1);
+
+    const delay = _thoughtDelay(model, i);
+
+    // Wait for delay OR response arriving — whichever comes first
     await Promise.race([
       sleep(delay),
       new Promise(r => {
-        const check = setInterval(() => {
-          if(responseReady) { clearInterval(check); r(); }
-        }, 80);
-      })
+        const iv = setInterval(() => {
+          if (responseReady) { clearInterval(iv); r(); }
+        }, 60);
+      }),
     ]);
 
-    if(responseReady) break;
+    if (responseReady) break;
   }
 }
 
-function THOUGHT_DELAYS(model, count) {
-  const base = THOUGHT_DELAY_MS[model] || THOUGHT_DELAY_MS.pneuma;
-  const out = [];
-  for(let i=0; i<count; i++) out.push(base[i] || base[base.length-1] || 1800);
-  return out;
+function stopThinkAnimation() {
+  if (_thinkTimer) { clearTimeout(_thinkTimer); _thinkTimer = null; }
 }
-
-// kept for legacy compat
-function toggleThought() {}
-function markThoughtDone() {}
-function setThoughtTrace() {}
 
 /* ════════════════════════════════════════
    STREAM CONTENT
@@ -609,9 +740,8 @@ function setBusy(b){
 
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 
-/* ── OLD THINKING BUBBLE — now replaced by thought system ── */
-// Legacy insertThinkingBubble kept for fallback (pneuma without thinkMode)
-function insertThinkingBubble() {
+/* ── INSERT BOT BUBBLE ── */
+function insertBotBubble() {
   const box = document.getElementById('messages');
   showMessages();
   const wrap = document.createElement('div');
@@ -622,7 +752,7 @@ function insertThinkingBubble() {
   return wrap;
 }
 
-function insertThinkingBubbleWithThoughts(model) {
+function insertBotBubbleForThoughts() {
   const box = document.getElementById('messages');
   showMessages();
   const wrap = document.createElement('div');
@@ -633,17 +763,12 @@ function insertThinkingBubbleWithThoughts(model) {
   return wrap;
 }
 
-function stopThinkAnimation() {
-  if(_thinkTimer){clearTimeout(_thinkTimer);_thinkTimer=null;}
-}
-
-function replaceThinkWithContent(thinkEl, rawText) {
+function replaceThinkWithContent(botMsgEl, rawText) {
   stopThinkAnimation();
-  // Transition thought UI → response
-  transitionToResponse(thinkEl);
+  finaliseThoughts(botMsgEl);
 
-  let bc = thinkEl.querySelector('.bot-content');
-  if(bc) {
+  const bc = botMsgEl.querySelector('.bot-content');
+  if (bc) {
     bc.innerHTML = '';
     streamContent(bc, rawText, () => { setBusy(false); });
   }
@@ -900,7 +1025,7 @@ async function send(){
 
   // Create bot bubble
   showMessages();
-  const botMsgEl = useThoughts ? insertThinkingBubbleWithThoughts(model) : insertThinkingBubble();
+  const botMsgEl = useThoughts ? insertBotBubbleForThoughts() : insertBotBubble();
 
   // Build API request body
   const apiMessages = hist.slice(0,-1).map(m=>({
@@ -920,7 +1045,7 @@ async function send(){
 
   log('inf',`→ ${CLOAK_API}/v1/chat model=${model} turns=${trimmedMessages.length} thoughts=${useThoughts}`);
 
-  // Kick off fetch (not awaited yet — thought sequence runs in parallel)
+  // Kick off main fetch — store result in a resolvable promise
   _fetchController=new AbortController();
   let _responseResolve, _responseReject;
   const responsePromise=new Promise((res,rej)=>{_responseResolve=res;_responseReject=rej;});
@@ -948,12 +1073,12 @@ async function send(){
   fetchAndResolve();
 
   try {
-    // Run thought sequence in parallel with fetch (if applicable)
-    if(useThoughts) {
-      await runThoughtSequence(botMsgEl, model, responsePromise);
+    // Run dynamic thought sequence in parallel with fetch (only for logos/kairos/thinkMode)
+    if (useThoughts) {
+      await runThoughtSequence(botMsgEl, model, txt || '[Image]', responsePromise);
     }
 
-    // Now wait for the actual response
+    // Wait for the actual response
     const {responseText, ms, model: respModel} = await responsePromise;
 
     stats.lat.push(ms);
