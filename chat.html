@@ -2,765 +2,1402 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#131110">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Cloak">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="format-detection" content="telephone=no">
-<meta name="description" content="Cloak — A human resource, not a companion. Ethical AI that serves you.">
-<title>Cloak</title>
+<title>Cloak — v3</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2L19.5 12.5L30 16L19.5 19.5L16 30L12.5 19.5L2 16L12.5 12.5Z' fill='%23D44D2A'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="cloak.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script>
-  if(localStorage.getItem('cloak_dark')!=='0') document.documentElement.classList.add('dark');
-  (function(){var t=localStorage.getItem('cloak_theme')||'default';document.documentElement.setAttribute('data-theme',t);})();
-</script>
 <style>
-/* ════════════════════════════════════════════
-   PERSONA SELECTOR — strict neobrutalist
-   Hard border · box-shadow · Syne uppercase
-   Segmented tabs, no dropdowns, no emojis
-════════════════════════════════════════════ */
+/* ═══ RESET & BASE ═══ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+html{-webkit-font-smoothing:antialiased;}
 
-/* Outer group — sits in topbar-right */
-.persona-wrap {
-  display: flex;
-  align-items: stretch;
-  border: var(--bd);
-  box-shadow: var(--shsm);
-  height: 36px;
-  flex-shrink: 0;
+/* ═══ THEMES ═══ */
+:root{
+  --ink:#0A0A0A;--paper:#F2EEE5;--p2:#EAE5DB;--p3:#DDD8CC;--surf:#FAFAF7;
+  --acc:#D44D2A;--acc2:#B83B1D;--yel:#F5C842;--grn:#22c55e;
+  --bd:2px solid #0A0A0A;--bdt:1px solid rgba(10,10,10,.12);
+  --sh:4px 4px 0 #0A0A0A;--shlg:6px 6px 0 #0A0A0A;--shsm:2px 2px 0 #0A0A0A;
+  --r:0px;
+  --fu:'Space Grotesk',system-ui,sans-serif;
+  --fd:'Syne',system-ui,sans-serif;
+  --t:140ms ease;--tm:240ms ease;
+  --sw:260px;
+}
+.dark{
+  --ink:#EDE8DF;--paper:#131110;--p2:#1A1815;--p3:#22201C;--surf:#181512;
+  --acc:#E5603E;--acc2:#D44D2A;
+  --bd:2px solid rgba(237,232,223,.6);--bdt:1px solid rgba(237,232,223,.1);
+  --sh:4px 4px 0 rgba(237,232,223,.45);--shlg:6px 6px 0 rgba(237,232,223,.35);--shsm:2px 2px 0 rgba(237,232,223,.38);
+}
+body{font-family:var(--fu);font-size:14px;background:var(--paper);color:var(--ink);transition:background .2s,color .2s;}
+
+/* ═══ KEYFRAMES ═══ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes tdot{0%,60%,100%{transform:translateY(0);opacity:.2}30%{transform:translateY(-6px);opacity:1}}
+@keyframes blink{0%,100%{opacity:.8}50%{opacity:0}}
+@keyframes dropIn{from{opacity:0;transform:scaleY(.7) translateY(-6px);transform-origin:top}to{opacity:1;transform:scaleY(1) translateY(0)}}
+@keyframes slideRight{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:translateX(0)}}
+@keyframes taskIn{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:translateX(0)}}
+@keyframes checkIn{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:scale(1)}}
+@keyframes progressFill{from{width:0}to{width:100%}}
+@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+@keyframes phaseIn{from{opacity:0;transform:translateY(4px)}to{opacity:.75;transform:translateY(0)}}
+@keyframes greetIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes chipIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes marqueeTick{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:translateX(0)}}
+
+.sc{display:inline-block;width:2px;height:.85em;background:var(--ink);margin-left:1px;vertical-align:text-bottom;animation:blink .7s step-start infinite;}
+
+/* ═══ SHELL ═══ */
+#app{display:flex;flex-direction:column;height:100%;position:fixed;inset:0;}
+.shell{flex:1;display:flex;overflow:hidden;min-height:0;}
+
+/* ═══ SIDEBAR ═══ */
+.sidebar{
+  width:var(--sw);flex-shrink:0;
+  background:var(--p2);border-right:var(--bd);
+  display:flex;flex-direction:column;
+  padding:0 8px 12px;
+  transition:width var(--tm),opacity var(--tm),padding var(--tm);
+  overflow:hidden;
+}
+.sidebar.collapsed{width:0;padding:0;opacity:0;pointer-events:none;}
+.sb-logo{
+  display:flex;align-items:center;gap:10px;
+  height:52px;padding:0 10px;
+  border-bottom:var(--bd);margin:0 -8px 12px -8px;
+}
+.sb-logo-mark{
+  width:28px;height:28px;background:var(--acc);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.sb-logo-mark svg{fill:#fff;}
+.sb-wordmark{font-family:var(--fd);font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;}
+.sb-btn{
+  display:flex;align-items:center;gap:9px;padding:8px 10px;
+  border:1.5px solid transparent;background:transparent;
+  color:var(--ink);font-family:var(--fu);font-size:12px;font-weight:600;
+  cursor:pointer;width:100%;text-align:left;white-space:nowrap;
+  min-height:36px;transition:background var(--t),border-color var(--t);
+}
+.sb-btn:hover{background:var(--p3);border-color:var(--ink);}
+.sb-new{
+  background:var(--ink);color:var(--paper);border:var(--bd);
+  box-shadow:var(--shsm);margin-bottom:10px;
+  font-weight:700;text-transform:uppercase;letter-spacing:.09em;font-size:11px;
+  transition:box-shadow var(--t),transform var(--t);
+}
+.sb-new:hover{box-shadow:var(--sh);transform:translate(-1px,-1px);background:var(--acc);border-color:var(--acc);}
+.sb-new:active{box-shadow:none;transform:translate(2px,2px);}
+.sb-label{font-size:9px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:.18em;padding:8px 10px 4px;opacity:.32;white-space:nowrap;}
+.conv-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:1px;}
+.conv-list::-webkit-scrollbar{width:3px;}
+.conv-list::-webkit-scrollbar-thumb{background:var(--ink);opacity:.2;}
+.conv-item{display:flex;align-items:center;border:1.5px solid transparent;transition:background var(--t),border-color var(--t);}
+.conv-item:hover{background:var(--p3);border-color:var(--ink);}
+.conv-item.active{background:var(--ink);}
+.conv-label{flex:1;padding:8px 10px;font-size:12px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
+.conv-item.active .conv-label{color:var(--paper);}
+.conv-del{width:26px;height:26px;border:none;background:transparent;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;margin-right:4px;opacity:0;transition:opacity var(--t);}
+.conv-item:hover .conv-del{opacity:.4;}
+.conv-del:hover{opacity:1!important;background:var(--acc);color:#fff;}
+.conv-item.active .conv-del{color:var(--paper);}
+.sb-footer{border-top:var(--bd);padding-top:8px;margin-top:4px;display:flex;flex-direction:column;gap:1px;}
+.user-row{display:flex;align-items:center;gap:9px;padding:7px 10px;}
+.user-av{width:28px;height:28px;background:var(--ink);color:var(--paper);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--fd);}
+.user-name{font-size:12px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.user-email{font-size:10px;color:var(--ink);opacity:.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* ═══ MAIN ═══ */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--paper);min-width:0;position:relative;}
+
+/* ═══ TOPBAR — EDITORIAL ═══ */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;height:52px;
+  border-bottom:var(--bd);flex-shrink:0;
+  background:var(--surf);
+  position:relative;z-index:50;
+}
+.topbar-left{display:flex;align-items:center;gap:10px;}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.icon-btn{
+  width:36px;height:36px;border:var(--bd);background:var(--surf);color:var(--ink);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  box-shadow:var(--shsm);transition:box-shadow var(--t),transform var(--t);
+}
+.icon-btn:hover{box-shadow:var(--sh);transform:translate(-1px,-1px);}
+.icon-btn:active{box-shadow:none;transform:translate(2px,2px);}
+.topbar-title{font-family:var(--fd);font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
+
+/* ═══ MODEL DROPDOWN — NEOBRUTALIST ═══ */
+.model-wrap{position:relative;}
+
+.model-trigger{
+  display:flex;align-items:center;gap:8px;
+  height:36px;padding:0 12px;
+  border:var(--bd);background:var(--surf);
+  color:var(--ink);font-family:var(--fd);
+  font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
+  cursor:pointer;white-space:nowrap;
+  box-shadow:var(--shsm);
+  transition:box-shadow var(--t),transform var(--t),background var(--t);
+  user-select:none;
+}
+.model-trigger:hover{box-shadow:var(--sh);transform:translate(-1px,-1px);}
+.model-trigger:active,
+.model-trigger.open{box-shadow:none;transform:translate(2px,2px);background:var(--ink);color:var(--paper);}
+.model-trigger.open .mt-chevron{transform:rotate(180deg);}
+.model-trigger .mt-chevron{transition:transform var(--t);}
+
+.model-dot{
+  width:7px;height:7px;background:var(--acc);flex-shrink:0;
+}
+.model-trigger.open .model-dot{background:var(--yel);}
+
+.model-menu{
+  display:none;
+  position:absolute;right:0;top:calc(100% + 6px);
+  background:var(--surf);border:var(--bd);
+  box-shadow:var(--shlg);
+  min-width:240px;z-index:200;
+  padding:4px;
+}
+.model-menu.open{
+  display:flex;flex-direction:column;gap:2px;
+  animation:dropIn .18s cubic-bezier(.16,1,.3,1);
 }
 
-/* Individual tab */
-.persona-tab {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 11px;
-  border: none;
-  border-right: var(--bd);
-  background: var(--surf);
-  color: var(--ink);
-  font-family: var(--fd);
-  font-size: 9px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .13em;
-  cursor: pointer;
-  white-space: nowrap;
-  opacity: .38;
-  transition: background var(--t), color var(--t), opacity var(--t);
-  position: relative;
+.model-opt{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:10px 12px;border:1.5px solid transparent;
+  background:transparent;cursor:pointer;
+  transition:background var(--t),border-color var(--t);
+  text-align:left;font-family:var(--fu);
 }
-.persona-tab:last-child { border-right: none; }
+.model-opt:hover{background:var(--p2);border-color:var(--ink);}
+.model-opt.active{background:var(--ink);}
+.model-opt.active .mo-name{color:var(--paper);}
+.model-opt.active .mo-desc{color:var(--paper);opacity:.45;}
+.model-opt.active .mo-badge{background:var(--acc);color:#fff;border-color:var(--acc);}
+.mo-left{display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0;padding-top:2px;}
+.mo-icon{
+  width:28px;height:28px;border:var(--bd);
+  display:flex;align-items:center;justify-content:center;
+  background:var(--p2);flex-shrink:0;
+}
+.model-opt.active .mo-icon{background:var(--acc);border-color:var(--acc);}
+.model-opt.active .mo-icon svg{stroke:#fff;}
+.mo-badge{
+  font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;
+  padding:2px 5px;border:var(--bd);white-space:nowrap;
+  background:var(--p3);color:var(--ink);
+}
+.mo-right{flex:1;min-width:0;}
+.mo-name{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink);font-family:var(--fd);}
+.mo-desc{font-size:11px;color:var(--ink);opacity:.5;margin-top:2px;line-height:1.4;}
 
-.persona-tab:hover {
-  opacity: .72;
-  background: var(--p2);
-}
+/* ═══ CHAT AREA ═══ */
+.content-row{flex:1;display:flex;overflow:hidden;min-height:0;}
+.chat-area{flex:1;overflow-y:auto;scroll-behavior:smooth;}
+.chat-area::-webkit-scrollbar{width:4px;}
+.chat-area::-webkit-scrollbar-thumb{background:var(--ink);opacity:.18;}
 
-/* Active state: ink fill, accent bottom line */
-.persona-tab.active {
-  background: var(--ink);
-  color: var(--paper);
-  opacity: 1;
+/* ═══ TASK PANEL ═══ */
+.task-panel{
+  width:0;flex-shrink:0;overflow:hidden;
+  border-left:var(--bd);background:var(--p2);
+  display:flex;flex-direction:column;
+  transition:width .3s cubic-bezier(.16,1,.3,1);
 }
-.persona-tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--acc);
-}
-.persona-tab.active .persona-sym svg {
-  stroke: var(--paper);
-}
+.task-panel.open{width:300px;}
 
-/* SVG symbol icon */
-.persona-sym {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  opacity: .8;
+.tp-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;border-bottom:var(--bd);
+  background:var(--ink);flex-shrink:0;
 }
-.persona-tab.active .persona-sym { opacity: 1; }
+.tp-title{
+  font-family:var(--fd);font-size:12px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.13em;color:var(--paper);
+}
+.tp-close{
+  width:24px;height:24px;border:1px solid rgba(237,232,223,.4);
+  background:transparent;color:var(--paper);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:12px;
+  transition:background var(--t);
+}
+.tp-close:hover{background:var(--acc);}
 
-/* Hide descriptor on narrow viewports */
-.persona-tab-desc {
-  font-family: var(--fu);
-  font-size: 8px;
-  font-weight: 500;
-  text-transform: none;
-  letter-spacing: 0;
-  opacity: .55;
-  border-left: 1px solid currentColor;
-  padding-left: 6px;
-  margin-left: 1px;
+.tp-progress{
+  height:3px;background:var(--p3);flex-shrink:0;overflow:hidden;
 }
-
-/* Live status pill — tighter, same border language */
-.live-pill {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0 9px;
-  border: var(--bd);
-  box-shadow: var(--shsm);
-  background: var(--surf);
-  font-family: var(--fd);
-  font-size: 8px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .13em;
-  color: var(--acc);
-  height: 36px;
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-.live-pill .live-dot {
-  width: 6px;
-  height: 6px;
-  background: var(--acc);
-  flex-shrink: 0;
-  animation: pdot 2s infinite;
+.tp-progress-bar{
+  height:100%;background:var(--acc);
+  transition:width .4s cubic-bezier(.16,1,.3,1);
 }
 
-/* Responsive */
-@media (max-width: 860px) {
-  .persona-tab-desc { display: none; }
+.tp-model-label{
+  padding:8px 14px;font-size:9px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.14em;color:var(--acc);border-bottom:var(--bdt);flex-shrink:0;
+  display:flex;align-items:center;gap:6px;
 }
-@media (max-width: 540px) {
-  .persona-tab { padding: 0 9px; }
-  .persona-tab-label { display: none; }
-  .live-pill { display: none; }
+.tp-model-label::before{content:'';display:block;width:6px;height:6px;background:var(--acc);animation:pulse 2s infinite;}
+
+.task-list{flex:1;overflow-y:auto;padding:8px;}
+.task-list::-webkit-scrollbar{width:3px;}
+.task-list::-webkit-scrollbar-thumb{background:var(--ink);opacity:.2;}
+
+.task-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 10px;border:1.5px solid transparent;
+  margin-bottom:3px;
+  transition:background var(--t),border-color var(--t);
+  opacity:0;
+  animation:taskIn .25s ease forwards;
+}
+.task-item.pending{opacity:.45;}
+.task-item.active{
+  background:var(--surf);border-color:var(--acc);
+  box-shadow:var(--shsm);opacity:1;
+}
+.task-item.done{opacity:1;}
+.task-item.done .ti-body{opacity:.55;}
+
+.ti-num{
+  font-family:var(--fd);font-size:16px;font-weight:800;color:var(--ink);
+  opacity:.22;flex-shrink:0;line-height:1;margin-top:1px;
+  min-width:18px;
+}
+.task-item.active .ti-num{color:var(--acc);opacity:1;}
+.task-item.done .ti-num{color:var(--grn);opacity:1;}
+
+.ti-status{
+  width:18px;height:18px;border:var(--bd);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  margin-top:1px;background:var(--paper);
+  transition:background var(--t);
+}
+.task-item.active .ti-status{border-color:var(--acc);background:transparent;}
+.task-item.done .ti-status{background:var(--grn);border-color:var(--grn);}
+
+.ti-spinner{
+  width:8px;height:8px;border:1.5px solid var(--acc);
+  border-top-color:transparent;animation:spin .7s linear infinite;display:none;
+}
+.task-item.active .ti-spinner{display:block;}
+.task-item.active .ti-check{display:none;}
+.ti-check{
+  width:10px;height:10px;display:none;
+}
+.task-item.done .ti-check{display:block;animation:checkIn .2s cubic-bezier(.34,1.56,.64,1);}
+
+.ti-body{flex:1;}
+.ti-title{font-size:12px;font-weight:700;color:var(--ink);line-height:1.3;}
+.ti-desc{font-size:10px;color:var(--ink);opacity:.45;margin-top:2px;line-height:1.4;}
+
+.tp-summary{
+  padding:10px 14px;border-top:var(--bd);flex-shrink:0;
+  font-size:11px;color:var(--ink);opacity:.5;
+}
+.tp-summary span{font-weight:700;color:var(--acc);opacity:1;}
+
+/* ═══ EMPTY STATE ═══ */
+.empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;min-height:320px;padding:32px 20px;
+  position:relative;overflow:hidden;
+}
+.empty::before{
+  content:'CLOAK';
+  position:absolute;
+  font-family:var(--fd);font-size:min(18vw,200px);font-weight:800;text-transform:uppercase;
+  color:var(--ink);opacity:.025;pointer-events:none;letter-spacing:-.05em;
+  left:50%;top:50%;transform:translate(-50%,-50%);white-space:nowrap;
+}
+.empty-inner{display:flex;flex-direction:column;align-items:center;gap:14px;position:relative;z-index:1;}
+.empty-tag{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.18em;color:var(--acc);animation:greetIn .5s ease;}
+.empty-greeting{font-family:var(--fd);font-size:clamp(26px,4vw,38px);font-weight:800;text-transform:uppercase;letter-spacing:-.3px;animation:greetIn .5s .06s ease both;}
+.empty-rule{width:48px;height:2px;background:var(--acc);margin:2px 0;animation:greetIn .5s .1s ease both;}
+.empty-sub{font-size:12px;font-weight:600;color:var(--ink);opacity:.38;text-transform:uppercase;letter-spacing:.12em;animation:greetIn .5s .14s ease both;}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:22px;max-width:520px;}
+.chip{
+  padding:8px 14px;border:var(--bd);background:var(--surf);box-shadow:var(--shsm);
+  font-family:var(--fu);font-size:11px;font-weight:600;color:var(--ink);cursor:pointer;
+  transition:box-shadow var(--t),transform var(--t);
+  opacity:0;
+}
+.chip:nth-child(1){animation:chipIn .35s .22s ease forwards;}
+.chip:nth-child(2){animation:chipIn .35s .30s ease forwards;}
+.chip:nth-child(3){animation:chipIn .35s .38s ease forwards;}
+.chip:nth-child(4){animation:chipIn .35s .46s ease forwards;}
+.chip:hover{box-shadow:var(--sh);transform:translate(-1px,-1px);}
+.chip:active{box-shadow:none;transform:translate(2px,2px);}
+
+/* ═══ MESSAGES ═══ */
+.messages{display:flex;flex-direction:column;gap:0;padding:0 0 32px;max-width:760px;margin:0 auto;width:100%;}
+.msg{display:flex;flex-direction:column;animation:msgIn .2s cubic-bezier(.16,1,.3,1);width:100%;}
+.msg.user{align-items:flex-end;padding:18px 24px 0;}
+.msg.bot{align-items:flex-start;padding:22px 24px 0;}
+
+.bubble{
+  background:var(--p2);border:var(--bd);box-shadow:var(--shsm);
+  padding:10px 14px;max-width:72%;
+  font-size:14px;font-weight:500;line-height:1.68;color:var(--ink);
+  word-break:break-word;
+}
+
+/* Bot message */
+.bot-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.bot-sig{
+  display:flex;align-items:center;gap:6px;
+  font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--acc);
+}
+.bot-sig-dot{width:5px;height:5px;background:var(--acc);}
+
+/* Progress steps (Logos/Kairos) */
+.step-track{
+  display:flex;flex-direction:column;gap:3px;
+  margin-bottom:10px;padding:10px 12px;
+  background:var(--p2);border:var(--bd);border-left:3px solid var(--acc);
+}
+.step-phase{
+  font-size:11px;color:var(--ink);opacity:0;
+  display:flex;align-items:center;gap:7px;
+  animation:phaseIn .3s ease forwards;
+}
+.step-phase.done{opacity:.32;text-decoration:line-through;}
+.step-phase.active{opacity:.85;color:var(--acc);}
+.step-phase::before{
+  content:'';width:6px;height:6px;flex-shrink:0;
+  background:currentColor;
+}
+.step-phase.active::before{animation:pulse 1s infinite;}
+
+/* Bot content */
+.bot-content,.bot-content-final{font-size:15px;line-height:1.8;color:var(--ink);word-break:break-word;}
+.bot-content p,.bot-content-final p{margin-bottom:.85em;}
+.bot-content p:last-child,.bot-content-final p:last-child{margin-bottom:0;}
+.bot-content h1,.bot-content-final h1,.bot-content h2,.bot-content-final h2,.bot-content h3,.bot-content-final h3{
+  font-family:var(--fd);font-weight:800;text-transform:uppercase;letter-spacing:-.2px;margin:1.1em 0 .4em;
+}
+.bot-content h1,.bot-content-final h1{font-size:18px;border-bottom:var(--bdt);padding-bottom:.3em;}
+.bot-content h2,.bot-content-final h2{font-size:15px;}
+.bot-content h3,.bot-content-final h3{font-size:13px;}
+.bot-content ul,.bot-content-final ul,.bot-content ol,.bot-content-final ol{padding-left:20px;margin-bottom:.85em;}
+.bot-content li,.bot-content-final li{margin-bottom:.3em;line-height:1.72;}
+.bot-content strong,.bot-content-final strong{font-weight:700;}
+.bot-content blockquote,.bot-content-final blockquote{border-left:3px solid var(--acc);padding-left:12px;margin-bottom:.85em;opacity:.72;font-style:italic;}
+.bot-content pre,.bot-content-final pre{margin-bottom:.85em;border:var(--bd);box-shadow:var(--shsm);overflow:hidden;}
+.code-bar{display:flex;align-items:center;justify-content:space-between;padding:5px 10px;background:var(--ink);}
+.code-lang{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--paper);opacity:.5;}
+.code-copy{height:22px;padding:0 8px;background:transparent;border:1px solid rgba(255,255,255,.2);color:var(--paper);font-size:9px;font-weight:700;text-transform:uppercase;cursor:pointer;font-family:var(--fu);}
+.code-copy:hover{background:rgba(255,255,255,.1);}
+.code-copy.ok{background:var(--yel);color:var(--ink);}
+.bot-content pre code,.bot-content-final pre code{font-family:'Courier New',monospace;font-size:12px;line-height:1.7;padding:12px 14px;display:block;overflow-x:auto;background:#141210;color:#E8E0D0;}
+.bot-content p code,.bot-content-final p code{font-family:'Courier New',monospace;font-size:11.5px;background:var(--p3);color:var(--acc);padding:1px 4px;border:1.5px solid var(--ink);}
+.bot-content table,.bot-content-final table{width:100%;border-collapse:collapse;margin-bottom:.85em;font-size:13px;}
+.bot-content th,.bot-content-final th{background:var(--p2);font-weight:700;padding:7px 10px;border:var(--bd);text-align:left;}
+.bot-content td,.bot-content-final td{padding:6px 10px;border:var(--bdt);}
+
+/* Typing */
+.typing{display:flex;align-items:center;gap:6px;height:28px;}
+.tdot{width:6px;height:6px;background:var(--ink);animation:tdot 1.3s infinite;}
+.tdot:nth-child(2){animation-delay:.15s;}
+.tdot:nth-child(3){background:var(--acc);animation-delay:.3s;}
+
+/* Turn divider */
+.msg.bot+.msg.user{border-top:var(--bdt);margin-top:8px;padding-top:26px;}
+
+/* Msg actions */
+.msg-actions{display:flex;gap:4px;margin-top:10px;opacity:0;transition:opacity .15s;}
+.msg:hover .msg-actions{opacity:1;}
+.act-btn{width:28px;height:28px;border:var(--bd);background:var(--surf);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shsm);opacity:.5;transition:all var(--t);}
+.act-btn:hover{opacity:1;box-shadow:var(--sh);transform:translate(-1px,-1px);}
+.act-btn.ok{background:var(--yel);border-color:var(--yel);opacity:1;}
+
+/* ═══ INPUT AREA ═══ */
+.input-area{
+  padding:10px 16px 14px;flex-shrink:0;
+  background:var(--surf);border-top:var(--bd);
+}
+.input-wrap{max-width:760px;margin:0 auto;}
+.input-row{display:flex;flex-direction:column;gap:0;}
+.mode-labels{display:flex;gap:6px;margin-bottom:3px;}
+.mode-label{
+  display:none;align-items:center;gap:6px;
+  font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;
+  background:var(--yel);border:var(--bd);border-bottom:none;
+  padding:4px 10px;color:var(--ink);
+}
+.mode-label.show{display:flex;}
+.mode-label-x{background:none;border:none;color:inherit;cursor:pointer;font-size:12px;font-weight:800;margin-left:auto;}
+
+.input-box{
+  display:flex;align-items:center;gap:8px;
+  background:var(--paper);border:var(--bd);box-shadow:var(--shsm);
+  padding:8px 10px;transition:box-shadow var(--t);
+}
+.input-box:focus-within{box-shadow:var(--sh);}
+.chat-input{
+  flex:1;background:transparent;border:none;outline:none;
+  resize:none;font-family:var(--fu);font-size:14px;font-weight:500;
+  color:var(--ink);line-height:1.6;min-height:24px;max-height:140px;
+  overflow-y:auto;align-self:center;
+}
+.chat-input::placeholder{color:var(--ink);opacity:.3;}
+.send-btn{
+  width:36px;height:36px;border:var(--bd);background:var(--acc);color:#fff;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:var(--shsm);transition:all var(--t);flex-shrink:0;
+}
+.send-btn:hover:not(:disabled){box-shadow:var(--sh);transform:translate(-1px,-1px);}
+.send-btn:active:not(:disabled){box-shadow:none;transform:translate(2px,2px);}
+.send-btn:disabled{background:var(--p3);color:var(--ink);opacity:.35;cursor:not-allowed;box-shadow:none;}
+.send-btn.stop{background:var(--acc)!important;opacity:1!important;cursor:pointer!important;}
+
+.plus-btn{width:30px;height:30px;border:var(--bd);background:var(--p2);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:300;box-shadow:var(--shsm);transition:all var(--t);flex-shrink:0;}
+.plus-btn:hover{box-shadow:var(--sh);transform:translate(-1px,-1px);}
+.plus-btn.on{background:var(--ink);color:var(--paper);}
+
+.plus-menu{
+  display:none;position:absolute;bottom:calc(100% + 6px);left:0;
+  background:var(--surf);border:var(--bd);box-shadow:var(--sh);
+  min-width:210px;padding:4px;z-index:100;transform-origin:bottom left;
+}
+.plus-menu.open{display:flex;flex-direction:column;gap:2px;animation:dropIn .18s ease;}
+.pm-item{
+  display:flex;align-items:center;gap:10px;padding:9px 11px;
+  border:1.5px solid transparent;cursor:pointer;background:transparent;
+  font-family:var(--fu);text-align:left;transition:all var(--t);
+}
+.pm-item:hover{background:var(--p2);border-color:var(--ink);}
+.pm-item.on{background:var(--ink);}
+.pm-item.on .pm-label,.pm-item.on .pm-desc{color:var(--paper);}
+.pm-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);display:block;}
+.pm-desc{font-size:10px;color:var(--ink);opacity:.4;display:block;margin-top:1px;}
+.pm-check{opacity:0;margin-left:auto;flex-shrink:0;}
+.pm-item.on .pm-check{opacity:1;}
+
+.input-pos{position:relative;}
+.input-foot{display:flex;align-items:center;justify-content:space-between;margin-top:5px;}
+.foot-sub{font-size:9.5px;font-weight:600;color:var(--ink);opacity:.22;text-transform:uppercase;letter-spacing:.07em;}
+.input-disc{font-size:10px;color:var(--ink);opacity:.35;text-align:center;margin-top:4px;line-height:1.5;}
+.disc-link{color:var(--acc);font-weight:700;text-decoration:underline;text-underline-offset:2px;}
+
+/* ═══ DARK MODE TOGGLE ═══ */
+.moon{display:block;}.sun{display:none;}
+.dark .moon{display:none;}.dark .sun{display:block;}
+
+/* ═══ MOBILE ═══ */
+@media(max-width:640px){
+  :root{--sw:min(78vw,264px);}
+  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:200;width:var(--sw)!important;opacity:1!important;padding:12px 8px!important;transform:translateX(-100%);transition:transform .28s cubic-bezier(.16,1,.3,1);pointer-events:none;}
+  .sidebar:not(.collapsed){transform:translateX(0);pointer-events:auto;}
+  .sidebar.collapsed{transform:translateX(-100%);pointer-events:none;}
+  .sb-overlay{position:fixed;inset:0;background:rgba(10,10,10,.48);z-index:199;display:none;}
+  .sb-overlay.show{display:block;}
+  .task-panel.open{width:0;}
+  .bubble{max-width:88%;}
+  .msg.user{padding:14px 16px 0;}
+  .msg.bot{padding:16px 16px 0;}
+  .model-menu{right:auto;left:0;}
+}
+@media(max-width:768px){
+  .chat-input{font-size:16px!important;}
 }
 </style>
 </head>
 <body>
 
-<!-- ── LOADING ── -->
-<div id="s-loading"></div>
+<div id="app">
+  <!-- sb overlay mobile -->
+  <div class="sb-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
 
-<!-- ── AUTH ── -->
-<div id="s-auth" class="screen">
-  <div class="auth-card">
-    <div class="brand">
-      <div class="brand-name">Cloak</div>
-      <div class="brand-tag">A human resource, not a companion.</div>
-    </div>
-    <div class="seg">
-      <button class="seg-btn active" id="tab-in" onclick="authMode('in')">Sign in</button>
-      <button class="seg-btn" id="tab-up" onclick="authMode('up')">Create account</button>
-    </div>
-    <div class="form">
-      <div id="field-name" style="display:none">
-        <label class="field-label">Your name</label>
-        <input class="input" id="inp-name" type="text" placeholder="Weston" autocomplete="name" onkeydown="authKey(event,'inp-email')">
-      </div>
-      <div>
-        <label class="field-label">Email</label>
-        <input class="input" id="inp-email" type="email" placeholder="you@example.com" autocomplete="email" onkeydown="authKey(event,'inp-pass')">
-      </div>
-      <div>
-        <label class="field-label">Password</label>
-        <input class="input" id="inp-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="authKey(event,'inp-confirm',true)">
-      </div>
-      <div id="field-confirm" style="display:none">
-        <label class="field-label">Confirm password</label>
-        <input class="input" id="inp-confirm" type="password" placeholder="••••••••" onkeydown="authKey(event,null)">
-      </div>
-      <div class="err-msg" id="auth-err"></div>
-      <button class="btn-primary" id="btn-submit" onclick="handleAuth()">Sign in</button>
-      <div class="auth-divider">
-        <div class="auth-divider-line"></div>
-        <div class="auth-divider-text">or</div>
-        <div class="auth-divider-line"></div>
-      </div>
-      <button class="btn-ghost" onclick="startGuest()">Continue as guest</button>
-    </div>
-    <div class="auth-note">
-      <a href="landing.html">What is Cloak?</a> &middot; <a href="values.html">Our values &rarr;</a>
-    </div>
-  </div>
-</div>
-
-<!-- ── VERIFY ── -->
-<div id="s-verify" class="screen">
-  <div class="auth-card">
-    <div class="brand">
-      <div class="brand-name">Check your email</div>
-    </div>
-    <p class="hint-text">We sent a link to <strong id="verify-addr"></strong>. Click it to confirm, then come back and sign in.</p>
-    <div class="form">
-      <div class="ok-msg">Verification email sent</div>
-      <button class="btn-primary" onclick="show('auth')">Back to sign in</button>
-      <div class="link-row"><a onclick="resendVerify()">Resend email</a></div>
-    </div>
-  </div>
-</div>
-
-<!-- ── MFA ── -->
-<div id="s-mfa" class="screen">
-  <div class="auth-card">
-    <div class="brand">
-      <div class="brand-name">Two-factor auth</div>
-    </div>
-    <p class="hint-text">Enter the 6-digit code from your authenticator app.</p>
-    <div class="form">
-      <input class="input mono-input" id="mfa-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" onkeydown="if(event.key==='Enter')handleMfa()">
-      <div class="err-msg" id="mfa-err"></div>
-      <button class="btn-primary" onclick="handleMfa()">Verify</button>
-      <div class="link-row"><a onclick="show('auth')">Back to sign in</a></div>
-    </div>
-  </div>
-</div>
-
-<!-- ── CHAT ── -->
-<div id="s-chat">
-  <div id="ios-inset"></div>
-
-  <!-- Announcement bar -->
-  <div class="ann" id="ann-bar">
-    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M22 8.93V3l-8 5H6a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h1l2 5h3l-1-5h3l8 5V8.93z"/></svg>
-    <span class="ann-text" id="ann-msg"></span>
-    <button class="ann-x" onclick="dismissAnn()">&times;</button>
-  </div>
-
-  <!-- ── SETTINGS MODAL ── -->
-  <div class="overlay" id="modal-settings" style="display:none" onclick="overlayClick(event,'modal-settings')">
-    <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-head">
-        <div class="modal-title">Settings</div>
-        <button class="modal-x" onclick="closeModal('modal-settings')">&times;</button>
-      </div>
-      <div class="settings-layout">
-        <nav class="settings-nav">
-          <button class="snav-btn on" id="snav-general" onclick="switchSettingsTab('general')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
-            Account
-          </button>
-          <button class="snav-btn" id="snav-appearance" onclick="switchSettingsTab('appearance')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
-            Appearance
-          </button>
-          <button class="snav-btn" id="snav-security" onclick="switchSettingsTab('security')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
-            Security
-          </button>
-          <button class="snav-btn" id="snav-console" onclick="switchSettingsTab('console')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></span>
-            Console
-          </button>
-          <button class="snav-btn" id="snav-admin" style="display:none" onclick="switchSettingsTab('admin')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg></span>
-            Admin
-          </button>
-        </nav>
-        <div class="settings-body">
-
-          <!-- Account -->
-          <div class="spane on" id="spane-general">
-            <div class="srow">
-              <div class="srow-name">Account</div>
-              <div class="info-box" style="display:flex;align-items:center;gap:10px;margin-top:8px">
-                <div class="user-av" id="s-av" style="width:36px;height:36px;font-size:14px">?</div>
-                <div>
-                  <div style="font-size:14px;font-weight:500" id="s-name">—</div>
-                  <div style="font-size:12px;opacity:.5" id="s-email">—</div>
-                </div>
-              </div>
-            </div>
-            <div class="srow">
-              <div class="srow-name">Display name</div>
-              <div class="srow-desc">Shown in conversations and the greeting.</div>
-              <div style="display:flex;gap:8px;margin-top:8px">
-                <input class="inp-field" id="s-name-inp" placeholder="Your name" style="flex:1">
-                <button class="cta" onclick="saveName()">Save</button>
-              </div>
-            </div>
-            <div class="srow">
-              <div class="srow-name">Clear all chats</div>
-              <button class="danger" style="margin-top:8px" onclick="clearAllChats()">Delete all conversations</button>
-            </div>
-            <div class="srow">
-              <div class="srow-name">Sign out</div>
-              <button class="danger" style="margin-top:8px" onclick="doLogout()">Sign out of Cloak</button>
-            </div>
-          </div>
-
-          <!-- Appearance -->
-          <div class="spane" id="spane-appearance">
-            <div class="srow">
-              <div class="srow-head"><div class="srow-name">Light / Dark mode</div></div>
-              <div class="srow-desc">Currently <span id="mode-label">dark</span> mode.</div>
-              <button class="cta" style="margin-top:8px" onclick="toggleDark()">Toggle light / dark</button>
-            </div>
-            <div class="srow">
-              <div class="srow-name">Theme</div>
-              <div class="srow-desc">Choose a color palette. All themes support light and dark mode.</div>
-              <div class="theme-grid" style="margin-top:10px">
-                <div class="theme-card" id="theme-default" onclick="setTheme('default')">
-                  <div class="theme-swatch">
-                    <div class="theme-dot" style="background:#F2EEE5;border-color:#0A0A0A"></div>
-                    <div class="theme-dot" style="background:#D44D2A"></div>
-                    <div class="theme-dot" style="background:#0A0A0A"></div>
-                  </div>
-                  <div class="theme-name">Default</div>
-                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-                </div>
-                <div class="theme-card" id="theme-eco" onclick="setTheme('eco')">
-                  <div class="theme-swatch">
-                    <div class="theme-dot" style="background:#F0F7EC;border-color:#1A2E10"></div>
-                    <div class="theme-dot" style="background:#3A7D2C"></div>
-                    <div class="theme-dot" style="background:#8BC34A"></div>
-                  </div>
-                  <div class="theme-name">Eco</div>
-                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-                </div>
-                <div class="theme-card" id="theme-aqua" onclick="setTheme('aqua')">
-                  <div class="theme-swatch">
-                    <div class="theme-dot" style="background:#EAF4F8;border-color:#0A1E2E"></div>
-                    <div class="theme-dot" style="background:#0B7EA8"></div>
-                    <div class="theme-dot" style="background:#00B4D8"></div>
-                  </div>
-                  <div class="theme-name">Aqua</div>
-                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Security -->
-          <div class="spane" id="spane-security">
-            <div class="srow">
-              <div class="srow-head"><div class="srow-name">Two-factor authentication</div></div>
-              <div class="srow-desc">Add an authenticator app as a second step on sign-in.</div>
-              <button class="cta" style="margin-top:10px" onclick="start2FA()">Set up 2FA</button>
-              <div id="totp-section" style="display:none;margin-top:14px">
-                <div id="totp-qr" style="text-align:center;margin-bottom:10px"></div>
-                <div class="secret-box" id="totp-secret" style="margin-bottom:12px"></div>
-                <div style="font-size:12px;opacity:.5;margin-bottom:10px">Enter the 6-digit code to confirm:</div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap">
-                  <input class="input mono-input" id="totp-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" style="max-width:160px;font-size:18px">
-                  <button class="cta" onclick="confirmTOTP()">Enable</button>
-                </div>
-                <div class="err-msg" id="totp-err" style="margin-top:8px"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Console -->
-          <div class="spane" id="spane-console">
-            <div class="srow" style="padding-top:0">
-              <div class="stats-row">
-                <div class="stat s-req"><div class="stat-n" id="st-req">0</div><div class="stat-l">Requests</div></div>
-                <div class="stat s-res"><div class="stat-n" id="st-res">0</div><div class="stat-l">Responses</div></div>
-                <div class="stat s-err"><div class="stat-n" id="st-err">0</div><div class="stat-l">Errors</div></div>
-                <div class="stat s-lat"><div class="stat-n" id="st-lat">—</div><div class="stat-l">Avg ms</div></div>
-              </div>
-              <div class="filter-row">
-                <div class="filter-pills">
-                  <button class="filter-pill on" onclick="setFilter('all',this)">All</button>
-                  <button class="filter-pill" onclick="setFilter('req',this)">Req</button>
-                  <button class="filter-pill" onclick="setFilter('res',this)">Res</button>
-                  <button class="filter-pill" onclick="setFilter('err',this)">Err</button>
-                  <button class="filter-pill" onclick="setFilter('inf',this)">Info</button>
-                </div>
-                <button class="clear-log" onclick="clearLogs()">Clear</button>
-              </div>
-              <div class="console-log" id="console-log"><div class="log-empty">No logs yet</div></div>
-            </div>
-          </div>
-
-          <!-- Admin -->
-          <div class="spane" id="spane-admin">
-            <div class="srow">
-              <div class="srow-head"><div class="srow-name">Admin panel</div><span class="srow-badge">Owner</span></div>
-              <div class="srow-desc">Announcements appear as a banner to all signed-in users.</div>
-            </div>
-            <div class="srow">
-              <div class="srow-name">Post announcement</div>
-              <textarea class="inp-field" id="ann-compose" placeholder="Write an announcement…" style="margin-top:8px;min-height:76px;resize:vertical;font-family:inherit;font-size:13px;line-height:1.6"></textarea>
-              <button class="cta" style="margin-top:8px" onclick="postAnn()">Post</button>
-            </div>
-            <div class="srow">
-              <div class="srow-name">Active announcements</div>
-              <div class="ann-list" id="admin-ann-list" style="margin-top:8px"><div style="font-size:13px;opacity:.5">None active.</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="chat-shell">
-    <div class="sb-overlay" id="sb-overlay" onclick="closeMobileSidebar()"></div>
-
-    <!-- ── SIDEBAR ── -->
-    <div class="sidebar collapsed" id="sidebar">
+  <div class="shell">
+    <!-- ══ SIDEBAR ══ -->
+    <div class="sidebar" id="sidebar">
       <div class="sb-logo">
-        <span class="sb-logo-name">Cloak</span>
+        <div class="sb-logo-mark">
+          <svg width="14" height="14" viewBox="0 0 32 32"><path d="M16 2L19.5 12.5L30 16L19.5 19.5L16 30L12.5 19.5L2 16L12.5 12.5Z"/></svg>
+        </div>
+        <span class="sb-wordmark">Cloak</span>
       </div>
       <button class="sb-btn sb-new" onclick="newChat()">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-        New chat
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        New Chat
       </button>
       <div class="sb-label">Recent</div>
       <div class="conv-list" id="conv-list"></div>
-      <div id="guest-note" style="display:none" class="guest-note">Guest &mdash; <a onclick="show('auth');closeMobileSidebar()">Sign up</a> to save chats.</div>
-
       <div class="sb-footer">
-        <div id="sb-ann-bar">
-          <div style="display:flex;align-items:flex-start;gap:6px">
-            <div id="sb-ann-msg" style="flex:1"></div>
-            <button onclick="dismissAnn()" style="background:var(--ink);border:none;color:var(--paper);width:18px;height:18px;font-size:10px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">&times;</button>
-          </div>
-        </div>
         <div class="sb-label" style="margin-bottom:2px">Account</div>
         <div class="user-row">
-          <div class="user-av" id="sb-av">?</div>
-          <div class="user-info">
-            <div class="user-name" id="sb-name">—</div>
-            <div class="user-email" id="sb-email">—</div>
+          <div class="user-av" id="sb-av">G</div>
+          <div style="min-width:0;flex:1">
+            <div class="user-name" id="sb-name">Guest</div>
+            <div class="user-email" id="sb-email">guest session</div>
           </div>
         </div>
-        <button class="sb-btn" onclick="openSettings()">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-          Settings
-        </button>
-        <button class="sb-btn" onclick="window.location.href='values.html'">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
-          Our Values
-        </button>
       </div>
     </div>
 
-    <!-- ── MAIN AREA ── -->
+    <!-- ══ MAIN ══ -->
     <div class="main">
+      <!-- TOPBAR -->
       <div class="topbar">
         <div class="topbar-left">
           <button class="icon-btn" onclick="toggleSidebar()" title="Toggle sidebar">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
           </button>
+          <div class="topbar-title">Cloak</div>
         </div>
-
         <div class="topbar-right">
 
-          <!-- ── PERSONA SEGMENTED CONTROL ── -->
-          <div class="persona-wrap" role="group" aria-label="Select persona">
-
-            <!-- Pneuma: lightning bolt = fast, direct -->
-            <button class="persona-tab active" id="ptab-pneuma"
-              onclick="selectPersona('pneuma', this)"
-              title="Pneuma — Fast &amp; Brief">
-              <span class="persona-sym">
-                <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.4"
-                  stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-                </svg>
-              </span>
-              <span class="persona-tab-label">Pneuma</span>
-              <span class="persona-tab-desc">Fast</span>
+          <!-- ══ MODEL DROPDOWN ══ -->
+          <div class="model-wrap" id="model-wrap">
+            <button class="model-trigger" id="model-trigger" onclick="toggleModelMenu()" title="Select model">
+              <div class="model-dot"></div>
+              <span id="trigger-label">Pneuma</span>
+              <svg class="mt-chevron" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
             </button>
+            <div class="model-menu" id="model-menu">
 
-            <!-- Logos: scales = balance, reason -->
-            <button class="persona-tab" id="ptab-logos"
-              onclick="selectPersona('logos', this)"
-              title="Logos — Balanced &amp; Observant">
-              <span class="persona-sym">
-                <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.4"
-                  stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                  <path d="M12 3v18M3 9l9-6 9 6M5 13l-2 5h6l-2-5M16 13l-2 5h6l-2-5"/>
-                </svg>
-              </span>
-              <span class="persona-tab-label">Logos</span>
-              <span class="persona-tab-desc">Balanced</span>
-            </button>
+              <button class="model-opt active" id="opt-pneuma" onclick="selectModel('pneuma', this)">
+                <div class="mo-left">
+                  <div class="mo-icon">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                  </div>
+                  <div class="mo-badge">Fast</div>
+                </div>
+                <div class="mo-right">
+                  <div class="mo-name">Pneuma</div>
+                  <div class="mo-desc">Direct, rapid responses. Best for quick questions and everyday tasks.</div>
+                </div>
+              </button>
 
-            <!-- Kairos: magnifier + crosshair = analytical, deep -->
-            <button class="persona-tab" id="ptab-kairos"
-              onclick="selectPersona('kairos', this)"
-              title="Kairos — Advanced &amp; Analytical">
-              <span class="persona-sym">
-                <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.4"
-                  stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                  <circle cx="11" cy="11" r="8"/>
-                  <path d="M21 21l-4.35-4.35M11 7v8M7 11h8"/>
-                </svg>
-              </span>
-              <span class="persona-tab-label">Kairos</span>
-              <span class="persona-tab-desc">Deep</span>
-            </button>
-          </div>
+              <button class="model-opt" id="opt-logos" onclick="selectModel('logos', this)">
+                <div class="mo-left">
+                  <div class="mo-icon">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 3v18M3 9l9-6 9 6M5 13l-2 5h6l-2-5M16 13l-2 5h6l-2-5"/></svg>
+                  </div>
+                  <div class="mo-badge">Balanced</div>
+                </div>
+                <div class="mo-right">
+                  <div class="mo-name">Logos</div>
+                  <div class="mo-desc">Methodical reasoning with visible thinking steps. Research, analysis, writing.</div>
+                </div>
+              </button>
 
-          <!-- Live status pill -->
-          <div class="live-pill">
-            <div class="live-dot"></div>
-            <span id="model-btn-label">Fast</span>
+              <button class="model-opt" id="opt-kairos" onclick="selectModel('kairos', this)">
+                <div class="mo-left">
+                  <div class="mo-icon">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M11 7v8M7 11h8"/></svg>
+                  </div>
+                  <div class="mo-badge">Deep</div>
+                </div>
+                <div class="mo-right">
+                  <div class="mo-name">Kairos</div>
+                  <div class="mo-desc">Full task decomposition with live progress tracking. Complex multi-step work.</div>
+                </div>
+              </button>
+
+            </div>
           </div>
 
           <!-- Dark mode toggle -->
-          <button class="icon-btn" onclick="toggleDark()" title="Toggle theme">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24">
+          <button class="icon-btn" onclick="toggleDark()">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24">
               <path class="moon" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-              <g class="sun">
-                <circle cx="12" cy="12" r="5"/>
-                <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-              </g>
+              <g class="sun"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></g>
             </svg>
           </button>
         </div>
       </div>
 
-      <!-- Chat area -->
-      <div class="chat-area" id="chat-area">
-        <div class="empty" id="empty-state">
-          <div class="empty-inner">
-            <div class="empty-greeting" id="empty-greeting">Hey there!</div>
-            <div class="empty-slogan">A human resource, not a companion.</div>
-            <div class="chip-row" id="chip-row">
-              <button class="chip" onclick="chipSend('Explain something complex simply')">Explain simply</button>
-              <button class="chip" onclick="chipSend('Help me write or edit something')">Write &amp; edit</button>
-              <button class="chip" onclick="chipSend('Debug or review my code')">Debug code</button>
-              <button class="chip" onclick="chipSend('Research and summarize a topic')">Research</button>
+      <!-- CONTENT ROW: chat + task panel -->
+      <div class="content-row">
+        <!-- Chat area -->
+        <div class="chat-area" id="chat-area">
+          <div id="empty-state" class="empty">
+            <div class="empty-inner">
+              <div class="empty-tag">v3 — Redesigned</div>
+              <div class="empty-greeting" id="empty-greeting">Hey there</div>
+              <div class="empty-rule"></div>
+              <div class="empty-sub">A human resource, not a companion</div>
+              <div class="chip-row">
+                <button class="chip" onclick="chipSend('Explain something complex simply')">Explain simply</button>
+                <button class="chip" onclick="chipSend('Help me write or edit something')">Write &amp; edit</button>
+                <button class="chip" onclick="chipSend('Debug or review my code')">Debug code</button>
+                <button class="chip" onclick="chipSend('Research and summarize a topic')">Research</button>
+              </div>
             </div>
           </div>
+          <div id="messages" style="display:none"></div>
         </div>
-        <div class="messages" id="messages" style="display:none"></div>
+
+        <!-- Task panel (Kairos) -->
+        <div class="task-panel" id="task-panel">
+          <div class="tp-head">
+            <div class="tp-title">
+              <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:6px;vertical-align:middle"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              Task Board
+            </div>
+            <button class="tp-close" onclick="closeTaskPanel()">✕</button>
+          </div>
+          <div class="tp-progress">
+            <div class="tp-progress-bar" id="tp-bar" style="width:0%"></div>
+          </div>
+          <div class="tp-model-label">Kairos — Deep Analysis</div>
+          <div class="task-list" id="task-list"></div>
+          <div class="tp-summary" id="tp-summary">Waiting for tasks…</div>
+        </div>
       </div>
 
       <!-- Input area -->
       <div class="input-area">
         <div class="input-wrap">
-          <div class="input-area-wrap">
-
-            <!-- Plus menu -->
+          <div class="mode-labels" id="mode-labels">
+            <div class="mode-label" id="think-label">
+              Think mode
+              <button class="mode-label-x" onclick="toggleThink()">✕</button>
+            </div>
+            <div class="mode-label" id="hw-label">
+              Homework mode
+              <button class="mode-label-x" onclick="toggleHomework()">✕</button>
+            </div>
+          </div>
+          <div class="input-pos">
             <div class="plus-menu" id="plus-menu">
-              <button class="plus-item" id="menu-think" onclick="toggleThinkMode()">
-                <span class="plus-item-icon">
-                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
-                </span>
-                <span class="plus-item-text">
-                  <span class="plus-item-label">Think mode</span>
-                  <span class="plus-item-desc">Deep reasoning and outlines</span>
-                </span>
-                <span class="plus-item-check"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
+              <button class="pm-item" id="pm-think" onclick="toggleThink()">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
+                <div>
+                  <span class="pm-label">Think mode</span>
+                  <span class="pm-desc">Show reasoning steps</span>
+                </div>
+                <svg class="pm-check" width="12" height="12" fill="none" stroke="var(--yel)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
               </button>
-              <button class="plus-item" id="menu-homework" onclick="toggleHwMode()">
-                <span class="plus-item-icon">
-                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-                </span>
-                <span class="plus-item-text">
-                  <span class="plus-item-label">Homework mode</span>
-                  <span class="plus-item-desc">Guided learning, not just answers</span>
-                </span>
-                <span class="plus-item-check"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
+              <button class="pm-item" id="pm-hw" onclick="toggleHomework()">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                <div>
+                  <span class="pm-label">Homework mode</span>
+                  <span class="pm-desc">Guide, don't just answer</span>
+                </div>
+                <svg class="pm-check" width="12" height="12" fill="none" stroke="var(--yel)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
               </button>
             </div>
-
-            <!-- Mode labels -->
-            <div style="display:flex;gap:6px;">
-              <div class="hw-label" id="think-label">
-                Think mode
-                <button class="hw-label-x" onclick="toggleThinkMode()">&times;</button>
-              </div>
-              <div class="hw-label" id="hw-label">
-                Homework mode
-                <button class="hw-label-x" onclick="toggleHwMode()">&times;</button>
-              </div>
-            </div>
-
-            <!-- Image strip -->
-            <div class="img-strip" id="img-strip"></div>
-
-            <!-- Input box -->
             <div class="input-box" id="input-box">
-              <input type="file" id="img-upload" accept="image/*" multiple style="display:none" onchange="onImgPick(this)">
-              <button class="plus-btn" id="plus-btn" onclick="togglePlusMenu(event)" title="Modes">+</button>
+              <button class="plus-btn" id="plus-btn" onclick="togglePlusMenu(event)">+</button>
               <textarea class="chat-input" id="chat-input" placeholder="Message Cloak…" rows="1"
-                oninput="onInput(this)" onkeydown="onKey(event)" onpaste="onPaste(event)"></textarea>
-              <button class="send-btn" id="mic-btn"
-                style="background:var(--surf);color:var(--ink);border:var(--bd);"
-                onclick="startVoiceMode()" title="Voice mode">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
-              </button>
+                oninput="onInput(this)" onkeydown="onKey(event)"></textarea>
               <button class="send-btn" id="send-btn" onclick="send()" disabled>
-                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>
+                <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>
               </button>
             </div>
           </div>
-
           <div class="input-foot">
-            <span class="input-sub">Cloak can make mistakes. Verify important information.</span>
-            <span class="input-sub">Enter to send &middot; Shift+Enter for new line</span>
+            <span class="foot-sub">Enter to send · Shift+Enter for new line</span>
+            <span class="foot-sub" id="model-foot">Pneuma · Fast</span>
           </div>
-          <div class="input-disc">Not a mental health resource &mdash; if you're struggling, please contact a real person or <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer" class="disc-link">a helpline</a>.</div>
+          <div class="input-disc">Not a mental health resource — if struggling, contact <a href="https://findahelpline.com" target="_blank" class="disc-link">a helpline</a>.</div>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- VOICE OVERLAY -->
-  <div class="voice-overlay" id="voice-overlay">
-    <button class="voice-close" onclick="stopVoiceMode()" title="Exit voice mode">&times;</button>
-    <div class="voice-ascii" id="voice-ascii">[ - - - - - ]</div>
-    <div class="voice-status" id="voice-status">Idle</div>
-    <div class="voice-transcript" id="voice-transcript">Say something...</div>
-  </div>
-
-  <!-- ONBOARDING -->
-  <div class="onboard-overlay" id="onboard-modal" style="display:none">
-    <div class="onboard-card">
-      <div class="onboard-head">
-        <div class="onboard-title">Before you begin</div>
-        <div class="onboard-sub">A human resource, not a companion.</div>
-      </div>
-      <div class="onboard-body">
-        <div class="onboard-item">
-          <div class="onboard-num">I</div>
-          <div class="onboard-text"><strong>AI is a tool &mdash; not a companion.</strong> Cloak exists to serve you, not replace human connection or judgment.</div>
-        </div>
-        <div class="onboard-item">
-          <div class="onboard-num">II</div>
-          <div class="onboard-text"><strong>Not a mental health resource.</strong> If you're struggling, please reach out to a trusted person or professional &mdash; not a chatbot.</div>
-        </div>
-        <div class="onboard-item">
-          <div class="onboard-num">III</div>
-          <div class="onboard-text"><strong>No mass harm, ever.</strong> Cloak will not assist with anything that could harm or endanger groups of people.</div>
-        </div>
-      </div>
-      <div class="onboard-foot">
-        <div class="onboard-check" onclick="toggleOnboardCheck()">
-          <div class="onboard-checkbox" id="onboard-checkbox"></div>
-          <div class="onboard-check-label">I understand and agree</div>
-        </div>
-        <button class="btn-primary" id="onboard-btn" onclick="confirmOnboarding()" disabled style="cursor:not-allowed;opacity:.32">Continue to Cloak</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- AD CONSENT -->
-  <div class="ad-overlay" id="ad-modal" style="display:none">
-    <div class="ad-card">
-      <div class="ad-title">Allow ads?</div>
-      <div class="ad-text">Ads allow Cloak to offset carbon emissions and improve services for everyone.</div>
-      <div class="ad-actions">
-        <button class="btn-agree" onclick="handleAdAgree()">Agree</button>
-        <button class="btn-disagree" id="ad-disagree-btn" onclick="handleAdDisagree()">Disagree</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- LINK INTERCEPT -->
-  <div class="link-overlay" id="link-modal" style="display:none">
-    <div class="link-card">
-      <div class="link-title">Leaving Cloak</div>
-      <div class="link-url" id="link-url-display"></div>
-      <div class="link-actions">
-        <button class="link-cancel" onclick="closeLinkModal()">Cancel</button>
-        <button class="link-go" id="link-go-btn">Open link &#x2197;</button>
       </div>
     </div>
   </div>
 </div>
 
-<script src="cloak.js" defer></script>
-
-<!-- ── PERSONA × API.USECLOAK.ORG ── -->
 <script>
-/* ─────────────────────────────────────────────────────
-   api.usecloak.org — no API key required
-   POST /v1/messages  →  { model, messages }
-   model: "pneuma" | "logos" | "kairos"
-───────────────────────────────────────────────────── */
-const CLOAK_API = 'https://api.usecloak.org/v1/messages';
+/* ══════════════════════════════════════
+   CLOAK v3 — MAIN SCRIPT
+══════════════════════════════════════ */
 
-const PERSONA_DESCS = {
-  pneuma: 'Fast',
-  logos:  'Balanced',
-  kairos: 'Deep',
+const ANTHROPIC_API = 'https://api.anthropic.com/v1/messages';
+const MODEL_ID = 'claude-sonnet-4-20250514';
+
+// ── State ──
+let currentModel = 'pneuma';
+let cloakHistory = [];
+let conversations = [];
+let activeConvId = null;
+let isStreaming = false;
+let thinkMode = false;
+let hwMode = false;
+let currentTasks = [];
+let tasksDone = 0;
+let abortController = null;
+
+const MODELS = {
+  pneuma: { label:'Pneuma', badge:'Fast',     desc:'Direct & rapid' },
+  logos:  { label:'Logos',  badge:'Balanced', desc:'Methodical reasoning' },
+  kairos: { label:'Kairos', badge:'Deep',     desc:'Task decomposition' },
 };
 
-let cloakModel   = 'pneuma';   // default
-let cloakHistory = [];          // per-session message history
+const LOGOS_PHASES = [
+  'Parsing the question…',
+  'Considering context…',
+  'Structuring a response…',
+  'Refining the answer…',
+];
 
-/* Called by the persona tab buttons in the topbar */
-function selectPersona(model, btn) {
-  cloakModel = model;
+// ── Init ──
+document.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('cloak_dark') !== '0') document.documentElement.classList.add('dark');
+  updateGreeting();
+  loadConversations();
+  updateModelFoot();
+});
 
-  // Update tab active state
-  document.querySelectorAll('.persona-tab').forEach(t => t.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-
-  // Sync live-pill label
-  const lbl = document.getElementById('model-btn-label');
-  if (lbl) lbl.textContent = PERSONA_DESCS[model] || 'Live';
+function updateGreeting() {
+  const h = new Date().getHours();
+  const g = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  const el = document.getElementById('empty-greeting');
+  if (el) el.textContent = g;
 }
 
-/* Main send function exposed to cloak.js
-   window.cloakSendMessage(userText, callback(responseText, errorStr|null))
-*/
-window.cloakSendMessage = async function (userText, callback) {
-  cloakHistory.push({ role: 'user', content: userText });
+// ── Dark mode ──
+function toggleDark() {
+  document.documentElement.classList.toggle('dark');
+  localStorage.setItem('cloak_dark', document.documentElement.classList.contains('dark') ? '1' : '0');
+}
+
+// ── Sidebar ──
+let sidebarOpen = window.innerWidth > 640;
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sb-overlay');
+  if (window.innerWidth <= 640) {
+    sb.classList.toggle('collapsed');
+    ov.classList.toggle('show', !sb.classList.contains('collapsed'));
+  } else {
+    sidebarOpen = !sidebarOpen;
+    sb.classList.toggle('collapsed', !sidebarOpen);
+  }
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.add('collapsed');
+  document.getElementById('sb-overlay').classList.remove('show');
+}
+
+// ── Model dropdown ──
+function toggleModelMenu() {
+  const menu = document.getElementById('model-menu');
+  const trigger = document.getElementById('model-trigger');
+  const isOpen = menu.classList.contains('open');
+  menu.classList.toggle('open', !isOpen);
+  trigger.classList.toggle('open', !isOpen);
+  if (!isOpen) {
+    const close = (e) => {
+      if (!document.getElementById('model-wrap').contains(e.target)) {
+        menu.classList.remove('open');
+        trigger.classList.remove('open');
+        document.removeEventListener('click', close);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', close), 0);
+  }
+}
+
+function selectModel(model, btn) {
+  currentModel = model;
+  document.getElementById('trigger-label').textContent = MODELS[model].label;
+  document.querySelectorAll('.model-opt').forEach(o => o.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.getElementById('model-menu').classList.remove('open');
+  document.getElementById('model-trigger').classList.remove('open');
+  updateModelFoot();
+  if (model !== 'kairos') closeTaskPanel();
+}
+
+function updateModelFoot() {
+  const m = MODELS[currentModel];
+  document.getElementById('model-foot').textContent = `${m.label} · ${m.badge}`;
+}
+
+// ── Plus menu ──
+function togglePlusMenu(e) {
+  e.stopPropagation();
+  const m = document.getElementById('plus-menu');
+  const isOpen = m.classList.contains('open');
+  m.classList.toggle('open', !isOpen);
+  document.getElementById('plus-btn').classList.toggle('on', !isOpen);
+  if (!isOpen) {
+    const close = (ev) => {
+      if (!document.getElementById('input-box').contains(ev.target)) {
+        m.classList.remove('open');
+        document.getElementById('plus-btn').classList.remove('on');
+        document.removeEventListener('click', close);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', close), 0);
+  }
+}
+
+function toggleThink() {
+  thinkMode = !thinkMode;
+  document.getElementById('pm-think').classList.toggle('on', thinkMode);
+  document.getElementById('think-label').classList.toggle('show', thinkMode);
+  updatePlusBtn();
+}
+function toggleHomework() {
+  hwMode = !hwMode;
+  document.getElementById('pm-hw').classList.toggle('on', hwMode);
+  document.getElementById('hw-label').classList.toggle('show', hwMode);
+  updatePlusBtn();
+}
+function updatePlusBtn() {
+  document.getElementById('plus-btn').classList.toggle('on', thinkMode || hwMode);
+}
+
+// ── Input ──
+function onInput(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 140) + 'px';
+  document.getElementById('send-btn').disabled = !el.value.trim();
+}
+function onKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+}
+function chipSend(text) {
+  document.getElementById('chat-input').value = text;
+  onInput(document.getElementById('chat-input'));
+  send();
+}
+
+// ── Task Panel ──
+function openTaskPanel() {
+  document.getElementById('task-panel').classList.add('open');
+}
+function closeTaskPanel() {
+  document.getElementById('task-panel').classList.remove('open');
+}
+
+function renderTasks(tasks) {
+  currentTasks = tasks;
+  tasksDone = 0;
+  const list = document.getElementById('task-list');
+  list.innerHTML = '';
+  tasks.forEach((t, i) => {
+    const el = document.createElement('div');
+    el.className = 'task-item pending';
+    el.id = `task-${t.id}`;
+    el.style.animationDelay = (i * 0.06) + 's';
+    el.innerHTML = `
+      <div class="ti-num">${String(t.id).padStart(2,'0')}</div>
+      <div class="ti-status">
+        <div class="ti-spinner"></div>
+        <svg class="ti-check" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+      <div class="ti-body">
+        <div class="ti-title">${esc(t.title)}</div>
+        ${t.desc ? `<div class="ti-desc">${esc(t.desc)}</div>` : ''}
+      </div>
+    `;
+    list.appendChild(el);
+  });
+  updateTaskProgress();
+  openTaskPanel();
+}
+
+function addTask(title, desc) {
+  const id = currentTasks.length + 1;
+  const task = { id, title, desc: desc || '' };
+  currentTasks.push(task);
+  const list = document.getElementById('task-list');
+  const el = document.createElement('div');
+  el.className = 'task-item pending';
+  el.id = `task-${id}`;
+  el.style.animationDelay = '0s';
+  el.innerHTML = `
+    <div class="ti-num">${String(id).padStart(2,'0')}</div>
+    <div class="ti-status">
+      <div class="ti-spinner"></div>
+      <svg class="ti-check" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+    </div>
+    <div class="ti-body">
+      <div class="ti-title">${esc(title)}</div>
+      ${desc ? `<div class="ti-desc">${esc(desc)}</div>` : ''}
+    </div>
+  `;
+  list.appendChild(el);
+  updateTaskProgress();
+}
+
+function setTaskActive(id) {
+  document.querySelectorAll('.task-item').forEach(el => {
+    if (el.classList.contains('active')) el.classList.replace('active','pending');
+  });
+  const el = document.getElementById(`task-${id}`);
+  if (el) el.classList.replace('pending', 'active');
+}
+
+function setTaskDone(id) {
+  const el = document.getElementById(`task-${id}`);
+  if (el) {
+    el.classList.remove('active','pending');
+    el.classList.add('done');
+    tasksDone++;
+    updateTaskProgress();
+  }
+}
+
+function updateTaskProgress() {
+  const total = currentTasks.length;
+  const pct = total > 0 ? Math.round((tasksDone / total) * 100) : 0;
+  document.getElementById('tp-bar').style.width = pct + '%';
+  const sum = document.getElementById('tp-summary');
+  if (tasksDone >= total && total > 0) {
+    sum.innerHTML = `<span>${total}/${total}</span> tasks complete`;
+  } else {
+    sum.innerHTML = `<span>${tasksDone}/${total}</span> tasks complete`;
+  }
+}
+
+// ── Conversations ──
+function loadConversations() {
+  try { conversations = JSON.parse(localStorage.getItem('cloak_convs') || '[]'); } catch { conversations = []; }
+  renderConvList();
+}
+function saveConversations() {
+  localStorage.setItem('cloak_convs', JSON.stringify(conversations.slice(0,50)));
+}
+function renderConvList() {
+  const list = document.getElementById('conv-list');
+  list.innerHTML = '';
+  conversations.forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'conv-item' + (c.id === activeConvId ? ' active' : '');
+    row.innerHTML = `
+      <div class="conv-label" onclick="loadConv('${c.id}')">${esc(c.title)}</div>
+      <button class="conv-del" onclick="deleteConv('${c.id}',event)" title="Delete">
+        <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    `;
+    list.appendChild(row);
+  });
+}
+function newChat() {
+  activeConvId = null;
+  cloakHistory = [];
+  currentTasks = [];
+  tasksDone = 0;
+  document.getElementById('messages').innerHTML = '';
+  document.getElementById('messages').style.display = 'none';
+  document.getElementById('empty-state').style.display = 'flex';
+  closeTaskPanel();
+  renderConvList();
+  if (window.innerWidth <= 640) closeSidebar();
+}
+function loadConv(id) {
+  const conv = conversations.find(c => c.id === id);
+  if (!conv) return;
+  activeConvId = id;
+  cloakHistory = conv.history || [];
+  const msgs = document.getElementById('messages');
+  msgs.innerHTML = '';
+  msgs.style.display = 'flex';
+  document.getElementById('empty-state').style.display = 'none';
+  conv.rendered?.forEach(m => {
+    if (m.role === 'user') appendUserMsg(m.content, false);
+    else if (m.role === 'assistant') appendBotMsg(m.content, false);
+  });
+  renderConvList();
+  if (window.innerWidth <= 640) closeSidebar();
+}
+function deleteConv(id, e) {
+  e.stopPropagation();
+  conversations = conversations.filter(c => c.id !== id);
+  if (activeConvId === id) newChat();
+  saveConversations();
+  renderConvList();
+}
+
+// ── Send ──
+async function send() {
+  if (isStreaming) { stopStream(); return; }
+  const inp = document.getElementById('chat-input');
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = '';
+  onInput(inp);
+  document.getElementById('send-btn').disabled = true;
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('messages').style.display = 'flex';
+
+  appendUserMsg(text);
+  cloakHistory.push({ role: 'user', content: buildUserContent(text) });
+
+  if (currentModel === 'kairos') {
+    await sendKairos(text);
+  } else if (currentModel === 'logos') {
+    await sendLogos(text);
+  } else {
+    await sendPneuma(text);
+  }
+}
+
+function stopStream() {
+  if (abortController) abortController.abort();
+  isStreaming = false;
+  setSendStop(false);
+}
+
+function buildUserContent(text) {
+  let prefix = '';
+  if (hwMode) prefix += '[Homework mode: guide the user, don\'t give direct answers] ';
+  if (thinkMode) prefix += '[Think mode: show your reasoning] ';
+  return prefix + text;
+}
+
+function buildSystemPrompt() {
+  let sys = 'You are Cloak, a direct and helpful AI assistant. A human resource, not a companion.';
+  if (hwMode) sys += ' In homework mode, guide users to answers rather than giving them directly.';
+  if (thinkMode) sys += ' Show your reasoning process clearly.';
+  return sys;
+}
+
+// ── Pneuma (fast, no steps) ──
+async function sendPneuma(text) {
+  const botEl = appendBotMsg('', true);
+  setSendStop(true);
+  try {
+    await streamResponse(botEl, buildSystemPrompt(), cloakHistory);
+  } catch(e) {
+    if (e.name !== 'AbortError') showError(botEl, e.message);
+  }
+  setSendStop(false);
+  isStreaming = false;
+}
+
+// ── Logos (balanced, show thinking phases) ──
+async function sendLogos(text) {
+  const botEl = appendBotMsg('', true);
+  const stepEl = document.createElement('div');
+  stepEl.className = 'step-track';
+  botEl.querySelector('.bot-content')?.before(stepEl);
+  if (!botEl.querySelector('.bot-content')) botEl.appendChild(stepEl);
+  setSendStop(true);
+
+  let phaseIdx = 0;
+  let phaseInterval;
+  const showNextPhase = () => {
+    if (phaseIdx >= LOGOS_PHASES.length) return;
+    const phase = document.createElement('div');
+    phase.className = 'step-phase active';
+    phase.textContent = LOGOS_PHASES[phaseIdx];
+    stepEl.querySelectorAll('.step-phase.active').forEach(p => p.classList.replace('active','done'));
+    stepEl.appendChild(phase);
+    phaseIdx++;
+  };
+  showNextPhase();
+  phaseInterval = setInterval(showNextPhase, 900);
 
   try {
-    const res = await fetch(CLOAK_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: cloakModel, messages: cloakHistory }),
+    await streamResponse(botEl, buildSystemPrompt(), cloakHistory, () => {
+      clearInterval(phaseInterval);
+      stepEl.querySelectorAll('.step-phase.active').forEach(p => p.classList.replace('active','done'));
+      const donePhase = document.createElement('div');
+      donePhase.className = 'step-phase done';
+      donePhase.textContent = 'Complete.';
+      stepEl.appendChild(donePhase);
     });
-
-    if (!res.ok) {
-      const errBody = await res.text().catch(() => 'Unknown');
-      throw new Error(`API ${res.status}: ${errBody}`);
-    }
-
-    const data = await res.json();
-
-    // Normalise varied response shapes from the API
-    let reply = '';
-    if (typeof data.content === 'string') {
-      reply = data.content;
-    } else if (Array.isArray(data.content)) {
-      reply = data.content.map(b => b.text || '').join('');
-    } else if (data.choices?.[0]?.message?.content) {
-      reply = data.choices[0].message.content;
-    } else if (typeof data.response === 'string') {
-      reply = data.response;
-    } else {
-      reply = JSON.stringify(data);
-    }
-
-    cloakHistory.push({ role: 'assistant', content: reply });
-    callback(reply, null);
-  } catch (err) {
-    callback(null, err.message || String(err));
+  } catch(e) {
+    clearInterval(phaseInterval);
+    if (e.name !== 'AbortError') showError(botEl, e.message);
   }
-};
+  setSendStop(false);
+  isStreaming = false;
+}
 
-/* Reset conversation history on new chat */
-window.resetCloakHistory = () => { cloakHistory = []; };
+// ── Kairos (deep, task list) ──
+async function sendKairos(text) {
+  const botEl = appendBotMsg('', true);
+  setSendStop(true);
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Wrap cloak.js newChat() so history is cleared alongside UI
-  const origNewChat = window.newChat;
-  if (typeof origNewChat === 'function') {
-    window.newChat = function () { cloakHistory = []; origNewChat(); };
+  // Step 1: Generate task list
+  document.getElementById('tp-summary').textContent = 'Planning tasks…';
+  openTaskPanel();
+
+  let tasks = [];
+  try {
+    const taskSys = `You are a task planner. Given a user request, respond with ONLY a JSON array. No prose. Format: [{"id":1,"title":"Short task title","desc":"One sentence description"}, ...]. Generate 3-6 tasks that logically decompose the request.`;
+    const taskResp = await callAPI(taskSys, [{ role:'user', content: text }]);
+    let taskText = taskResp;
+    const jsonMatch = taskText.match(/\[[\s\S]*\]/);
+    if (jsonMatch) tasks = JSON.parse(jsonMatch[0]);
+  } catch(e) {
+    tasks = [
+      { id:1, title:'Understand the request', desc:'Parse and analyse what is being asked.' },
+      { id:2, title:'Research and gather info', desc:'Find relevant knowledge and context.' },
+      { id:3, title:'Formulate the response', desc:'Structure and write the answer.' },
+    ];
   }
-  // Sync pill on load
-  const lbl = document.getElementById('model-btn-label');
-  if (lbl) lbl.textContent = PERSONA_DESCS[cloakModel];
+
+  renderTasks(tasks);
+
+  // Step 2: Process tasks one by one via streaming
+  const progressInterval = setInterval(() => {
+    const total = currentTasks.length;
+    const streamed = document.querySelector('.bot-content')?.textContent?.length || 0;
+    if (streamed > 50 && tasksDone < total) {
+      const approxTask = Math.min(Math.floor((streamed / 800)), total - 1);
+      for (let i = tasksDone; i <= approxTask; i++) {
+        if (i < total && document.getElementById(`task-${currentTasks[i]?.id}`)?.classList.contains('pending')) {
+          if (i > 0) setTaskDone(currentTasks[i-1]?.id);
+          setTaskActive(currentTasks[i]?.id);
+        }
+      }
+    }
+  }, 600);
+
+  if (tasks.length > 0) setTaskActive(tasks[0].id);
+
+  const kairosSystem = buildSystemPrompt() + ` You have been given the following task plan: ${tasks.map(t => `${t.id}. ${t.title}`).join(', ')}. Work through each task systematically. As you complete each task, provide comprehensive coverage.`;
+
+  try {
+    await streamResponse(botEl, kairosSystem, cloakHistory, () => {
+      clearInterval(progressInterval);
+      currentTasks.forEach(t => setTaskDone(t.id));
+    });
+  } catch(e) {
+    clearInterval(progressInterval);
+    if (e.name !== 'AbortError') showError(botEl, e.message);
+  }
+  setSendStop(false);
+  isStreaming = false;
+}
+
+// ── Core API ──
+async function callAPI(system, messages) {
+  const res = await fetch(ANTHROPIC_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: MODEL_ID, max_tokens: 600, system, messages }),
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  const data = await res.json();
+  return data.content?.[0]?.text || data.content || '';
+}
+
+async function streamResponse(botEl, system, messages, onComplete) {
+  isStreaming = true;
+  abortController = new AbortController();
+
+  // Remove typing indicator, prepare content div
+  botEl.querySelector('.typing')?.remove();
+  let contentDiv = botEl.querySelector('.bot-content');
+  if (!contentDiv) {
+    contentDiv = document.createElement('div');
+    contentDiv.className = 'bot-content';
+    botEl.appendChild(contentDiv);
+  }
+
+  const cursor = document.createElement('span');
+  cursor.className = 'sc';
+  contentDiv.appendChild(cursor);
+
+  const res = await fetch(ANTHROPIC_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: MODEL_ID,
+      max_tokens: 2000,
+      stream: true,
+      system,
+      messages: messages.map(m => ({ role: m.role, content: typeof m.content === 'string' ? m.content : m.content })),
+    }),
+    signal: abortController.signal,
+  });
+
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let full = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    const chunk = decoder.decode(value, { stream: true });
+    const lines = chunk.split('\n');
+    for (const line of lines) {
+      if (!line.startsWith('data:')) continue;
+      const data = line.slice(5).trim();
+      if (data === '[DONE]') continue;
+      try {
+        const evt = JSON.parse(data);
+        if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
+          full += evt.delta.text;
+          cursor.remove();
+          contentDiv.innerHTML = marked.parse(full);
+          contentDiv.appendChild(cursor);
+          processCodeBlocks(contentDiv);
+          scrollToBottom();
+        }
+      } catch {}
+    }
+  }
+
+  cursor.remove();
+  contentDiv.className = 'bot-content-final';
+  contentDiv.innerHTML = marked.parse(full);
+  processCodeBlocks(contentDiv);
+  scrollToBottom();
+
+  if (onComplete) onComplete();
+
+  // Save to history
+  cloakHistory.push({ role: 'assistant', content: full });
+  saveToConversation(full);
+}
+
+function showError(botEl, msg) {
+  botEl.querySelector('.typing')?.remove();
+  const err = document.createElement('div');
+  err.style.cssText = 'font-size:12px;color:var(--acc);padding:8px 10px;border:var(--bd);background:var(--p2);margin-top:6px;';
+  err.textContent = 'Error: ' + msg;
+  botEl.appendChild(err);
+}
+
+// ── DOM helpers ──
+function appendUserMsg(text, animate = true) {
+  const msgs = document.getElementById('messages');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg user' + (animate ? '' : '');
+  wrap.innerHTML = `
+    <div class="bubble">${esc(text)}</div>
+    <div class="msg-actions">
+      <button class="act-btn" onclick="copyText(this,'${escAttr(text)}')" title="Copy">
+        <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="1"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+    </div>
+  `;
+  msgs.appendChild(wrap);
+  scrollToBottom();
+  return wrap;
+}
+
+function appendBotMsg(content, withTyping = false) {
+  const msgs = document.getElementById('messages');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg bot';
+  wrap.innerHTML = `
+    <div class="bot-header">
+      <div class="bot-sig">
+        <div class="bot-sig-dot"></div>
+        <span>Cloak · ${MODELS[currentModel].label}</span>
+      </div>
+    </div>
+    ${withTyping ? '<div class="typing"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div>' : `<div class="bot-content-final">${content ? marked.parse(content) : ''}</div>`}
+    <div class="msg-actions">
+      <button class="act-btn copy-btn" title="Copy">
+        <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="1"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+    </div>
+  `;
+  wrap.querySelector('.copy-btn')?.addEventListener('click', function() {
+    const text = wrap.querySelector('.bot-content-final, .bot-content')?.textContent || '';
+    copyText(this, text);
+  });
+  msgs.appendChild(wrap);
+  scrollToBottom();
+  return wrap;
+}
+
+function processCodeBlocks(el) {
+  el.querySelectorAll('pre:not([data-processed])').forEach(pre => {
+    pre.setAttribute('data-processed', '1');
+    const code = pre.querySelector('code');
+    const lang = code?.className?.match(/language-(\w+)/)?.[1] || 'code';
+    const bar = document.createElement('div');
+    bar.className = 'code-bar';
+    bar.innerHTML = `<span class="code-lang">${lang}</span><button class="code-copy" onclick="copyCode(this)">Copy</button>`;
+    pre.insertBefore(bar, pre.firstChild);
+  });
+}
+
+function copyCode(btn) {
+  const code = btn.closest('pre').querySelector('code');
+  navigator.clipboard.writeText(code?.textContent || '').then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('ok');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('ok'); }, 1800);
+  });
+}
+
+function copyText(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.classList.add('ok');
+    setTimeout(() => btn.classList.remove('ok'), 1800);
+  });
+}
+
+function scrollToBottom() {
+  const ca = document.getElementById('chat-area');
+  ca.scrollTop = ca.scrollHeight;
+}
+
+function setSendStop(stop) {
+  const btn = document.getElementById('send-btn');
+  if (stop) {
+    btn.disabled = false;
+    btn.classList.add('stop');
+    btn.innerHTML = `<svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/></svg>`;
+  } else {
+    btn.classList.remove('stop');
+    btn.innerHTML = `<svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>`;
+    btn.disabled = !document.getElementById('chat-input').value.trim();
+  }
+}
+
+// ── Conversation persistence ──
+function saveToConversation(botReply) {
+  const lastUser = cloakHistory.slice().reverse().find(m => m.role === 'user');
+  const preview = (typeof lastUser?.content === 'string' ? lastUser.content : lastUser?.content?.[0]?.text || 'Conversation').slice(0, 50);
+
+  if (!activeConvId) {
+    activeConvId = Date.now().toString();
+    conversations.unshift({
+      id: activeConvId,
+      title: preview,
+      history: [...cloakHistory],
+      rendered: buildRendered(),
+      ts: Date.now(),
+    });
+  } else {
+    const c = conversations.find(c => c.id === activeConvId);
+    if (c) { c.history = [...cloakHistory]; c.rendered = buildRendered(); }
+  }
+  saveConversations();
+  renderConvList();
+}
+
+function buildRendered() {
+  return cloakHistory.map(m => ({ role: m.role, content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content) }));
+}
+
+// ── Utils ──
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) { return String(s).replace(/'/g,"&#39;"); }
+
+// ── Close menus on outside click ──
+document.addEventListener('click', (e) => {
+  if (!document.getElementById('input-box')?.contains(e.target) &&
+      !document.getElementById('plus-menu')?.contains(e.target)) {
+    document.getElementById('plus-menu').classList.remove('open');
+    document.getElementById('plus-btn').classList.remove('on');
+  }
 });
+
+// ── Marked config ──
+marked.setOptions({ breaks: true, gfm: true });
 </script>
 </body>
 </html>
