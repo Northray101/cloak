@@ -770,6 +770,19 @@ function isApiError(text){
   );
 }
 
+// ── MODEL CONFIG ──
+const MODEL_ID = 'claude-sonnet-4-20250514';
+const MODEL_SYSTEMS = {
+  pneuma: 'You are Pneuma, a fast and direct AI assistant inside Cloak. Be clear and efficient. Answer questions fully and accurately without unnecessary preamble or filler phrases.',
+  logos:  'You are Logos, a reasoning-focused AI assistant inside Cloak. Think carefully through complex problems. Be thorough, precise, and structured in your responses.',
+  kairos: 'You are Kairos, a creative and deep AI assistant inside Cloak. You excel at long-form content, essays, creative writing, and nuanced topics. Be expressive, comprehensive, and thoughtful.'
+};
+const MODE_ADDONS = {
+  homework: ' The user is in Homework Mode: give hints and guide their thinking — do not provide direct answers.',
+  think:    ' Think through the problem carefully step by step before giving your final answer.',
+  concise:  ' Keep your response short and direct. No unnecessary elaboration.'
+};
+
 // ── SEND ──
 let lastUserMsg = '';
 let chatHistory = [];
@@ -784,103 +797,144 @@ async function send(){
 
   if(!currentConvId){
     currentConvId = Date.now().toString();
-    const title = text.slice(0,40) + (text.length > 40 ? '…' : '');
+    const title = text.slice(0, 44) + (text.length > 44 ? '…' : '');
     chatHistory = [];
     saveConv(currentConvId, [], title);
   }
 
   appendUserMsg(text);
-  chatHistory.push({role:'user', content: text});
+  chatHistory.push({ role: 'user', content: text });
 
   isStreaming = true;
   updateSendBtn();
 
-  // Detect if Logos/Kairos — show progress steps
-  const isAdvanced = (currentModel === 'logos' || currentModel === 'kairos') && activeMode === 'think';
-  let taskListEl = null;
+  const isAdvanced = currentModel === 'logos' || currentModel === 'kairos';
   let progressEl = null;
-
+  let stepIntervalId = null;
   const typingMsg = appendTyping();
 
-  // For advanced models, show thinking steps
-  if(isAdvanced){
-    const stepsData = ['Understanding the question','Planning approach','Analyzing details','Structuring response'];
+  // Show progress steps for advanced models in think mode
+  if(isAdvanced && activeMode === 'think'){
+    const stepsData = ['Reading your request', 'Reasoning through it', 'Structuring response', 'Polishing output'];
     progressEl = createProgressSteps(stepsData);
     typingMsg.querySelector('.typing').replaceWith(progressEl);
-    
-    // Simulate step progression
     let stepIdx = 0;
     progressEl.activateStep(0);
-    const stepInterval = setInterval(() => {
+    stepIntervalId = setInterval(() => {
       stepIdx++;
       if(stepIdx < stepsData.length) progressEl.activateStep(stepIdx);
-      else { clearInterval(stepInterval); progressEl.completeAll(); }
-    }, 900);
+      else clearInterval(stepIntervalId);
+    }, 1100);
   }
 
-  try {
-    // Try the real API (window.cloakSendMessage if it exists, else mock)
-    let responseText = '';
-    
-    if(typeof window.cloakSendMessage === 'function'){
-      responseText = await new Promise((res, rej) => {
-        window.cloakSendMessage(text, (result, err) => {
-          if(err) rej(new Error(err));
-          else res(result);
-        });
-      });
-    } else {
-      // Demo fallback
-      responseText = await mockResponse(text);
-    }
+  // Build system prompt
+  let system = MODEL_SYSTEMS[currentModel] || MODEL_SYSTEMS.pneuma;
+  if(activeMode && MODE_ADDONS[activeMode]) system += MODE_ADDONS[activeMode];
 
+  try {
+    const responseText = await callClaudeAPI(system, chatHistory.slice(-20));
+
+    if(stepIntervalId) clearInterval(stepIntervalId);
+    if(progressEl) progressEl.completeAll();
     typingMsg.remove();
 
     if(isApiError(responseText)) throw new Error(responseText);
 
-    // Check if response wants a task list (heuristic: contains numbered list or multi-step)
-    const wantsTaskList = (currentModel === 'logos' || currentModel === 'kairos') && 
-      (text.toLowerCase().includes('plan') || text.toLowerCase().includes('steps') || 
-       text.toLowerCase().includes('how to') || text.toLowerCase().includes('help me'));
-
-    if(wantsTaskList){
-      const tasks = extractTasks(responseText);
-      if(tasks.length >= 2){
-        const botMsg = document.createElement('div');
-        botMsg.className = 'msg bot';
-        const modelNames = {pneuma:'Pneuma',logos:'Logos',kairos:'Kairos'};
-        botMsg.innerHTML = `<div class="bot-meta"><div class="bot-dot"></div><span class="bot-badge">${modelNames[currentModel]}</span></div>`;
-        taskListEl = createTaskListUI(tasks);
-        botMsg.appendChild(taskListEl);
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'bot-content';
-        contentDiv.innerHTML = marked.parse(responseText);
-        botMsg.appendChild(contentDiv);
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'msg-actions';
-        actionsDiv.innerHTML = `<button class="msg-action-btn" onclick="copyMd(this,${JSON.stringify(responseText)})"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="7" height="7" rx="0.5"/><path d="M2 8V1.5A.5.5 0 012.5 1H9"/></svg></button>`;
-        botMsg.appendChild(actionsDiv);
-        document.getElementById('messages').appendChild(botMsg);
-        
-        // Animate through tasks
-        animateTasks(taskListEl, tasks.length);
-      } else {
-        appendBotMsg(responseText);
-      }
+    // Show task list if advanced model returned a numbered/bulleted list with 3+ items
+    const tasks = extractTasks(responseText);
+    if(isAdvanced && tasks.length >= 3){
+      renderBotMsgWithTasks(responseText, tasks);
     } else {
       appendBotMsg(responseText);
     }
 
-    chatHistory.push({role:'assistant', content: responseText});
+    chatHistory.push({ role: 'assistant', content: responseText });
     saveConv(currentConvId, chatHistory, conversations[currentConvId]?.title);
 
   } catch(err){
+    if(stepIntervalId) clearInterval(stepIntervalId);
     typingMsg.remove();
-    appendErrorMsg(err.message || String(err));
+    appendErrorMsg(err?.message || String(err));
   }
 
   isStreaming = false;
   updateSendBtn();
+  scrollBottom();
+}
+
+// ── ANTHROPIC API (streaming SSE) ──
+async function callClaudeAPI(system, messages){
+  const controller = new AbortController();
+  streamAbort = controller;
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: MODEL_ID,
+      max_tokens: 1500,
+      system,
+      messages,
+      stream: true
+    }),
+    signal: controller.signal
+  });
+
+  if(!resp.ok){
+    const errData = await resp.json().catch(() => ({}));
+    throw new Error(errData?.error?.message || `HTTP ${resp.status}`);
+  }
+
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let fullText = '';
+  let buffer = '';
+
+  while(true){
+    const { done, value } = await reader.read();
+    if(done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+    for(const line of lines){
+      if(!line.startsWith('data: ')) continue;
+      const raw = line.slice(6).trim();
+      if(raw === '[DONE]') continue;
+      try {
+        const evt = JSON.parse(raw);
+        if(evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta'){
+          fullText += evt.delta.text;
+        }
+      } catch(e){ /* skip */ }
+    }
+  }
+
+  return fullText || '(No response)';
+}
+
+// ── RENDER WITH TASK LIST ──
+function renderBotMsgWithTasks(responseText, tasks){
+  const modelNames = { pneuma:'Pneuma', logos:'Logos', kairos:'Kairos' };
+  const botMsg = document.createElement('div');
+  botMsg.className = 'msg bot';
+  botMsg.innerHTML = `<div class="bot-meta"><div class="bot-dot"></div><span class="bot-badge">${modelNames[currentModel] || 'Cloak'}</span></div>`;
+
+  const taskListEl = createTaskListUI(tasks);
+  botMsg.appendChild(taskListEl);
+
+  const contentDiv = document.createElement('div');
+  contentDiv.className = 'bot-content';
+  contentDiv.innerHTML = marked.parse(responseText);
+  botMsg.appendChild(contentDiv);
+
+  const actionsDiv = document.createElement('div');
+  actionsDiv.className = 'msg-actions';
+  const safeJson = JSON.stringify(responseText).replace(/</g,'\\u003c');
+  actionsDiv.innerHTML = `<button class="msg-action-btn" title="Copy" onclick="copyMd(this,${safeJson})"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="7" height="7" rx="0.5"/><path d="M2 8V1.5A.5.5 0 012.5 1H9"/></svg></button>`;
+  botMsg.appendChild(actionsDiv);
+
+  document.getElementById('messages').appendChild(botMsg);
+  animateTasks(taskListEl, tasks.length);
   scrollBottom();
 }
 
@@ -890,23 +944,23 @@ function animateTasks(taskListEl, count){
     if(i < count){
       taskListEl.activateTask(i);
       i++;
-      setTimeout(go, 800 + Math.random() * 400);
+      setTimeout(go, 700 + Math.random() * 350);
     } else {
-      taskListEl.completeAll();
+      setTimeout(() => taskListEl.completeAll(), 300);
     }
   };
-  setTimeout(go, 400);
+  setTimeout(go, 300);
 }
 
 function extractTasks(text){
-  const lines = text.split('\n');
   const tasks = [];
-  lines.forEach(line => {
-    const match = line.match(/^[\d]+[.)]\s+(.+)/) || line.match(/^[-*•]\s+(.+)/);
-    if(match && match[1].length > 5 && match[1].length < 120){
-      tasks.push(match[1].trim());
+  for(const line of text.split('\n')){
+    const m = line.match(/^(?:\d+[.)]\s+|[-*•]\s+)(.{6,100})$/);
+    if(m){
+      const clean = m[1].replace(/\*\*/g,'').replace(/\*/g,'').replace(/`/g,'').trim();
+      if(clean.length > 5) tasks.push(clean);
     }
-  });
+  }
   return tasks.slice(0, 8);
 }
 
@@ -915,25 +969,6 @@ function retryLast(){
     document.getElementById('chat-input').value = lastUserMsg;
     onInput(document.getElementById('chat-input'));
   }
-}
-
-// ── MOCK RESPONSE (demo) ──
-async function mockResponse(text){
-  await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
-  const lower = text.toLowerCase();
-  if(lower.includes('plan') || lower.includes('how to') || lower.includes('steps')){
-    return `Here's a plan for you:\n\n1. Start by defining your goals clearly\n2. Break down the problem into smaller pieces\n3. Research existing solutions and approaches\n4. Build an initial prototype or draft\n5. Test and iterate based on feedback\n6. Refine until it meets your standards\n\nEach step builds on the previous one. Want me to go deeper on any of these?`;
-  }
-  if(lower.includes('quantum')){
-    return `**Quantum entanglement** is one of the strangest phenomena in physics.\n\nWhen two particles become *entangled*, their quantum states become linked — measuring one instantly determines the state of the other, no matter how far apart they are.\n\nEinstein famously called this "spooky action at a distance" because it seemed to violate his intuitions about locality.\n\nThe key insight: this doesn't transmit information faster than light — the correlation only becomes apparent when you compare measurements through classical communication.`;
-  }
-  if(lower.includes('email')){
-    return `Here's a professional email template:\n\n**Subject:** [Your subject here]\n\nDear [Recipient],\n\nI hope this message finds you well. I'm writing to [state your purpose concisely].\n\n[Body paragraph — keep it focused and brief.]\n\n[Call to action or next steps.]\n\nBest regards,\n[Your name]`;
-  }
-  if(lower.includes('debug') || lower.includes('python')){
-    return `To debug a Python function effectively:\n\n\`\`\`python\nimport logging\nlogging.basicConfig(level=logging.DEBUG)\n\ndef debug_function(data):\n    logging.debug(f"Input: {data}")\n    result = process(data)\n    logging.debug(f"Output: {result}")\n    return result\n\`\`\`\n\nCommon issues to check:\n- **Type errors** — use \`type()\` to inspect variables\n- **Off-by-one errors** — print slice indices\n- **None returns** — add explicit \`return\` statements\n\nShare your code and I'll pinpoint the problem.`;
-  }
-  return `I understand your question about "${text.slice(0,40)}". Let me give you a thoughtful response.\n\nBased on what you've shared, the key considerations are:\n\n- **Context matters** — the right answer depends on your specific situation\n- **Multiple approaches** exist, each with trade-offs\n- **Iteration** is usually better than seeking perfection upfront\n\nWhat specific aspect would you like me to explore further?`;
 }
 
 // ── UTILS ──
