@@ -1119,3 +1119,229 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
 }
 
 /* ── STREAM CURSOR (keep existing .sc) ── */
+/* ── DYNAMIC THINKING ANIMATION (legacy stubs) ── */
+@keyframes phaseEnter{0%{opacity:0;transform:translateY(5px)}100%{opacity:.75;transform:translateY(0)}}
+@keyframes phaseExit{0%{opacity:.75;transform:translateY(0)}100%{opacity:0;transform:translateY(-5px)}}
+@keyframes dotPulse{0%,100%{opacity:.25;transform:scale(.7)}50%{opacity:1;transform:scale(1)}}
+
+/* ═══════════════════════════════════════════════════════════
+   CLOAK — STEP SYSTEM v5.0
+   Claude-style visible step list. Each step = its own row:
+   spinner → checkmark, title, body. Model-controlled only.
+═══════════════════════════════════════════════════════════ */
+
+/* ── STEP LIST WRAPPER ── */
+.step-list-wrap {
+  margin-bottom: 14px;
+  border: var(--bd);
+  background: var(--p2);
+  overflow: hidden;
+}
+
+/* ── HEADER ROW ── */
+.step-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 13px 9px 12px;
+  border-bottom: var(--bdt);
+  cursor: default;
+  user-select: none;
+}
+.step-list-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.step-header-label {
+  font-family: var(--fd);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--ink);
+  opacity: .7;
+}
+
+/* Pulsing dot while thinking */
+.step-header-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--acc);
+  animation: stepDotPulse 1.4s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.step-header-dot-done {
+  animation: none;
+  opacity: .4;
+}
+@keyframes stepDotPulse {
+  0%,100% { transform: scale(.7); opacity: .4; }
+  50%      { transform: scale(1.2); opacity: 1; }
+}
+
+/* ── COLLAPSE TOGGLE ── */
+.step-collapse-btn {
+  background: none;
+  border: none;
+  padding: 3px 5px;
+  cursor: pointer;
+  color: var(--ink);
+  opacity: .3;
+  display: flex;
+  align-items: center;
+  transition: opacity .15s;
+  flex-shrink: 0;
+}
+.step-collapse-btn:hover { opacity: .65; }
+.step-collapse-btn svg {
+  transition: transform .22s cubic-bezier(.16,1,.3,1);
+}
+.step-collapse-btn.rotated svg { transform: rotate(180deg); }
+
+/* ── INNER LIST ── */
+.step-list-inner {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 600px;
+  transition: max-height .32s cubic-bezier(.16,1,.3,1),
+              opacity .24s ease,
+              padding .24s ease;
+  padding: 6px 0 4px;
+}
+.step-list-inner.collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding: 0;
+  pointer-events: none;
+}
+
+/* ── STEP ROW ── */
+.step-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 7px 13px 7px 12px;
+}
+.step-row-entering {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.step-row-visible {
+  animation: stepRowIn .28s cubic-bezier(.16,1,.3,1) forwards;
+}
+@keyframes stepRowIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── STEP ICON CELL ── */
+.step-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  color: var(--acc);
+}
+
+/* Spinning arc */
+.step-spinner {
+  animation: stepSpin .85s linear infinite;
+  transform-origin: center;
+}
+@keyframes stepSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Check mark pops in */
+.step-check {
+  animation: stepCheckIn .22s cubic-bezier(.16,1,.3,1) forwards;
+}
+@keyframes stepCheckIn {
+  from { transform: scale(.55); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.step-icon-done {
+  color: var(--acc);
+  opacity: .45;
+}
+
+/* ── STEP TEXT CELL ── */
+.step-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.step-title {
+  font-family: var(--fd);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  line-height: 1.4;
+  color: var(--ink);
+}
+.step-title-active { opacity: .88; }
+.step-title-done   { opacity: .38; }
+
+.step-body {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink);
+  opacity: .42;
+  max-height: 52px;
+  overflow: hidden;
+  transition: max-height .3s ease, opacity .3s ease;
+}
+.step-body-done {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── BOT DOT — reactive status indicator ── */
+.bot-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--acc);
+  flex-shrink: 0;
+}
+.bot-dot.thinking {
+  animation: dotReactive 2.4s ease-in-out infinite;
+}
+@keyframes dotReactive {
+  0%   { transform: scale(1);    opacity: 1; }
+  8%   { transform: scale(1.55); opacity: 1; }
+  15%  { transform: scale(0.85); opacity: 0.7; }
+  20%  { transform: translate(0px, -4px)  scale(0.9); opacity: 0.85; }
+  28%  { transform: translate(4px,  0px)  scale(0.9); opacity: 0.85; }
+  36%  { transform: translate(0px,  4px)  scale(0.9); opacity: 0.85; }
+  44%  { transform: translate(-4px, 0px)  scale(0.9); opacity: 0.85; }
+  50%  { transform: translate(0px,  0px)  scale(1);   opacity: 1; }
+  58%  { transform: translateY(-5px) scale(1.1);  opacity: 1; }
+  64%  { transform: translateY(2px)  scale(0.92); opacity: 0.8; }
+  70%  { transform: translateY(0px)  scale(1);    opacity: 1; }
+  76%  { transform: translateX(-5px) scale(0.9); opacity: 0.75; }
+  82%  { transform: translateX(5px)  scale(0.9); opacity: 0.75; }
+  88%  { transform: translateX(0px)  scale(1);   opacity: 1; }
+  92%  { transform: scale(1.3); opacity: 1; }
+  96%  { transform: scale(0.8); opacity: 0.6; }
+  100% { transform: scale(1);   opacity: 1; }
+}
+
+/* Status box exit when responding starts */
+.cloak-status-box-exit {
+  animation: statusBoxExit 0.25s ease forwards;
+}
+@keyframes statusBoxExit {
+  to { opacity: 0; transform: translateY(3px); }
+}
