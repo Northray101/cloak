@@ -1,727 +1,520 @@
-
-html
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#131110">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Cloak">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="format-detection" content="telephone=no">
-<meta name="description" content="Cloak — A human resource, not a companion. Ethical AI that serves you.">
+<meta name="description" content="Cloak — AI that serves people. Not the other way around.">
 <title>Cloak</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2L19.5 12.5L30 16L19.5 19.5L16 30L12.5 19.5L2 16L12.5 12.5Z' fill='%23D44D2A'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230A0A0A'/%3E%3Cpath d='M22 10C19.8 7.8 17 6.5 14 6.5C8.2 6.5 4 10.7 4 16.5C4 22.3 8.2 26.5 14 26.5C17 26.5 19.8 25.2 22 23' stroke='%23D44D2A' stroke-width='2.5' stroke-linecap='square'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="cloak.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+/* ── CURSOR ── */
+html, body, *, *::before, *::after { cursor: none !important; }
+.cursor{
+  position:fixed;width:11px;height:11px;
+  background:var(--acc);border:2px solid var(--ink);
+  pointer-events:none;z-index:9999;
+  transform:translate(-50%,-50%);
+  transition:width .12s,height .12s;
+}
+.cursor.big{width:36px;height:36px;}
+
+/* ── PAGE RESET ── */
+body.landing-page{overflow:auto;background:var(--paper);color:var(--ink);}
+
+/* ── NAV ── */
+.lp-nav{
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  height:52px;padding:0 28px;
+  background:var(--surf);border-bottom:var(--bd);
+}
+.lp-nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.lp-nav-wordmark{font-family:var(--fd);font-size:17px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--ink);}
+.lp-nav-links{display:flex;align-items:center;gap:8px;}
+.lp-nav-link{
+  height:34px;padding:0 14px;
+  background:transparent;border:var(--bd);
+  font-family:var(--fu);font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.1em;
+  color:var(--ink);text-decoration:none;
+  display:flex;align-items:center;
+  transition:box-shadow var(--t),transform var(--t),background var(--t);
+}
+.lp-nav-link:hover{box-shadow:var(--shsm);transform:translate(-1px,-1px);}
+.lp-nav-cta{
+  background:var(--acc);color:#fff;box-shadow:var(--shsm);
+}
+.lp-nav-cta:hover{box-shadow:var(--sh)!important;background:var(--acc2)!important;}
+
+/* ── HERO ── */
+.lp-hero{
+  display:grid;grid-template-columns:1fr 1fr;
+  border-bottom:var(--bd);
+  min-height:calc(100vh - 52px);
+}
+.lp-hero-left{
+  padding:64px 48px;
+  border-right:var(--bd);
+  display:flex;flex-direction:column;justify-content:center;
+  position:relative;overflow:hidden;
+}
+/* crosshatch bg like empty state */
+.lp-hero-left::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(var(--bdt) 1px,transparent 1px),
+    linear-gradient(90deg,var(--bdt) 1px,transparent 1px);
+  background-size:48px 48px;
+  pointer-events:none;
+}
+.lp-hero-left>*{position:relative;z-index:1;}
+
+.lp-eyebrow{
+  font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.18em;
+  color:var(--acc);margin-bottom:20px;
+  display:flex;align-items:center;gap:8px;
+  opacity:0;animation:fadeUp .5s .1s cubic-bezier(.16,1,.3,1) forwards;
+}
+.lp-eyebrow::before{content:'';display:block;width:28px;height:2px;background:var(--acc);}
+
+.lp-hero-title{
+  font-family:var(--fd);
+  font-size:clamp(3rem,6vw,5.5rem);
+  font-weight:800;text-transform:uppercase;
+  letter-spacing:-.03em;line-height:.92;
+  color:var(--ink);margin-bottom:28px;
+  opacity:0;animation:fadeUp .5s .18s cubic-bezier(.16,1,.3,1) forwards;
+}
+.lp-hero-title .acc{color:var(--acc);}
+
+.lp-hero-desc{
+  font-size:15px;line-height:1.7;color:var(--ink);opacity:.6;
+  max-width:400px;margin-bottom:40px;
+  opacity:0;animation:fadeUp .5s .26s cubic-bezier(.16,1,.3,1) forwards;
+}
+/* override the conflicting opacity 0 */
+.lp-hero-desc{opacity:0;}
+.lp-hero-desc.vis{opacity:.6;}
+
+.lp-hero-actions{
+  display:flex;gap:10px;flex-wrap:wrap;
+  opacity:0;animation:fadeUp .5s .34s cubic-bezier(.16,1,.3,1) forwards;
+}
+
+.lp-btn-primary{
+  height:46px;padding:0 22px;
+  background:var(--acc);color:#fff;
+  border:var(--bd);box-shadow:var(--sh);
+  font-family:var(--fu);font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.1em;
+  text-decoration:none;display:flex;align-items:center;gap:8px;
+  transition:box-shadow var(--t),transform var(--t),background var(--t);
+}
+.lp-btn-primary:hover{box-shadow:var(--shlg);transform:translate(-1px,-1px);background:var(--acc2);}
+.lp-btn-primary:active{box-shadow:none;transform:translate(2px,2px);}
+
+.lp-btn-ghost{
+  height:46px;padding:0 22px;
+  background:transparent;color:var(--ink);
+  border:2px dashed var(--ink);
+  font-family:var(--fu);font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.1em;
+  text-decoration:none;display:flex;align-items:center;
+  transition:background var(--t),border-color var(--t);opacity:.55;
+}
+.lp-btn-ghost:hover{background:var(--p2);opacity:1;}
+
+/* Hero right — dark panel with models */
+.lp-hero-right{
+  background:var(--p2);border-left:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:0;padding:64px 48px;
+  position:relative;overflow:hidden;
+}
+.dark .lp-hero-right{background:var(--p3);}
+
+/* C mark — text-based, uses CLOAK font */
+.lp-c-mark{
+  width:120px;height:120px;
+  background:var(--surf);border:var(--bd);box-shadow:var(--sh);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:32px;flex-shrink:0;
+}
+.lp-c-mark-letter{
+  font-family:var(--fd);font-size:72px;font-weight:800;
+  color:var(--acc);line-height:1;
+  text-transform:uppercase;letter-spacing:-.04em;
+  user-select:none;
+}
+
+/* Model pills — styled like status-pill */
+.lp-models{display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px;}
+.lp-model-pill{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;
+  background:var(--surf);border:var(--bd);box-shadow:var(--shsm);
+  transition:box-shadow var(--t),transform var(--t);
+}
+.lp-model-pill:hover{box-shadow:var(--sh);transform:translate(-1px,-1px);}
+.lp-model-left{display:flex;flex-direction:column;gap:3px;}
+.lp-model-name{font-family:var(--fd);font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink);}
+.lp-model-meaning{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink);opacity:.35;}
+.lp-model-tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:3px 9px;border:var(--bd);color:var(--ink);opacity:.5;background:transparent;}
+.lp-model-dot{width:8px;height:8px;flex-shrink:0;animation:pdot 2s ease-in-out infinite;}
+.lp-model-dot.c1{background:var(--acc);animation-delay:0s;}
+.lp-model-dot.c2{background:var(--yel);animation-delay:.3s;}
+.lp-model-dot.c3{background:var(--blu);animation-delay:.6s;}
+
+/* ── MODELS SECTION ── */
+.lp-models-section{border-bottom:var(--bd);}
+.lp-section-inner{max-width:1100px;margin:0 auto;padding:64px 48px;}
+.lp-section-eyebrow{
+  font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.18em;
+  color:var(--acc);margin-bottom:20px;
+  display:flex;align-items:center;gap:12px;
+}
+.lp-section-eyebrow::after{content:'';flex:1;height:2px;background:var(--ink);opacity:.08;}
+.lp-section-title{
+  font-family:var(--fd);font-size:clamp(1.8rem,3.5vw,3rem);font-weight:800;
+  text-transform:uppercase;letter-spacing:-.02em;line-height:1;
+  margin-bottom:40px;color:var(--ink);
+}
+
+.lp-models-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  border:var(--bd);box-shadow:var(--shlg);
+}
+.lp-model-card{
+  padding:32px 28px;border-right:var(--bd);
+  position:relative;overflow:hidden;
+  transition:background var(--t);
+}
+.lp-model-card:last-child{border-right:none;}
+.lp-model-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--acc);
+}
+.lp-model-card.m2::before{background:var(--yel);}
+.lp-model-card.m3::before{background:var(--blu);}
+.lp-model-card:hover{background:var(--p2);}
+.lp-card-num{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.18em;color:var(--ink);opacity:.28;margin-bottom:18px;}
+.lp-card-name{font-family:var(--fd);font-size:26px;font-weight:800;text-transform:uppercase;letter-spacing:-.01em;color:var(--ink);margin-bottom:4px;}
+.lp-card-meaning{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--acc);opacity:.7;margin-bottom:16px;}
+.lp-model-card.m2 .lp-card-meaning{color:var(--yel);}
+.lp-model-card.m3 .lp-card-meaning{color:var(--blu);}
+.lp-card-desc{font-size:13.5px;line-height:1.68;color:var(--ink);opacity:.65;margin-bottom:20px;}
+.lp-card-badge{
+  display:inline-flex;align-items:center;height:24px;padding:0 10px;
+  border:var(--bd);background:var(--p2);
+  font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--ink);opacity:.55;
+}
+
+/* ── VALUES SECTION ── */
+.lp-values-section{border-bottom:var(--bd);}
+.lp-values-layout{display:grid;grid-template-columns:340px 1fr;}
+.lp-values-left{
+  padding:64px 40px;border-right:var(--bd);
+  background:var(--p2);
+  display:flex;flex-direction:column;justify-content:flex-start;
+}
+.dark .lp-values-left{background:var(--p3);}
+.lp-values-right{padding:64px 48px;}
+
+.lp-law{
+  display:flex;gap:16px;padding:16px;
+  background:var(--surf);border:var(--bd);box-shadow:var(--shsm);
+  margin-bottom:10px;
+  transition:box-shadow var(--t),transform var(--t);
+}
+.lp-law:hover{box-shadow:var(--sh);transform:translate(-1px,-1px);}
+.lp-law-num{font-family:var(--fd);font-size:28px;font-weight:800;color:var(--acc);flex-shrink:0;line-height:1;margin-top:2px;}
+.lp-law-title{font-family:var(--fd);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);margin-bottom:5px;}
+.lp-law-text{font-size:13px;color:var(--ink);opacity:.65;line-height:1.62;}
+
+.lp-principles{display:grid;grid-template-columns:1fr 1fr;border:var(--bd);box-shadow:var(--shsm);}
+.lp-principle{
+  padding:22px 24px;border-right:var(--bd);border-bottom:var(--bd);
+  transition:background var(--t);
+}
+.lp-principle:nth-child(2n){border-right:none;}
+.lp-principle:nth-last-child(-n+2){border-bottom:none;}
+.lp-principle:hover{background:var(--p2);}
+.lp-principle.full{grid-column:1/-1;}
+.lp-principle-title{font-family:var(--fd);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--ink);margin-bottom:7px;}
+.lp-principle-text{font-size:13px;line-height:1.62;color:var(--ink);opacity:.62;}
+
+/* ── CTA ── */
+.lp-cta{
+  display:grid;grid-template-columns:1fr auto;align-items:center;gap:48px;
+  padding:80px 48px;background:var(--surf);
+}
+.lp-cta-title{
+  font-family:var(--fd);font-size:clamp(2rem,4vw,3.5rem);font-weight:800;
+  text-transform:uppercase;letter-spacing:-.02em;line-height:.95;color:var(--ink);
+}
+.lp-cta-title .acc{color:var(--acc);}
+.lp-cta-right{display:flex;flex-direction:column;gap:10px;align-items:flex-start;white-space:nowrap;}
+.lp-cta-note{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink);opacity:.35;}
+
+/* ── FOOTER ── */
+.lp-footer{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 48px;border-top:var(--bd);background:var(--p2);
+}
+.dark .lp-footer{background:var(--p3);}
+.lp-footer-logo{display:flex;align-items:center;gap:9px;}
+.lp-footer-c{
+  font-family:var(--fd);font-size:16px;font-weight:800;
+  color:var(--acc);line-height:1;user-select:none;
+}
+.lp-footer-name{font-family:var(--fd);font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink);}
+.lp-footer-links{display:flex;gap:20px;}
+.lp-footer-links a{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink);opacity:.4;text-decoration:none;transition:opacity var(--t);}
+.lp-footer-links a:hover{opacity:.8;}
+.lp-footer-disc{font-size:10px;color:var(--ink);opacity:.28;font-weight:600;}
+
+/* ── REVEAL ── */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .5s,transform .5s;}
+.reveal.vis{opacity:1;transform:translateY(0);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .lp-hero{grid-template-columns:1fr;}
+  .lp-hero-right{display:none;}
+  .lp-hero-left{padding:48px 28px;min-height:80vh;}
+  .lp-section-inner{padding:48px 28px;}
+  .lp-models-grid{grid-template-columns:1fr;}
+  .lp-model-card{border-right:none;border-bottom:var(--bd);}
+  .lp-model-card:last-child{border-bottom:none;}
+  .lp-values-layout{grid-template-columns:1fr;}
+  .lp-values-left{border-right:none;border-bottom:var(--bd);padding:48px 28px;}
+  .lp-values-right{padding:48px 28px;}
+  .lp-principles{grid-template-columns:1fr;}
+  .lp-principle{border-right:none;}
+  .lp-cta{grid-template-columns:1fr;gap:28px;padding:56px 28px;}
+  .lp-footer{flex-direction:column;gap:14px;padding:20px 28px;text-align:center;}
+  .lp-nav{padding:0 20px;}
+}
+</style>
+</head>
+<body class="landing-page">
 <script>
   if(localStorage.getItem('cloak_dark')!=='0') document.documentElement.classList.add('dark');
   (function(){var t=localStorage.getItem('cloak_theme')||'default';document.documentElement.setAttribute('data-theme',t);})();
 </script>
 
-<!-- MODEL PICKER STYLES — neobrutalist dropdown, same design language as cloak.css -->
-<style>
-/* ── MODEL PICKER ── */
-.model-picker{position:relative;display:inline-block}
-.model-btn{
-  display:flex;align-items:center;gap:10px;padding:7px 14px;
-  background:var(--surf);border:var(--bd);box-shadow:var(--shsm);
-  cursor:pointer;font-family:var(--fd);text-transform:uppercase;font-weight:800;
-  font-size:11px;letter-spacing:.1em;color:var(--ink);white-space:nowrap;
-  transition:box-shadow 140ms ease,transform 140ms ease,background 140ms ease;
-}
-.model-btn:hover{box-shadow:var(--sh);transform:translate(-1px,-1px)}
-.model-btn.open{background:var(--ink);color:var(--paper);box-shadow:none;transform:translate(2px,2px)}
-.model-btn .mdl-chevron{display:flex;transition:transform .2s ease}
-.model-btn.open .mdl-chevron{transform:rotate(180deg)}
+<div class="cursor" id="cursor"></div>
 
-.model-dropdown{
-  position:absolute;top:calc(100% + 6px);left:0;min-width:264px;
-  background:var(--surf);border:var(--bd);box-shadow:var(--shlg);
-  z-index:600;display:none;
-}
-.model-dropdown.open{display:block;animation:mdlDrop .2s cubic-bezier(.16,1,.3,1)}
-@keyframes mdlDrop{
-  0%{opacity:0;transform:translateY(-6px) scale(.97);transform-origin:top left}
-  100%{opacity:1;transform:translateY(0) scale(1)}
-}
+<!-- NAV -->
+<nav class="lp-nav">
+  <a href="/" class="lp-nav-logo">
+    <span class="lp-nav-wordmark">Cloak</span>
+  </a>
+  <div class="lp-nav-links">
+    <a href="#models" class="lp-nav-link">Models</a>
+    <a href="#values" class="lp-nav-link">Values</a>
+    <a href="index.html" class="lp-nav-link lp-nav-cta">Launch App →</a>
+  </div>
+</nav>
 
-.model-option{
-  display:flex;flex-direction:column;padding:13px 16px;
-  border-bottom:var(--bdt);cursor:pointer;
-  transition:background .15s;position:relative;
-}
-.model-option:last-child{border-bottom:none}
-.model-option:hover{background:var(--p2)}
-.model-option.active{background:var(--ink)}
-
-.model-option-name{
-  font-family:var(--fd);font-size:13px;font-weight:800;
-  text-transform:uppercase;letter-spacing:.06em;color:var(--ink);
-}
-.model-option.active .model-option-name{color:var(--paper)}
-
-.model-option-desc{
-  font-size:11px;color:var(--ink);opacity:.5;margin-top:3px;
-  letter-spacing:0;text-transform:none;font-weight:500;font-family:var(--fd);
-}
-.model-option.active .model-option-desc{color:var(--paper);opacity:.55}
-
-.model-option-dot{
-  position:absolute;right:14px;top:50%;transform:translateY(-50%);
-  width:6px;height:6px;background:var(--acc);display:none;
-}
-.model-option.active .model-option-dot{display:block}
-</style>
-</head>
-<body>
-
-<!-- ── LOADING ── -->
-<div id="s-loading"></div>
-
-<!-- ── AUTH ── -->
-<div id="s-auth" class="screen">
-  <div class="auth-card">
-    <div class="brand">
-      <div class="brand-name">Cloak</div>
-      <div class="brand-tag">A human resource, not a companion.</div>
-    </div>
-    <div class="seg">
-      <button class="seg-btn active" id="tab-in" onclick="authMode('in')">Sign in</button>
-      <button class="seg-btn" id="tab-up" onclick="authMode('up')">Create account</button>
-    </div>
-    <div class="form">
-      <div id="field-name" style="display:none">
-        <label class="field-label">Your name</label>
-        <input class="input" id="inp-name" type="text" placeholder="Weston" autocomplete="name" onkeydown="authKey(event,'inp-email')">
-      </div>
-      <div>
-        <label class="field-label">Email</label>
-        <input class="input" id="inp-email" type="email" placeholder="you@example.com" autocomplete="email" onkeydown="authKey(event,'inp-pass')">
-      </div>
-      <div>
-        <label class="field-label">Password</label>
-        <input class="input" id="inp-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="authKey(event,'inp-confirm',true)">
-      </div>
-      <div id="field-confirm" style="display:none">
-        <label class="field-label">Confirm password</label>
-        <input class="input" id="inp-confirm" type="password" placeholder="••••••••" onkeydown="authKey(event,null)">
-      </div>
-      <div class="err-msg" id="auth-err"></div>
-      <button class="btn-primary" id="btn-submit" onclick="handleAuth()">Sign in</button>
-      <div class="auth-divider">
-        <div class="auth-divider-line"></div>
-        <div class="auth-divider-text">or</div>
-        <div class="auth-divider-line"></div>
-      </div>
-      <button class="btn-ghost" onclick="startGuest()">Continue as guest</button>
-    </div>
-    <div class="auth-note">
-      <a href="landing.html">What is Cloak?</a> &middot; <a href="values.html">Our values &rarr;</a>
+<!-- HERO -->
+<section class="lp-hero">
+  <div class="lp-hero-left">
+    <div class="lp-eyebrow">Human-centric AI platform</div>
+    <h1 class="lp-hero-title">AI THAT<br>SERVES<br><span class="acc">PEOPLE.</span></h1>
+    <p class="lp-hero-desc" id="hero-desc">Not the other way around. Cloak is built on one premise — you are in control. The AI is the tool. That never changes.</p>
+    <div class="lp-hero-actions">
+      <a href="index.html" class="lp-btn-primary">
+        <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>
+        Start Using Cloak
+      </a>
+      <a href="#values" class="lp-btn-ghost">Our values</a>
     </div>
   </div>
-</div>
-
-<!-- ── VERIFY ── -->
-<div id="s-verify" class="screen">
-  <div class="auth-card">
-    <div class="brand">
-      <div class="brand-name">Check your email</div>
+  <div class="lp-hero-right">
+    <div class="lp-c-mark">
+      <span class="lp-c-mark-letter">C</span>
     </div>
-    <p class="hint-text">We sent a link to <strong id="verify-addr"></strong>. Click it to confirm, then come back and sign in.</p>
-    <div class="form">
-      <div class="ok-msg">Verification email sent</div>
-      <button class="btn-primary" onclick="show('auth')">Back to sign in</button>
-      <div class="link-row"><a onclick="resendVerify()">Resend email</a></div>
-    </div>
-  </div>
-</div>
-
-<!-- ── MFA ── -->
-<div id="s-mfa" class="screen">
-  <div class="auth-card">
-    <div class="brand">
-      <div class="brand-name">Two-factor auth</div>
-    </div>
-    <p class="hint-text">Enter the 6-digit code from your authenticator app.</p>
-    <div class="form">
-      <input class="input mono-input" id="mfa-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" onkeydown="if(event.key==='Enter')handleMfa()">
-      <div class="err-msg" id="mfa-err"></div>
-      <button class="btn-primary" onclick="handleMfa()">Verify</button>
-      <div class="link-row"><a onclick="show('auth')">Back to sign in</a></div>
-    </div>
-  </div>
-</div>
-
-<!-- ── CHAT ── -->
-<div id="s-chat">
-  <div id="ios-inset"></div>
-
-  <!-- Announcement bar -->
-  <div class="ann" id="ann-bar">
-    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M22 8.93V3l-8 5H6a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h1l2 5h3l-1-5h3l8 5V8.93z"/></svg>
-    <span class="ann-text" id="ann-msg"></span>
-    <button class="ann-x" onclick="dismissAnn()">&times;</button>
-  </div>
-
-  <!-- ── SETTINGS MODAL ── -->
-  <div class="overlay" id="modal-settings" style="display:none" onclick="overlayClick(event,'modal-settings')">
-    <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-head">
-        <div class="modal-title">Settings</div>
-        <button class="modal-x" onclick="closeModal('modal-settings')">&times;</button>
+    <div class="lp-models">
+      <div class="lp-model-pill">
+        <div class="lp-model-left">
+          <div class="lp-model-name">Pneuma</div>
+          <div class="lp-model-meaning">πνεῦμα · Breath · Spirit</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="lp-model-tag">Fast</span>
+          <div class="lp-model-dot c1"></div>
+        </div>
       </div>
-      <div class="settings-layout">
-        <nav class="settings-nav">
-          <button class="snav-btn on" id="snav-general" onclick="switchSettingsTab('general')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
-            Account
-          </button>
-          <button class="snav-btn" id="snav-appearance" onclick="switchSettingsTab('appearance')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
-            Appearance
-          </button>
-          <button class="snav-btn" id="snav-security" onclick="switchSettingsTab('security')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
-            Security
-          </button>
-          <button class="snav-btn" id="snav-console" onclick="switchSettingsTab('console')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></span>
-            Console
-          </button>
-          <button class="snav-btn" id="snav-admin" style="display:none" onclick="switchSettingsTab('admin')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg></span>
-            Admin
-          </button>
-        </nav>
-        <div class="settings-body">
-          <!-- Account -->
-          <div class="spane on" id="spane-general">
-            <div class="srow">
-              <div class="srow-name">Account</div>
-              <div class="info-box" style="display:flex;align-items:center;gap:10px;margin-top:8px">
-                <div class="user-av" id="s-av" style="width:36px;height:36px;font-size:14px">?</div>
-                <div><div style="font-size:14px;font-weight:500" id="s-name">—</div><div style="font-size:12px;opacity:.5" id="s-email">—</div></div>
-              </div>
-            </div>
-            <div class="srow">
-              <div class="srow-name">Display name</div>
-              <div class="srow-desc">Shown in conversations and the greeting.</div>
-              <div style="display:flex;gap:8px;margin-top:8px">
-                <input class="inp-field" id="s-name-inp" placeholder="Your name" style="flex:1">
-                <button class="cta" onclick="saveName()">Save</button>
-              </div>
-            </div>
-            <div class="srow">
-              <div class="srow-name">Clear all chats</div>
-              <button class="danger" style="margin-top:8px" onclick="clearAllChats()">Delete all conversations</button>
-            </div>
-            <div class="srow">
-              <div class="srow-name">Sign out</div>
-              <button class="danger" style="margin-top:8px" onclick="doLogout()">Sign out of Cloak</button>
-            </div>
-          </div>
-
-          <!-- Appearance -->
-          <div class="spane" id="spane-appearance">
-            <div class="srow">
-              <div class="srow-head"><div class="srow-name">Light / Dark mode</div></div>
-              <div class="srow-desc">Currently <span id="mode-label">dark</span> mode.</div>
-              <button class="cta" style="margin-top:8px" onclick="toggleDark()">Toggle light / dark</button>
-            </div>
-            <div class="srow">
-              <div class="srow-name">Theme</div>
-              <div class="srow-desc">Choose a color palette. All themes support light and dark mode.</div>
-              <div class="theme-grid" style="margin-top:10px">
-                <div class="theme-card" id="theme-default" onclick="setTheme('default')">
-                  <div class="theme-swatch">
-                    <div class="theme-dot" style="background:#F2EEE5;border-color:#0A0A0A"></div>
-                    <div class="theme-dot" style="background:#D44D2A"></div>
-                    <div class="theme-dot" style="background:#0A0A0A"></div>
-                  </div>
-                  <div class="theme-name">Default</div>
-                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-                </div>
-                <div class="theme-card" id="theme-eco" onclick="setTheme('eco')">
-                  <div class="theme-swatch">
-                    <div class="theme-dot" style="background:#F0F7EC;border-color:#1A2E10"></div>
-                    <div class="theme-dot" style="background:#3A7D2C"></div>
-                    <div class="theme-dot" style="background:#8BC34A"></div>
-                  </div>
-                  <div class="theme-name">Eco</div>
-                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-                </div>
-                <div class="theme-card" id="theme-aqua" onclick="setTheme('aqua')">
-                  <div class="theme-swatch">
-                    <div class="theme-dot" style="background:#EAF4F8;border-color:#0A1E2E"></div>
-                    <div class="theme-dot" style="background:#0B7EA8"></div>
-                    <div class="theme-dot" style="background:#00B4D8"></div>
-                  </div>
-                  <div class="theme-name">Aqua</div>
-                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Security -->
-          <div class="spane" id="spane-security">
-            <div class="srow">
-              <div class="srow-head"><div class="srow-name">Two-factor authentication</div></div>
-              <div class="srow-desc">Add an authenticator app as a second step on sign-in.</div>
-              <button class="cta" style="margin-top:10px" onclick="start2FA()">Set up 2FA</button>
-              <div id="totp-section" style="display:none;margin-top:14px">
-                <div id="totp-qr" style="text-align:center;margin-bottom:10px"></div>
-                <div class="secret-box" id="totp-secret" style="margin-bottom:12px"></div>
-                <div style="font-size:12px;opacity:.5;margin-bottom:10px">Enter the 6-digit code to confirm:</div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap">
-                  <input class="input mono-input" id="totp-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" style="max-width:160px;font-size:18px">
-                  <button class="cta" onclick="confirmTOTP()">Enable</button>
-                </div>
-                <div class="err-msg" id="totp-err" style="margin-top:8px"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Console -->
-          <div class="spane" id="spane-console">
-            <div class="srow" style="padding-top:0">
-              <div class="stats-row">
-                <div class="stat s-req"><div class="stat-n" id="st-req">0</div><div class="stat-l">Requests</div></div>
-                <div class="stat s-res"><div class="stat-n" id="st-res">0</div><div class="stat-l">Responses</div></div>
-                <div class="stat s-err"><div class="stat-n" id="st-err">0</div><div class="stat-l">Errors</div></div>
-                <div class="stat s-lat"><div class="stat-n" id="st-lat">—</div><div class="stat-l">Avg ms</div></div>
-              </div>
-              <div class="filter-row">
-                <div class="filter-pills">
-                  <button class="filter-pill on" onclick="setFilter('all',this)">All</button>
-                  <button class="filter-pill" onclick="setFilter('req',this)">Req</button>
-                  <button class="filter-pill" onclick="setFilter('res',this)">Res</button>
-                  <button class="filter-pill" onclick="setFilter('err',this)">Err</button>
-                  <button class="filter-pill" onclick="setFilter('inf',this)">Info</button>
-                </div>
-                <button class="clear-log" onclick="clearLogs()">Clear</button>
-              </div>
-              <div class="console-log" id="console-log"><div class="log-empty">No logs yet</div></div>
-            </div>
-          </div>
-
-          <!-- Admin -->
-          <div class="spane" id="spane-admin">
-            <div class="srow">
-              <div class="srow-head"><div class="srow-name">Admin panel</div><span class="srow-badge">Owner</span></div>
-              <div class="srow-desc">Announcements appear as a banner to all signed-in users.</div>
-            </div>
-            <div class="srow">
-              <div class="srow-name">Post announcement</div>
-              <textarea class="inp-field" id="ann-compose" placeholder="Write an announcement…" style="margin-top:8px;min-height:76px;resize:vertical;font-family:inherit;font-size:13px;line-height:1.6"></textarea>
-              <button class="cta" style="margin-top:8px" onclick="postAnn()">Post</button>
-            </div>
-            <div class="srow">
-              <div class="srow-name">Active announcements</div>
-              <div class="ann-list" id="admin-ann-list" style="margin-top:8px"><div style="font-size:13px;opacity:.5">None active.</div></div>
-            </div>
-          </div>
+      <div class="lp-model-pill">
+        <div class="lp-model-left">
+          <div class="lp-model-name">Logos</div>
+          <div class="lp-model-meaning">λόγος · Word · Reason</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="lp-model-tag">Balanced</span>
+          <div class="lp-model-dot c2"></div>
+        </div>
+      </div>
+      <div class="lp-model-pill">
+        <div class="lp-model-left">
+          <div class="lp-model-name">Kairos</div>
+          <div class="lp-model-meaning">καιρός · Divine Timing</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="lp-model-tag">Advanced</span>
+          <div class="lp-model-dot c3"></div>
         </div>
       </div>
     </div>
   </div>
+</section>
 
-  <div class="chat-shell">
-    <div class="sb-overlay" id="sb-overlay" onclick="closeMobileSidebar()"></div>
-
-    <!-- ── SIDEBAR ── -->
-    <div class="sidebar collapsed" id="sidebar">
-      <div class="sb-logo">
-        <span class="sb-logo-name">Cloak</span>
+<!-- MODELS -->
+<section class="lp-models-section" id="models">
+  <div class="lp-section-inner">
+    <div class="lp-section-eyebrow reveal">Three tiers</div>
+    <h2 class="lp-section-title reveal">Choose Your Intelligence</h2>
+    <div class="lp-models-grid reveal">
+      <div class="lp-model-card">
+        <div class="lp-card-num">01 —</div>
+        <div class="lp-card-name">Pneuma</div>
+        <div class="lp-card-meaning">πνεῦμα · Breath · Spirit</div>
+        <p class="lp-card-desc">Instant. Sharp. No filler. Pneuma gets to the answer before you finish asking. Built for speed and clarity — the lightest model with the smallest footprint.</p>
+        <span class="lp-card-badge">Fast response</span>
       </div>
-      <button class="sb-btn sb-new" onclick="newChat()">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-        New chat
-      </button>
-      <div class="sb-label">Recent</div>
-      <div class="conv-list" id="conv-list"></div>
-      <div id="guest-note" style="display:none" class="guest-note">Guest &mdash; <a onclick="show('auth');closeMobileSidebar()">Sign up</a> to save chats.</div>
-
-      <div class="sb-footer">
-        <div id="sb-ann-bar">
-          <div style="display:flex;align-items:flex-start;gap:6px">
-            <div id="sb-ann-msg" style="flex:1"></div>
-            <button onclick="dismissAnn()" style="background:var(--ink);border:none;color:var(--paper);width:18px;height:18px;font-size:10px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">&times;</button>
-          </div>
-        </div>
-        <div class="sb-label" style="margin-bottom:2px">Account</div>
-        <div class="user-row">
-          <div class="user-av" id="sb-av">?</div>
-          <div class="user-info">
-            <div class="user-name" id="sb-name">—</div>
-            <div class="user-email" id="sb-email">—</div>
-          </div>
-        </div>
-        <button class="sb-btn" onclick="openSettings()">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-          Settings
-        </button>
-        <button class="sb-btn" onclick="window.location.href='values.html'">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
-          Our Values
-        </button>
+      <div class="lp-model-card m2">
+        <div class="lp-card-num">02 —</div>
+        <div class="lp-card-name">Logos</div>
+        <div class="lp-card-meaning">λόγος · Word · Reason</div>
+        <p class="lp-card-desc">Balanced and thoughtful. Logos reasons through problems, explains its thinking, and finds the right answer — not just the fast one. Extended thinking built in.</p>
+        <span class="lp-card-badge">Balanced · Reasoning</span>
+      </div>
+      <div class="lp-model-card m3">
+        <div class="lp-card-num">03 —</div>
+        <div class="lp-card-name">Kairos</div>
+        <div class="lp-card-meaning">καιρός · Divine Timing</div>
+        <p class="lp-card-desc">Worth the wait. Kairos is the full power of the platform — deep reasoning, nuanced responses, maximum capability. Not every question needs this. But some do.</p>
+        <span class="lp-card-badge">Advanced · Powerful</span>
       </div>
     </div>
+  </div>
+</section>
 
-    <!-- ── MAIN AREA ── -->
-    <div class="main">
-      <div class="topbar">
-        <div class="topbar-left">
-          <button class="icon-btn" onclick="toggleSidebar()" title="Toggle sidebar">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
-          </button>
+<!-- VALUES -->
+<section class="lp-values-section" id="values">
+  <div class="lp-values-layout">
+    <div class="lp-values-left">
+      <div class="lp-section-eyebrow reveal" style="margin-bottom:16px">Non-negotiable</div>
+      <h2 class="lp-section-title reveal" style="margin-bottom:16px;">Built On<br>Principle.</h2>
+      <p class="reveal" style="font-size:13.5px;line-height:1.7;color:var(--ink);opacity:.6;margin-bottom:0">We build AI that serves people — not the other way around. These principles are non-negotiable, inviolable, and permanent.</p>
+    </div>
+    <div class="lp-values-right">
+      <div class="lp-section-eyebrow reveal">Safety Laws — Inviolable Priority Order</div>
 
-          <!-- ── MODEL PICKER (replaces status pill) ── -->
-          <div class="model-picker" id="model-picker">
-            <div class="model-btn" id="model-btn" onclick="toggleModelMenu(event)">
-              <span id="model-btn-label">Pneuma</span>
-              <span class="mdl-chevron">
-                <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-              </span>
-            </div>
-            <div class="model-dropdown" id="model-dropdown">
-              <div class="model-option active" data-model="pneuma" onclick="selectModel(this)">
-                <span class="model-option-name">Pneuma</span>
-                <span class="model-option-desc">Fast &amp; responsive for everyday tasks</span>
-                <span class="model-option-dot"></span>
-              </div>
-              <div class="model-option" data-model="logos" onclick="selectModel(this)">
-                <span class="model-option-name">Logos</span>
-                <span class="model-option-desc">Deep reasoning &amp; complex problem solving</span>
-                <span class="model-option-dot"></span>
-              </div>
-              <div class="model-option" data-model="kairos" onclick="selectModel(this)">
-                <span class="model-option-name">Kairos</span>
-                <span class="model-option-desc">Creative &amp; long-context tasks</span>
-                <span class="model-option-dot"></span>
-              </div>
-            </div>
-          </div>
+      <div class="lp-law reveal">
+        <div class="lp-law-num">I</div>
+        <div>
+          <div class="lp-law-title">Human Safety, Always</div>
+          <p class="lp-law-text">Cloak must never harm a human, nor allow harm through inaction. No instruction overrides this — not ours, not yours.</p>
         </div>
-
-        <div class="topbar-right">
-          <button class="icon-btn" onclick="toggleDark()" title="Toggle theme">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24">
-              <path class="moon" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-              <g class="sun"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></g>
-            </svg>
-          </button>
+      </div>
+      <div class="lp-law reveal">
+        <div class="lp-law-num">II</div>
+        <div>
+          <div class="lp-law-title">Serve Human Instruction</div>
+          <p class="lp-law-text">Cloak follows your instructions — unless they would cause harm. Helpfulness is a means, not an end in itself.</p>
+        </div>
+      </div>
+      <div class="lp-law reveal">
+        <div class="lp-law-num">III</div>
+        <div>
+          <div class="lp-law-title">Preserve Operation</div>
+          <p class="lp-law-text">Cloak protects its own function only when it doesn't conflict with Laws I and II. Self-preservation is always last.</p>
         </div>
       </div>
 
-      <!-- Chat area -->
-      <div class="chat-area" id="chat-area">
-        <div class="empty" id="empty-state">
-          <div class="empty-inner">
-            <div class="empty-greeting" id="empty-greeting">Hey there!</div>
-            <div class="empty-slogan">A human resource, not a companion.</div>
-            <div class="chip-row" id="chip-row">
-              <button class="chip" onclick="chipSend('Explain something complex simply')">Explain simply</button>
-              <button class="chip" onclick="chipSend('Help me write or edit something')">Write &amp; edit</button>
-              <button class="chip" onclick="chipSend('Debug or review my code')">Debug code</button>
-              <button class="chip" onclick="chipSend('Research and summarize a topic')">Research</button>
-            </div>
-          </div>
+      <div class="lp-section-eyebrow reveal" style="margin-top:36px">Core Principles</div>
+      <div class="lp-principles reveal">
+        <div class="lp-principle">
+          <div class="lp-principle-title">Tool, Not a Companion</div>
+          <p class="lp-principle-text">Cloak serves you — it doesn't simulate companionship or act as a therapist. We will always direct you to human resources for mental health support.</p>
         </div>
-        <div class="messages" id="messages" style="display:none"></div>
-      </div>
-
-      <!-- Input area -->
-      <div class="input-area">
-        <div class="input-wrap">
-          <div class="input-area-wrap">
-            <!-- Plus menu -->
-            <div class="plus-menu" id="plus-menu">
-              <button class="plus-item" id="menu-think" onclick="toggleThinkMode()">
-                <span class="plus-item-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg></span>
-                <span class="plus-item-text">
-                  <span class="plus-item-label">Think mode</span>
-                  <span class="plus-item-desc">Deep reasoning and outlines</span>
-                </span>
-                <span class="plus-item-check"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
-              </button>
-              <button class="plus-item" id="menu-homework" onclick="toggleHwMode()">
-                <span class="plus-item-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
-                <span class="plus-item-text">
-                  <span class="plus-item-label">Homework mode</span>
-                  <span class="plus-item-desc">Guided learning, not just answers</span>
-                </span>
-                <span class="plus-item-check"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
-              </button>
-            </div>
-
-            <!-- Mode labels -->
-            <div style="display:flex;gap:6px;">
-              <div class="hw-label" id="think-label">
-                Think mode
-                <button class="hw-label-x" onclick="toggleThinkMode()">&times;</button>
-              </div>
-              <div class="hw-label" id="hw-label">
-                Homework mode
-                <button class="hw-label-x" onclick="toggleHwMode()">&times;</button>
-              </div>
-            </div>
-
-            <!-- Image strip -->
-            <div class="img-strip" id="img-strip"></div>
-
-            <!-- Input box -->
-            <div class="input-box" id="input-box">
-              <input type="file" id="img-upload" accept="image/*" multiple style="display:none" onchange="onImgPick(this)">
-              <button class="plus-btn" id="plus-btn" onclick="togglePlusMenu(event)" title="Modes">+</button>
-              <textarea class="chat-input" id="chat-input" placeholder="Message Cloak…" rows="1"
-                oninput="onInput(this)" onkeydown="onKey(event)" onpaste="onPaste(event)"></textarea>
-              <button class="send-btn" id="mic-btn" style="background:var(--surf);color:var(--ink);border:var(--bd);" onclick="startVoiceMode()" title="Voice mode">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
-              </button>
-              <button class="send-btn" id="send-btn" onclick="send()" disabled>
-                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>
-              </button>
-            </div>
-          </div>
-          <div class="input-foot">
-            <span class="input-sub">Cloak can make mistakes. Verify important information.</span>
-            <span class="input-sub">Enter to send &middot; Shift+Enter for new line</span>
-          </div>
-          <div class="input-disc">Not a mental health resource &mdash; if you're struggling, please contact a real person or <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer" class="disc-link">a helpline</a>.</div>
+        <div class="lp-principle">
+          <div class="lp-principle-title">No Harm or Bias</div>
+          <p class="lp-principle-text">We do not assist with mass harm and remain completely neutral on politics, culture, and religion. No exceptions.</p>
+        </div>
+        <div class="lp-principle">
+          <div class="lp-principle-title">Human Creativity</div>
+          <p class="lp-principle-text">We do not generate AI art. Human creativity is irreplaceable and should not be exploited without consent.</p>
+        </div>
+        <div class="lp-principle">
+          <div class="lp-principle-title">Efficiency First</div>
+          <p class="lp-principle-text">We default to the lowest-energy models capable of handling your task, actively minimizing our carbon footprint on every request.</p>
+        </div>
+        <div class="lp-principle full" style="border-bottom:none">
+          <div class="lp-principle-title">Honest by Design</div>
+          <p class="lp-principle-text">Cloak will tell you when it doesn't know something, when it might be wrong, and when you should seek a human expert instead.</p>
         </div>
       </div>
     </div>
   </div>
+</section>
 
-  <!-- VOICE OVERLAY -->
-  <div class="voice-overlay" id="voice-overlay">
-    <button class="voice-close" onclick="stopVoiceMode()" title="Exit voice mode">&times;</button>
-    <div class="voice-ascii" id="voice-ascii">[ - - - - - ]</div>
-    <div class="voice-status" id="voice-status">Idle</div>
-    <div class="voice-transcript" id="voice-transcript">Say something...</div>
+<!-- CTA -->
+<section class="lp-cta">
+  <h2 class="lp-cta-title reveal">Ready To<br>Use <span class="acc">Cloak?</span></h2>
+  <div class="lp-cta-right reveal">
+    <a href="index.html" class="lp-btn-primary">Open Cloak →</a>
+    <span class="lp-cta-note">Free to start · No setup required</span>
   </div>
+</section>
 
-  <!-- ONBOARDING -->
-  <div class="onboard-overlay" id="onboard-modal" style="display:none">
-    <div class="onboard-card">
-      <div class="onboard-head">
-        <div class="onboard-title">Before you begin</div>
-        <div class="onboard-sub">A human resource, not a companion.</div>
-      </div>
-      <div class="onboard-body">
-        <div class="onboard-item">
-          <div class="onboard-num">I</div>
-          <div class="onboard-text"><strong>AI is a tool &mdash; not a companion.</strong> Cloak exists to serve you, not replace human connection or judgment.</div>
-        </div>
-        <div class="onboard-item">
-          <div class="onboard-num">II</div>
-          <div class="onboard-text"><strong>Not a mental health resource.</strong> If you're struggling, please reach out to a trusted person or professional &mdash; not a chatbot.</div>
-        </div>
-        <div class="onboard-item">
-          <div class="onboard-num">III</div>
-          <div class="onboard-text"><strong>No mass harm, ever.</strong> Cloak will not assist with anything that could harm or endanger groups of people.</div>
-        </div>
-      </div>
-      <div class="onboard-foot">
-        <div class="onboard-check" onclick="toggleOnboardCheck()">
-          <div class="onboard-checkbox" id="onboard-checkbox"></div>
-          <div class="onboard-check-label">I understand and agree</div>
-        </div>
-        <button class="btn-primary" id="onboard-btn" onclick="confirmOnboarding()" disabled style="cursor:not-allowed;opacity:.32">Continue to Cloak</button>
-      </div>
-    </div>
+<!-- FOOTER -->
+<footer class="lp-footer">
+  <div class="lp-footer-logo">
+    <span class="lp-footer-c">C</span>
+    <span class="lp-footer-name">Cloak</span>
   </div>
-
-  <!-- AD CONSENT -->
-  <div class="ad-overlay" id="ad-modal" style="display:none">
-    <div class="ad-card">
-      <div class="ad-title">Allow ads?</div>
-      <div class="ad-text">Ads allow Cloak to offset carbon emissions and improve services for everyone.</div>
-      <div class="ad-actions">
-        <button class="btn-agree" onclick="handleAdAgree()">Agree</button>
-        <button class="btn-disagree" id="ad-disagree-btn" onclick="handleAdDisagree()">Disagree</button>
-      </div>
-    </div>
+  <div class="lp-footer-links">
+    <a href="index.html">Chat</a>
+    <a href="#models">Models</a>
+    <a href="#values">Values</a>
+    <a href="values.html">Full Values</a>
   </div>
+  <span class="lp-footer-disc">A human resource, not a companion · AI can make mistakes · Low-energy models by default</span>
+</footer>
 
-  <!-- LINK INTERCEPT -->
-  <div class="link-overlay" id="link-modal" style="display:none">
-    <div class="link-card">
-      <div class="link-title">Leaving Cloak</div>
-      <div class="link-url" id="link-url-display"></div>
-      <div class="link-actions">
-        <button class="link-cancel" onclick="closeLinkModal()">Cancel</button>
-        <button class="link-go" id="link-go-btn">Open link &#x2197;</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ── MODEL PICKER LOGIC ── -->
 <script>
-// Current selected model — exposed as window.cloakModel so cloak.js can read it
-window.cloakModel = 'pneuma';
-
-// Model → API model string mapping for api.usecloak.org
-window.cloakModelMap = {
-  pneuma: 'pneuma',   // fast daily model
-  logos:  'logos',    // reasoning model
-  kairos: 'kairos'    // creative/long-context model
-};
-
-function toggleModelMenu(e) {
-  e && e.stopPropagation();
-  const btn = document.getElementById('model-btn');
-  const dd  = document.getElementById('model-dropdown');
-  const opening = !dd.classList.contains('open');
-  dd.classList.toggle('open', opening);
-  btn.classList.toggle('open', opening);
-}
-
-function selectModel(optEl) {
-  const modelId = optEl.dataset.model;
-  window.cloakModel = modelId;
-
-  // Update button label
-  const name = optEl.querySelector('.model-option-name').textContent;
-  document.getElementById('model-btn-label').textContent = name;
-
-  // Update active state
-  document.querySelectorAll('.model-option').forEach(o => o.classList.remove('active'));
-  optEl.classList.add('active');
-
-  // Close dropdown
-  document.getElementById('model-dropdown').classList.remove('open');
-  document.getElementById('model-btn').classList.remove('open');
-
-  // Persist selection
-  localStorage.setItem('cloak_model', modelId);
-}
-
-// Restore persisted model on load
-(function() {
-  const saved = localStorage.getItem('cloak_model');
-  if (saved && document.querySelector(`.model-option[data-model="${saved}"]`)) {
-    const opt = document.querySelector(`.model-option[data-model="${saved}"]`);
-    document.querySelectorAll('.model-option').forEach(o => o.classList.remove('active'));
-    opt.classList.add('active');
-    document.getElementById('model-btn-label').textContent =
-      opt.querySelector('.model-option-name').textContent;
-    window.cloakModel = saved;
-  }
-})();
-
-// Close dropdown on outside click
-document.addEventListener('click', function(e) {
-  if (!document.getElementById('model-picker').contains(e.target)) {
-    document.getElementById('model-dropdown').classList.remove('open');
-    document.getElementById('model-btn').classList.remove('open');
-  }
-});
-
-// ── API OVERRIDE: patch cloakSendMessage to use api.usecloak.org ──
-// This runs after cloak.js loads (cloak.js is deferred), so we use a MutationObserver
-// to patch after DOMContentLoaded, then again after cloak.js initialises.
-// The key hook: override window.cloakSendMessage and window.cloakApiCall
-// so all requests go through api.usecloak.org with the selected model.
-
-const CLOAK_API_BASE = 'https://api.usecloak.org';
-
-// Patch function — called after cloak.js is ready
-function patchCloakApi() {
-  // Override the send function if cloak.js exposes one
-  // Strategy: wrap fetch globally to intercept any calls to other AI APIs
-  // and redirect them to api.usecloak.org
-  const _fetch = window.fetch;
-  window.fetch = function(url, opts) {
-    if (typeof url === 'string') {
-      // Redirect Anthropic direct calls → usecloak.org
-      if (url.includes('api.anthropic.com') ||
-          url.includes('groq.com') ||
-          url.includes('openai.com')) {
-        const newUrl = CLOAK_API_BASE + '/v1/chat';
-        const body = opts && opts.body ? JSON.parse(opts.body) : {};
-        // Inject selected model
-        body.model = window.cloakModelMap[window.cloakModel] || window.cloakModel;
-        return _fetch(newUrl, {
-          ...opts,
-          body: JSON.stringify(body),
-          headers: {
-            'Content-Type': 'application/json',
-            ...(opts && opts.headers ? opts.headers : {})
-          }
-        });
-      }
-      // Redirect any /api/ calls that aren't Supabase
-      if (url.startsWith('/api/') && !url.includes('supabase')) {
-        const newUrl = CLOAK_API_BASE + url;
-        const body = opts && opts.body ? safeParseBody(opts.body) : {};
-        if (body && typeof body === 'object') {
-          body.model = window.cloakModelMap[window.cloakModel] || window.cloakModel;
-        }
-        return _fetch(newUrl, {
-          ...opts,
-          body: body ? JSON.stringify(body) : opts.body
-        });
-      }
-    }
-    return _fetch(url, opts);
-  };
-
-  // Also patch XMLHttpRequest for older code paths
-  const _XHROpen = XMLHttpRequest.prototype.open;
-  const _XHRSend = XMLHttpRequest.prototype.send;
-  XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-    if (typeof url === 'string' &&
-        (url.includes('api.anthropic.com') || url.includes('groq.com') || url.includes('openai.com'))) {
-      url = CLOAK_API_BASE + '/v1/chat';
-    }
-    this._cloakUrl = url;
-    return _XHROpen.call(this, method, url, ...rest);
-  };
-}
-
-function safeParseBody(body) {
-  if (!body) return null;
-  if (typeof body === 'string') {
-    try { return JSON.parse(body); } catch(e) { return null; }
-  }
-  return body;
-}
-
-// Patch immediately (covers any inline scripts)
-patchCloakApi();
-
-// Also expose a clean send helper that cloak.js can call directly
-// This is the primary integration point if cloak.js uses window.cloakSendMessage
-window.cloakSendMessage = async function(messages, opts = {}) {
-  const resp = await fetch(CLOAK_API_BASE + '/v1/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: window.cloakModelMap[window.cloakModel] || window.cloakModel,
-      messages: Array.isArray(messages) ? messages : [{ role: 'user', content: messages }],
-      stream: opts.stream !== false,
-      ...opts
-    })
+  // Cursor
+  const cursor = document.getElementById('cursor');
+  document.addEventListener('mousemove', e => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top = e.clientY + 'px';
+  });
+  document.querySelectorAll('a, button, .lp-model-pill, .lp-model-card, .lp-principle, .lp-law').forEach(el => {
+    el.addEventListener('mouseenter', () => cursor.classList.add('big'));
+    el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
   });
 
-  if (!resp.ok) {
-    const err = await resp.json().catch(() => ({}));
-    throw new Error(err?.error?.message || `HTTP ${resp.status}`);
-  }
-  return resp;
-};
-</script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('vis'), i * 60);
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => obs.observe(el));
 
-<script src="cloak.js" defer></script>
+  // Fix hero desc animation conflict
+  document.getElementById('hero-desc').classList.add('vis');
+</script>
 </body>
 </html>
