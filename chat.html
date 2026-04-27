@@ -16,293 +16,157 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="cloak.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
-
-<style>
-/* ── Model Selector ─────────────────────────────────────── */
-.model-select-wrap { position: relative; }
-
-.model-pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 11px;
-  border-radius: 20px;
-  border: var(--bd);
-  background: var(--surf);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--ink);
-  font-family: inherit;
-  transition: opacity .15s;
-  outline: none;
-}
-.model-pill:hover { opacity: .75; }
-.model-pill .live-dot { flex-shrink: 0; }
-.model-pill .mpill-chevron {
-  opacity: .38;
-  transition: transform .2s;
-  flex-shrink: 0;
-}
-.model-pill.open .mpill-chevron { transform: rotate(180deg); }
-
-.model-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 7px);
-  background: var(--surf);
-  border: var(--bd);
-  border-radius: 11px;
-  padding: 4px;
-  min-width: 200px;
-  z-index: 999;
-  box-shadow: 0 10px 32px rgba(0,0,0,.22);
-  display: none;
-  animation: menuIn .12s ease;
-}
-@keyframes menuIn {
-  from { opacity: 0; transform: translateY(-4px) scale(.97); }
-  to   { opacity: 1; transform: none; }
-}
-.model-menu.open { display: block; }
-
-.model-opt {
-  display: flex;
-  flex-direction: column;
-  padding: 8px 11px;
-  border-radius: 8px;
-  cursor: pointer;
-  border: none;
-  background: none;
-  width: 100%;
-  text-align: left;
-  color: var(--ink);
-  font-family: inherit;
-  gap: 2px;
-  transition: background .12s;
-}
-.model-opt:hover { background: rgba(128,128,128,.1); }
-.model-opt.active { background: var(--accent); color: #fff; }
-.model-opt-name { font-size: 13px; font-weight: 600; }
-.model-opt-desc { font-size: 11px; opacity: .52; }
-.model-opt.active .model-opt-desc { opacity: .8; color: #fff; }
-
-/* ── Messages ───────────────────────────────────────────── */
-.msg-row {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  animation: msgIn .18s ease;
-}
-@keyframes msgIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to   { opacity: 1; transform: none; }
-}
-
-/* User bubble */
-.msg-user { align-self: flex-end; max-width: 76%; }
-.msg-user .msg-bubble {
-  background: var(--ink);
-  color: var(--paper);
-  padding: 10px 14px;
-  border-radius: 16px 16px 4px 16px;
-  font-size: 14px;
-  line-height: 1.55;
-  word-break: break-word;
-  white-space: pre-wrap;
-}
-
-/* Bot bubble */
-.msg-bot { align-self: flex-start; max-width: 86%; }
-.msg-meta {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 10px;
-  font-weight: 700;
-  opacity: .38;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  margin-bottom: 5px;
-}
-.msg-bot .msg-bubble {
-  font-size: 14px;
-  line-height: 1.68;
-  color: var(--ink);
-}
-
-/* Markdown resets inside bubbles */
-.msg-bubble p              { margin: 0 0 .6em; }
-.msg-bubble p:last-child   { margin-bottom: 0; }
-.msg-bubble pre {
-  background: rgba(128,128,128,.1);
-  border-radius: 8px;
-  padding: 12px 14px;
-  overflow-x: auto;
-  margin: .5em 0;
-}
-.msg-bubble pre code {
-  font-size: 12.5px;
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", monospace;
-  background: none;
-  padding: 0;
-}
-.msg-bubble code:not(pre code) {
-  background: rgba(128,128,128,.12);
-  padding: 2px 5px;
-  border-radius: 4px;
-  font-size: 12.5px;
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", monospace;
-}
-.msg-bubble ul, .msg-bubble ol { padding-left: 1.3em; margin: .4em 0; }
-.msg-bubble li      { margin: .2em 0; }
-.msg-bubble h1, .msg-bubble h2, .msg-bubble h3, .msg-bubble h4 {
-  margin: .8em 0 .3em;
-  font-weight: 600;
-  line-height: 1.3;
-}
-.msg-bubble h1 { font-size: 1.2em; }
-.msg-bubble h2 { font-size: 1.08em; }
-.msg-bubble h3 { font-size: 1em; }
-.msg-bubble a {
-  color: var(--accent);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  cursor: pointer;
-}
-.msg-bubble strong    { font-weight: 600; }
-.msg-bubble em        { font-style: italic; }
-.msg-bubble blockquote {
-  border-left: 3px solid var(--accent);
-  padding-left: 10px;
-  opacity: .7;
-  margin: .5em 0;
-}
-.msg-bubble table { border-collapse: collapse; margin: .5em 0; font-size: 13px; width: 100%; }
-.msg-bubble th, .msg-bubble td {
-  border: 1px solid rgba(128,128,128,.2);
-  padding: 6px 10px;
-  text-align: left;
-}
-.msg-bubble th {
-  font-weight: 600;
-  background: rgba(128,128,128,.06);
-}
-.msg-bubble hr {
-  border: none;
-  border-top: 1px solid rgba(128,128,128,.15);
-  margin: .75em 0;
-}
-
-/* Thinking dots */
-.think-row {
-  display: flex;
-  gap: 5px;
-  align-items: center;
-  padding: 10px 0;
-  opacity: .35;
-}
-.think-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--ink);
-  animation: tdot 1.3s infinite ease-in-out;
-}
-.think-dot:nth-child(2) { animation-delay: .18s; }
-.think-dot:nth-child(3) { animation-delay: .36s; }
-@keyframes tdot {
-  0%, 80%, 100% { transform: scale(.55); }
-  40%            { transform: scale(1); }
-}
-
-/* Pending images in strip */
-.img-thumb-wrap { position: relative; display: inline-block; }
-.img-thumb-del {
-  position: absolute;
-  top: -5px; right: -5px;
-  width: 17px; height: 17px;
-  border-radius: 50%;
-  background: var(--ink);
-  color: var(--paper);
-  border: none;
-  cursor: pointer;
-  font-size: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  opacity: .85;
-}
-
-/* Conv list items */
-.conv-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: background .12s;
-  color: var(--ink);
-}
-.conv-item:hover { background: rgba(128,128,128,.1); }
-.conv-item.active { background: rgba(128,128,128,.15); }
-.conv-title {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 500;
-}
-.conv-model-tag {
-  font-size: 10px;
-  opacity: .35;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  flex-shrink: 0;
-}
-.conv-del {
-  opacity: 0;
-  border: none;
-  background: none;
-  color: var(--ink);
-  cursor: pointer;
-  padding: 2px 5px;
-  border-radius: 4px;
-  font-size: 11px;
-  line-height: 1;
-  transition: opacity .15s;
-  flex-shrink: 0;
-}
-.conv-item:hover .conv-del { opacity: .38; }
-.conv-del:hover { opacity: 1 !important; }
-
-/* Error bubble */
-.msg-error {
-  font-size: 13px;
-  color: #e05a4a;
-  padding: 8px 12px;
-  border: 1px solid rgba(224,90,74,.25);
-  border-radius: 10px;
-  background: rgba(224,90,74,.06);
-}
-</style>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-  if (localStorage.getItem('cloak_dark') !== '0') document.documentElement.classList.add('dark');
-  (function () {
-    var t = localStorage.getItem('cloak_theme') || 'default';
-    document.documentElement.setAttribute('data-theme', t);
-  })();
+  if(localStorage.getItem('cloak_dark')!=='0') document.documentElement.classList.add('dark');
+  (function(){var t=localStorage.getItem('cloak_theme')||'default';document.documentElement.setAttribute('data-theme',t);})();
 </script>
+<style>
+  /* ── Persona selector ── */
+  .persona-select-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+  }
+  .persona-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background: var(--surf, #1a1a18);
+    border: var(--bd, 1px solid #2a2a26);
+    color: var(--ink, #f2eee5);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 5px 28px 5px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.15s;
+    min-width: 120px;
+  }
+  .persona-select:hover,
+  .persona-select:focus { border-color: var(--accent, #D44D2A); }
+  .persona-select-caret {
+    pointer-events: none;
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.5;
+  }
+  .persona-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: var(--accent-dim, rgba(212,77,42,0.15));
+    color: var(--accent, #D44D2A);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  /* Persona badge colors per model */
+  .persona-badge.pneuma { background: rgba(212,77,42,0.15); color: #D44D2A; }
+  .persona-badge.logos  { background: rgba(42,120,212,0.15); color: #2A78D4; }
+  .persona-badge.kairos { background: rgba(120,42,212,0.15); color: #782AD4; }
+  .persona-select.logos  { border-color: rgba(42,120,212,0.4); }
+  .persona-select.kairos { border-color: rgba(120,42,212,0.4); }
+</style>
 </head>
 <body>
 
+<!-- ── LOADING ── -->
+<div id="s-loading">
+  
+</div>
+
+<!-- ── AUTH ── -->
+<div id="s-auth" class="screen">
+  <div class="auth-card">
+    <div class="brand">
+      
+      <div class="brand-name">Cloak</div>
+      <div class="brand-tag">A human resource, not a companion.</div>
+    </div>
+    <div class="seg">
+      <button class="seg-btn active" id="tab-in" onclick="authMode('in')">Sign in</button>
+      <button class="seg-btn" id="tab-up" onclick="authMode('up')">Create account</button>
+    </div>
+    <div class="form">
+      <div id="field-name" style="display:none">
+        <label class="field-label">Your name</label>
+        <input class="input" id="inp-name" type="text" placeholder="Weston" autocomplete="name" onkeydown="authKey(event,'inp-email')">
+      </div>
+      <div>
+        <label class="field-label">Email</label>
+        <input class="input" id="inp-email" type="email" placeholder="you@example.com" autocomplete="email" onkeydown="authKey(event,'inp-pass')">
+      </div>
+      <div>
+        <label class="field-label">Password</label>
+        <input class="input" id="inp-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="authKey(event,'inp-confirm',true)">
+      </div>
+      <div id="field-confirm" style="display:none">
+        <label class="field-label">Confirm password</label>
+        <input class="input" id="inp-confirm" type="password" placeholder="••••••••" onkeydown="authKey(event,null)">
+      </div>
+      <div class="err-msg" id="auth-err"></div>
+      <button class="btn-primary" id="btn-submit" onclick="handleAuth()">Sign in</button>
+      <div class="auth-divider">
+        <div class="auth-divider-line"></div>
+        <div class="auth-divider-text">or</div>
+        <div class="auth-divider-line"></div>
+      </div>
+      <button class="btn-ghost" onclick="startGuest()">Continue as guest</button>
+    </div>
+    <div class="auth-note">
+      <a href="landing.html">What is Cloak?</a> &middot; <a href="values.html">Our values &rarr;</a>
+    </div>
+  </div>
+</div>
+
+<!-- ── VERIFY ── -->
+<div id="s-verify" class="screen">
+  <div class="auth-card">
+    <div class="brand">
+      
+      <div class="brand-name">Check your email</div>
+    </div>
+    <p class="hint-text">We sent a link to <strong id="verify-addr"></strong>. Click it to confirm, then come back and sign in.</p>
+    <div class="form">
+      <div class="ok-msg">Verification email sent</div>
+      <button class="btn-primary" onclick="show('auth')">Back to sign in</button>
+      <div class="link-row"><a onclick="resendVerify()">Resend email</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MFA ── -->
+<div id="s-mfa" class="screen">
+  <div class="auth-card">
+    <div class="brand">
+      
+      <div class="brand-name">Two-factor auth</div>
+    </div>
+    <p class="hint-text">Enter the 6-digit code from your authenticator app.</p>
+    <div class="form">
+      <input class="input mono-input" id="mfa-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" onkeydown="if(event.key==='Enter')handleMfa()">
+      <div class="err-msg" id="mfa-err"></div>
+      <button class="btn-primary" onclick="handleMfa()">Verify</button>
+      <div class="link-row"><a onclick="show('auth')">Back to sign in</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CHAT ── -->
 <div id="s-chat">
   <div id="ios-inset"></div>
+
+  <!-- Announcement bar -->
+  <div class="ann" id="ann-bar">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M22 8.93V3l-8 5H6a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h1l2 5h3l-1-5h3l8 5V8.93z"/></svg>
+    <span class="ann-text" id="ann-msg"></span>
+    <button class="ann-x" onclick="dismissAnn()">&times;</button>
+  </div>
 
   <!-- ── SETTINGS MODAL ── -->
   <div class="overlay" id="modal-settings" style="display:none" onclick="overlayClick(event,'modal-settings')">
@@ -313,29 +177,57 @@
       </div>
       <div class="settings-layout">
         <nav class="settings-nav">
-          <button class="snav-btn on" id="snav-appearance" onclick="switchSettingsTab('appearance')">
-            <span class="snav-icon">
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-              </svg>
-            </span>
+          <button class="snav-btn on" id="snav-general" onclick="switchSettingsTab('general')">
+            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+            Account
+          </button>
+          <button class="snav-btn" id="snav-appearance" onclick="switchSettingsTab('appearance')">
+            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
             Appearance
           </button>
+          <button class="snav-btn" id="snav-security" onclick="switchSettingsTab('security')">
+            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+            Security
+          </button>
           <button class="snav-btn" id="snav-console" onclick="switchSettingsTab('console')">
-            <span class="snav-icon">
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24">
-                <polyline points="4 17 10 11 4 5"/>
-                <line x1="12" y1="19" x2="20" y2="19"/>
-              </svg>
-            </span>
+            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></span>
             Console
+          </button>
+          <button class="snav-btn" id="snav-admin" style="display:none" onclick="switchSettingsTab('admin')">
+            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg></span>
+            Admin
           </button>
         </nav>
         <div class="settings-body">
+          <!-- Account -->
+          <div class="spane on" id="spane-general">
+            <div class="srow">
+              <div class="srow-name">Account</div>
+              <div class="info-box" style="display:flex;align-items:center;gap:10px;margin-top:8px">
+                <div class="user-av" id="s-av" style="width:36px;height:36px;font-size:14px">?</div>
+                <div><div style="font-size:14px;font-weight:500" id="s-name">—</div><div style="font-size:12px;opacity:.5" id="s-email">—</div></div>
+              </div>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Display name</div>
+              <div class="srow-desc">Shown in conversations and the greeting.</div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <input class="inp-field" id="s-name-inp" placeholder="Your name" style="flex:1">
+                <button class="cta" onclick="saveName()">Save</button>
+              </div>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Clear all chats</div>
+              <button class="danger" style="margin-top:8px" onclick="clearAllChats()">Delete all conversations</button>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Sign out</div>
+              <button class="danger" style="margin-top:8px" onclick="doLogout()">Sign out of Cloak</button>
+            </div>
+          </div>
 
           <!-- Appearance -->
-          <div class="spane on" id="spane-appearance">
+          <div class="spane" id="spane-appearance">
             <div class="srow">
               <div class="srow-head"><div class="srow-name">Light / Dark mode</div></div>
               <div class="srow-desc">Currently <span id="mode-label">dark</span> mode.</div>
@@ -343,7 +235,7 @@
             </div>
             <div class="srow">
               <div class="srow-name">Theme</div>
-              <div class="srow-desc">All themes support light and dark mode.</div>
+              <div class="srow-desc">Choose a color palette. All themes support light and dark mode.</div>
               <div class="theme-grid" style="margin-top:10px">
                 <div class="theme-card" id="theme-default" onclick="setTheme('default')">
                   <div class="theme-swatch">
@@ -374,10 +266,24 @@
                 </div>
               </div>
             </div>
+          </div>
+
+          <!-- Security -->
+          <div class="spane" id="spane-security">
             <div class="srow">
-              <div class="srow-name">Clear all chats</div>
-              <div class="srow-desc">Permanently delete all saved conversations.</div>
-              <button class="danger" style="margin-top:8px" onclick="clearAllChats()">Delete all conversations</button>
+              <div class="srow-head"><div class="srow-name">Two-factor authentication</div></div>
+              <div class="srow-desc">Add an authenticator app as a second step on sign-in.</div>
+              <button class="cta" style="margin-top:10px" onclick="start2FA()">Set up 2FA</button>
+              <div id="totp-section" style="display:none;margin-top:14px">
+                <div id="totp-qr" style="text-align:center;margin-bottom:10px"></div>
+                <div class="secret-box" id="totp-secret" style="margin-bottom:12px"></div>
+                <div style="font-size:12px;opacity:.5;margin-bottom:10px">Enter the 6-digit code to confirm:</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <input class="input mono-input" id="totp-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" style="max-width:160px;font-size:18px">
+                  <button class="cta" onclick="confirmTOTP()">Enable</button>
+                </div>
+                <div class="err-msg" id="totp-err" style="margin-top:8px"></div>
+              </div>
             </div>
           </div>
 
@@ -404,6 +310,22 @@
             </div>
           </div>
 
+          <!-- Admin -->
+          <div class="spane" id="spane-admin">
+            <div class="srow">
+              <div class="srow-head"><div class="srow-name">Admin panel</div><span class="srow-badge">Owner</span></div>
+              <div class="srow-desc">Announcements appear as a banner to all signed-in users.</div>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Post announcement</div>
+              <textarea class="inp-field" id="ann-compose" placeholder="Write an announcement…" style="margin-top:8px;min-height:76px;resize:vertical;font-family:inherit;font-size:13px;line-height:1.6"></textarea>
+              <button class="cta" style="margin-top:8px" onclick="postAnn()">Post</button>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Active announcements</div>
+              <div class="ann-list" id="admin-ann-list" style="margin-top:8px"><div style="font-size:13px;opacity:.5">None active.</div></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -415,29 +337,38 @@
     <!-- ── SIDEBAR ── -->
     <div class="sidebar collapsed" id="sidebar">
       <div class="sb-logo">
+        
         <span class="sb-logo-name">Cloak</span>
       </div>
       <button class="sb-btn sb-new" onclick="newChat()">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24">
-          <path d="M12 5v14M5 12h14"/>
-        </svg>
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
         New chat
       </button>
       <div class="sb-label">Recent</div>
       <div class="conv-list" id="conv-list"></div>
+      <div id="guest-note" style="display:none" class="guest-note">Guest &mdash; <a onclick="show('auth');closeMobileSidebar()">Sign up</a> to save chats.</div>
 
       <div class="sb-footer">
+        <div id="sb-ann-bar">
+          <div style="display:flex;align-items:flex-start;gap:6px">
+            <div id="sb-ann-msg" style="flex:1"></div>
+            <button onclick="dismissAnn()" style="background:var(--ink);border:none;color:var(--paper);width:18px;height:18px;font-size:10px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">&times;</button>
+          </div>
+        </div>
+        <div class="sb-label" style="margin-bottom:2px">Account</div>
+        <div class="user-row">
+          <div class="user-av" id="sb-av">?</div>
+          <div class="user-info">
+            <div class="user-name" id="sb-name">—</div>
+            <div class="user-email" id="sb-email">—</div>
+          </div>
+        </div>
         <button class="sb-btn" onclick="openSettings()">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24">
-            <path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/>
-            <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
-          </svg>
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
           Settings
         </button>
         <button class="sb-btn" onclick="window.location.href='values.html'">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24">
-            <path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
-          </svg>
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
           Our Values
         </button>
       </div>
@@ -448,62 +379,41 @@
       <div class="topbar">
         <div class="topbar-left">
           <button class="icon-btn" onclick="toggleSidebar()" title="Toggle sidebar">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24">
-              <path d="M3 6h18M3 12h18M3 18h18"/>
-            </svg>
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
           </button>
         </div>
         <div class="topbar-right">
+          <!-- ── PERSONA SELECTOR ── -->
+          <div class="persona-select-wrap">
+            <select class="persona-select" id="persona-select" onchange="onPersonaChange(this)">
+              <option value="pneuma" selected>⚡ Pneuma</option>
+              <option value="logos">🔵 Logos</option>
+              <option value="kairos">🟣 Kairos</option>
+            </select>
+            <svg class="persona-select-caret" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <span class="persona-badge pneuma" id="persona-badge">Fast &amp; Brief</span>
+
           <button class="icon-btn" onclick="toggleDark()" title="Toggle theme">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24">
               <path class="moon" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-              <g class="sun">
-                <circle cx="12" cy="12" r="5"/>
-                <line x1="12" y1="1" x2="12" y2="3"/>
-                <line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/>
-                <line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-              </g>
+              <g class="sun"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></g>
             </svg>
           </button>
-
-          <!-- Model selector (replaces static status pill) -->
-          <div class="model-select-wrap" id="model-select-wrap">
-            <button class="model-pill" id="model-pill-btn" onclick="toggleModelMenu(event)">
-              <div class="live-dot"></div>
-              <span id="model-btn-label">Pneuma</span>
-              <svg class="mpill-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 9l6 6 6-6"/>
-              </svg>
-            </button>
-            <div class="model-menu" id="model-menu">
-              <button class="model-opt active" id="opt-pneuma" onclick="selectModel('pneuma')">
-                <span class="model-opt-name">Pneuma</span>
-                <span class="model-opt-desc">Fast &amp; Brief</span>
-              </button>
-              <button class="model-opt" id="opt-logos" onclick="selectModel('logos')">
-                <span class="model-opt-name">Logos</span>
-                <span class="model-opt-desc">Balanced &amp; Observant</span>
-              </button>
-              <button class="model-opt" id="opt-kairos" onclick="selectModel('kairos')">
-                <span class="model-opt-name">Kairos</span>
-                <span class="model-opt-desc">Advanced &amp; Analytical</span>
-              </button>
-            </div>
+          <div class="status-pill">
+            <div class="live-dot"></div>
+            <span class="status-label" id="model-btn-label">Live</span>
           </div>
         </div>
       </div>
 
       <!-- Chat area -->
       <div class="chat-area" id="chat-area">
+        <!-- Empty state -->
         <div class="empty" id="empty-state">
           <div class="empty-inner">
-            <div class="empty-greeting" id="empty-greeting">Good evening.</div>
+            
+            <div class="empty-greeting" id="empty-greeting">Hey there!</div>
             <div class="empty-slogan">A human resource, not a companion.</div>
             <div class="chip-row" id="chip-row">
               <button class="chip" onclick="chipSend('Explain something complex simply')">Explain simply</button>
@@ -520,106 +430,74 @@
       <div class="input-area">
         <div class="input-wrap">
           <div class="input-area-wrap">
-
             <!-- Plus menu -->
             <div class="plus-menu" id="plus-menu">
               <button class="plus-item" id="menu-think" onclick="toggleThinkMode()">
-                <span class="plus-item-icon">
-                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                    <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/>
-                  </svg>
-                </span>
+                <span class="plus-item-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg></span>
                 <span class="plus-item-text">
                   <span class="plus-item-label">Think mode</span>
                   <span class="plus-item-desc">Deep reasoning and outlines</span>
                 </span>
-                <span class="plus-item-check">
-                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-                </span>
+                <span class="plus-item-check"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
               </button>
               <button class="plus-item" id="menu-homework" onclick="toggleHwMode()">
-                <span class="plus-item-icon">
-                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-                  </svg>
-                </span>
+                <span class="plus-item-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
                 <span class="plus-item-text">
                   <span class="plus-item-label">Homework mode</span>
                   <span class="plus-item-desc">Guided learning, not just answers</span>
                 </span>
-                <span class="plus-item-check">
-                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-                </span>
+                <span class="plus-item-check"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
               </button>
             </div>
 
-            <!-- Active mode labels -->
+            <!-- Mode labels -->
             <div style="display:flex;gap:6px;">
-              <div class="hw-label" id="think-label" style="display:none">
+              <div class="hw-label" id="think-label">
                 Think mode
                 <button class="hw-label-x" onclick="toggleThinkMode()">&times;</button>
               </div>
-              <div class="hw-label" id="hw-label" style="display:none">
+              <div class="hw-label" id="hw-label">
                 Homework mode
                 <button class="hw-label-x" onclick="toggleHwMode()">&times;</button>
               </div>
             </div>
 
-            <!-- Image preview strip -->
+            <!-- Image strip -->
             <div class="img-strip" id="img-strip"></div>
 
             <!-- Input box -->
             <div class="input-box" id="input-box">
               <input type="file" id="img-upload" accept="image/*" multiple style="display:none" onchange="onImgPick(this)">
               <button class="plus-btn" id="plus-btn" onclick="togglePlusMenu(event)" title="Modes">+</button>
-              <textarea
-                class="chat-input"
-                id="chat-input"
-                placeholder="Message Cloak…"
-                rows="1"
-                oninput="onInput(this)"
-                onkeydown="onKey(event)"
-                onpaste="onPaste(event)"
-              ></textarea>
-              <button class="send-btn" id="mic-btn"
-                style="background:var(--surf);color:var(--ink);border:var(--bd);"
-                onclick="startVoiceMode()" title="Voice mode">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24">
-                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
-                  <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/>
-                </svg>
+              <textarea class="chat-input" id="chat-input" placeholder="Message Cloak…" rows="1"
+                oninput="onInput(this)" onkeydown="onKey(event)" onpaste="onPaste(event)"></textarea>
+              <button class="send-btn" id="mic-btn" style="background:var(--surf);color:var(--ink);border:var(--bd);" onclick="startVoiceMode()" title="Voice mode">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
               </button>
               <button class="send-btn" id="send-btn" onclick="send()" disabled>
-                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/>
-                </svg>
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>
               </button>
             </div>
           </div>
-
           <div class="input-foot">
             <span class="input-sub">Cloak can make mistakes. Verify important information.</span>
             <span class="input-sub">Enter to send &middot; Shift+Enter for new line</span>
           </div>
-          <div class="input-disc">
-            Not a mental health resource &mdash; if you're struggling, please contact a real person or
-            <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer" class="disc-link">a helpline</a>.
-          </div>
+          <div class="input-disc">Not a mental health resource &mdash; if you're struggling, please contact a real person or <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer" class="disc-link">a helpline</a>.</div>
         </div>
       </div>
-    </div><!-- /.main -->
-  </div><!-- /.chat-shell -->
+    </div>
+  </div>
 
-  <!-- ── VOICE OVERLAY ── -->
-  <div class="voice-overlay" id="voice-overlay" style="display:none">
+  <!-- VOICE OVERLAY -->
+  <div class="voice-overlay" id="voice-overlay">
     <button class="voice-close" onclick="stopVoiceMode()" title="Exit voice mode">&times;</button>
     <div class="voice-ascii" id="voice-ascii">[ - - - - - ]</div>
     <div class="voice-status" id="voice-status">Idle</div>
-    <div class="voice-transcript" id="voice-transcript">Say something…</div>
+    <div class="voice-transcript" id="voice-transcript">Say something...</div>
   </div>
 
-  <!-- ── ONBOARDING ── -->
+  <!-- ONBOARDING -->
   <div class="onboard-overlay" id="onboard-modal" style="display:none">
     <div class="onboard-card">
       <div class="onboard-head">
@@ -629,11 +507,11 @@
       <div class="onboard-body">
         <div class="onboard-item">
           <div class="onboard-num">I</div>
-          <div class="onboard-text"><strong>AI is a tool — not a companion.</strong> Cloak exists to serve you, not replace human connection or judgment.</div>
+          <div class="onboard-text"><strong>AI is a tool &mdash; not a companion.</strong> Cloak exists to serve you, not replace human connection or judgment.</div>
         </div>
         <div class="onboard-item">
           <div class="onboard-num">II</div>
-          <div class="onboard-text"><strong>Not a mental health resource.</strong> If you're struggling, please reach out to a trusted person or professional — not a chatbot.</div>
+          <div class="onboard-text"><strong>Not a mental health resource.</strong> If you're struggling, please reach out to a trusted person or professional &mdash; not a chatbot.</div>
         </div>
         <div class="onboard-item">
           <div class="onboard-num">III</div>
@@ -645,14 +523,24 @@
           <div class="onboard-checkbox" id="onboard-checkbox"></div>
           <div class="onboard-check-label">I understand and agree</div>
         </div>
-        <button class="btn-primary" id="onboard-btn" onclick="confirmOnboarding()" disabled style="cursor:not-allowed;opacity:.32">
-          Continue to Cloak
-        </button>
+        <button class="btn-primary" id="onboard-btn" onclick="confirmOnboarding()" disabled style="cursor:not-allowed;opacity:.32">Continue to Cloak</button>
       </div>
     </div>
   </div>
 
-  <!-- ── LINK INTERCEPT ── -->
+  <!-- AD CONSENT -->
+  <div class="ad-overlay" id="ad-modal" style="display:none">
+    <div class="ad-card">
+      <div class="ad-title">Allow ads?</div>
+      <div class="ad-text">Ads allow Cloak to offset carbon emissions and improve services for everyone.</div>
+      <div class="ad-actions">
+        <button class="btn-agree" onclick="handleAdAgree()">Agree</button>
+        <button class="btn-disagree" id="ad-disagree-btn" onclick="handleAdDisagree()">Disagree</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LINK INTERCEPT -->
   <div class="link-overlay" id="link-modal" style="display:none">
     <div class="link-card">
       <div class="link-title">Leaving Cloak</div>
@@ -663,748 +551,117 @@
       </div>
     </div>
   </div>
+</div>
 
-</div><!-- /#s-chat -->
+<script src="cloak.js" defer></script>
 
-<!-- ══════════════════════════════════════════════════════════
-     JAVASCRIPT
-     ══════════════════════════════════════════════════════════ -->
+<!-- ── CLOAK CHAT API ── -->
 <script>
-'use strict';
+/* ─────────────────────────────────────────────
+   PERSONA CONFIG
+   api.usecloak.org — no API key required
+   POST /v1/messages  { model, messages }
+   model values: "pneuma" | "logos" | "kairos"
+───────────────────────────────────────────── */
+const CLOAK_API = 'https://api.usecloak.org/v1/messages';
 
-/* ── Config ──────────────────────────────────────────────── */
-const API_URL = 'https://api.usecloak.org/v1/chat';
-
-const MODELS = {
-  pneuma: { name: 'Pneuma', desc: 'Fast & Brief' },
-  logos:  { name: 'Logos',  desc: 'Balanced & Observant' },
-  kairos: { name: 'Kairos', desc: 'Advanced & Analytical' }
+const PERSONAS = {
+  pneuma: {
+    label:  '⚡ Pneuma',
+    badge:  'Fast &amp; Brief',
+    cls:    'pneuma',
+  },
+  logos: {
+    label:  '🔵 Logos',
+    badge:  'Balanced &amp; Observant',
+    cls:    'logos',
+  },
+  kairos: {
+    label:  '🟣 Kairos',
+    badge:  'Advanced &amp; Analytical',
+    cls:    'kairos',
+  },
 };
 
-/* ── State ───────────────────────────────────────────────── */
-let curModel     = 'pneuma';
-let curConvId    = null;
-let allConvs     = {};      // { id: { id, title, model, msgs, ts } }
-let curMsgs      = [];      // messages sent to / received from API
-let busy         = false;
-let thinkMode    = false;
-let hwMode       = false;
-let pendingImgs  = [];      // [{ dataUrl, name }]
-let modelOpen    = false;
-let plusOpen     = false;
+// Track current persona — default Pneuma
+let cloakModel = 'pneuma';
 
-// Console stats
-let cLogs        = [];
-let cStats       = { req: 0, res: 0, err: 0, lat: [] };
-let cFilter      = 'all';
+// Conversation history per session (reset on newChat)
+let cloakHistory = [];
 
-/* ── DOMContentLoaded ────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', () => {
-  setupMarked();
-  loadConvs();
-  updateGreeting();
-  updateDarkLabel();
-  updateThemeCards();
-
-  // Show onboarding once
-  if (!localStorage.getItem('cloak_onboarded')) {
-    document.getElementById('onboard-modal').style.display = 'flex';
+/* ── Persona selector handler ── */
+function onPersonaChange(sel) {
+  cloakModel = sel.value;
+  const info = PERSONAS[cloakModel];
+  const badge = document.getElementById('persona-badge');
+  if (badge) {
+    badge.innerHTML = info.badge;
+    badge.className = 'persona-badge ' + info.cls;
   }
-
-  // Close menus on outside click
-  document.addEventListener('click', e => {
-    if (modelOpen && !e.target.closest('#model-select-wrap')) closeModelMenu();
-    if (plusOpen  && !e.target.closest('#plus-btn') && !e.target.closest('#plus-menu')) closePlusMenu();
-  });
-});
-
-/* ── Marked setup ────────────────────────────────────────── */
-function setupMarked() {
-  if (typeof marked === 'undefined') return;
-  marked.setOptions({ breaks: true, gfm: true });
+  sel.className = 'persona-select ' + (cloakModel !== 'pneuma' ? cloakModel : '');
 }
 
-/* ── Greeting ────────────────────────────────────────────── */
-function updateGreeting() {
-  const h = new Date().getHours();
-  const g = h < 12 ? 'Good morning.' : h < 17 ? 'Good afternoon.' : 'Good evening.';
-  const el = document.getElementById('empty-greeting');
-  if (el) el.textContent = g;
-}
+/* ── Send message to api.usecloak.org ──
+   Called by cloak.js via window.cloakSendMessage(userText, callback)
+   callback(responseText, error)
+*/
+window.cloakSendMessage = async function(userText, callback) {
+  cloakHistory.push({ role: 'user', content: userText });
 
-/* ── Conversation persistence ────────────────────────────── */
-function loadConvs() {
-  try { allConvs = JSON.parse(localStorage.getItem('cloak_convs') || '{}'); }
-  catch (e) { allConvs = {}; }
-  renderConvList();
-}
-
-function saveConvs() {
-  try { localStorage.setItem('cloak_convs', JSON.stringify(allConvs)); }
-  catch (e) { /* storage full – silently skip */ }
-}
-
-function renderConvList() {
-  const list = document.getElementById('conv-list');
-  if (!list) return;
-
-  const ids = Object.keys(allConvs).sort((a, b) => (allConvs[b].ts || 0) - (allConvs[a].ts || 0));
-
-  if (!ids.length) {
-    list.innerHTML = '<div style="font-size:12px;opacity:.32;padding:8px 10px">No conversations yet</div>';
-    return;
-  }
-
-  list.innerHTML = ids.map(id => {
-    const c      = allConvs[id];
-    const active = id === curConvId ? ' active' : '';
-    const mName  = MODELS[c.model]?.name || c.model || 'Pneuma';
-    return `<div class="conv-item${active}" onclick="loadConv('${id}')">
-      <span class="conv-title">${esc(c.title)}</span>
-      <span class="conv-model-tag">${esc(mName)}</span>
-      <button class="conv-del" onclick="event.stopPropagation();deleteConv('${id}')" title="Delete">✕</button>
-    </div>`;
-  }).join('');
-}
-
-/* ── New / Load / Delete conversation ───────────────────── */
-function newChat() {
-  curConvId   = null;
-  curMsgs     = [];
-  pendingImgs = [];
-  thinkMode   = false;
-  hwMode      = false;
-
-  updateModeLabels();
-  clearMessagesUI();
-  renderConvList();
-  closeMobileSidebar();
-  resetInput();
-}
-
-function loadConv(id) {
-  const c = allConvs[id];
-  if (!c) return;
-
-  curConvId = id;
-  curMsgs   = [...c.msgs];
-  curModel  = c.model || 'pneuma';
-  updateModelDisplay();
-
-  clearMessagesUI();
-  showMessagesPanel();
-
-  // Re-render history
-  for (const m of curMsgs) {
-    if      (m.role === 'user')      appendUserBubble(extractText(m.content));
-    else if (m.role === 'assistant') appendBotBubble(m.content, c.model || 'pneuma');
-  }
-
-  scrollBottom();
-  renderConvList();
-  closeMobileSidebar();
-}
-
-function deleteConv(id) {
-  delete allConvs[id];
-  saveConvs();
-  if (curConvId === id) newChat();
-  else renderConvList();
-}
-
-function clearAllChats() {
-  if (!confirm('Delete all conversations? This cannot be undone.')) return;
-  allConvs = {};
-  saveConvs();
-  newChat();
-  closeModal('modal-settings');
-}
-
-/* ── Send message ────────────────────────────────────────── */
-async function send() {
-  if (busy) return;
-
-  const inp  = document.getElementById('chat-input');
-  const text = inp.value.trim();
-  if (!text && !pendingImgs.length) return;
-
-  busy = true;
-  document.getElementById('send-btn').disabled = true;
-  inp.value = '';
-  inp.style.height = 'auto';
-
-  // Build user content
-  let userContent;
-  if (pendingImgs.length) {
-    userContent = [
-      ...pendingImgs.map(img => ({ type: 'image_url', image_url: { url: img.dataUrl } })),
-      { type: 'text', text }
-    ];
-  } else {
-    userContent = text;
-  }
-
-  const displayText = text || (pendingImgs.length ? `[${pendingImgs.length} image${pendingImgs.length > 1 ? 's' : ''}]` : '');
-
-  // Render user bubble
-  appendUserBubble(displayText);
-  pendingImgs = [];
-  document.getElementById('img-strip').innerHTML = '';
-
-  showMessagesPanel();
-
-  // Build API payload
-  const apiMsgs = buildApiMsgs(userContent);
-
-  // Show thinking
-  const thinkEl = appendThinking();
-  scrollBottom();
-
-  // Stats
-  const t0 = Date.now();
-  cStats.req++;
-  cLog('req', `POST /v1/chat  model=${curModel}  msgs=${apiMsgs.length}`);
+  const payload = {
+    model: cloakModel,
+    messages: cloakHistory,
+  };
 
   try {
-    const res = await fetch(API_URL, {
-      method:  'POST',
+    const res = await fetch(CLOAK_API, {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ messages: apiMsgs, model: curModel })
+      body: JSON.stringify(payload),
     });
-
-    const lat = Date.now() - t0;
-    cStats.lat.push(lat);
 
     if (!res.ok) {
-      const errBody = await res.text().catch(() => '');
-      throw new Error(`HTTP ${res.status}${errBody ? ': ' + errBody.slice(0, 120) : ''}`);
+      const errText = await res.text();
+      throw new Error(`API error ${res.status}: ${errText}`);
     }
 
-    const data  = await res.json();
-    const reply = data.response ?? data.content ?? data.message ?? data.text
-                  ?? (Array.isArray(data.choices) ? data.choices[0]?.message?.content : null)
-                  ?? JSON.stringify(data);
+    const data = await res.json();
 
-    thinkEl.remove();
-    cStats.res++;
-    cLog('res', `${lat}ms — ${reply.length} chars`);
-    updateConsoleStats();
+    // Support both {content} string and {choices[0].message.content} shapes
+    let reply = '';
+    if (typeof data.content === 'string') {
+      reply = data.content;
+    } else if (Array.isArray(data.content)) {
+      reply = data.content.map(b => b.text || '').join('');
+    } else if (data.choices?.[0]?.message?.content) {
+      reply = data.choices[0].message.content;
+    } else if (data.response) {
+      reply = data.response;
+    } else {
+      reply = JSON.stringify(data);
+    }
 
-    appendBotBubble(reply, curModel);
-
-    // Persist
-    curMsgs.push({ role: 'user', content: userContent });
-    curMsgs.push({ role: 'assistant', content: reply });
-    persistConv(displayText);
-
-  } catch (e) {
-    thinkEl.remove();
-    cStats.err++;
-    cLog('err', e.message);
-    updateConsoleStats();
-    appendErrorBubble(e.message);
+    cloakHistory.push({ role: 'assistant', content: reply });
+    callback(reply, null);
+  } catch (err) {
+    callback(null, err.message || String(err));
   }
+};
 
-  busy = false;
-  document.getElementById('send-btn').disabled = false;
-  inp.focus();
-  scrollBottom();
-}
-
-function buildApiMsgs(userContent) {
-  const msgs = [];
-
-  // Prepend system instructions for active modes
-  const sys = [];
-  if (thinkMode) sys.push('Reason through your response step-by-step before answering. Show structured thinking briefly.');
-  if (hwMode)    sys.push('Guide the user to discover the answer themselves through hints and questions — do not give the answer directly.');
-  if (sys.length) msgs.push({ role: 'system', content: sys.join(' ') });
-
-  msgs.push(...curMsgs);
-  msgs.push({ role: 'user', content: userContent });
-
-  return msgs;
-}
-
-function persistConv(displayText) {
-  if (!curConvId) {
-    curConvId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-    allConvs[curConvId] = {
-      id:    curConvId,
-      title: (displayText || 'New chat').slice(0, 52),
-      model: curModel,
-      msgs:  [],
-      ts:    Date.now()
+/* ── Reset history on new chat ── */
+document.addEventListener('DOMContentLoaded', () => {
+  // Hook into cloak.js newChat if it exposes one, or watch for the button
+  const origNewChat = window.newChat;
+  if (typeof origNewChat === 'function') {
+    window.newChat = function() {
+      cloakHistory = [];
+      origNewChat();
     };
   }
-  allConvs[curConvId].msgs = [...curMsgs];
-  allConvs[curConvId].ts   = Date.now();
-  saveConvs();
-  renderConvList();
-}
+});
 
-/* ── Render helpers ──────────────────────────────────────── */
-function appendUserBubble(text) {
-  const msgs = document.getElementById('messages');
-  const row  = document.createElement('div');
-  row.className = 'msg-row';
-  if (text) {
-    row.innerHTML = `<div class="msg-user"><div class="msg-bubble">${esc(text)}</div></div>`;
-  }
-  msgs.appendChild(row);
-}
-
-function appendBotBubble(text, modelKey) {
-  modelKey = modelKey || curModel;
-  const msgs    = document.getElementById('messages');
-  const row     = document.createElement('div');
-  row.className = 'msg-row';
-  const mName   = MODELS[modelKey]?.name || modelKey;
-  const rendered = renderMd(text);
-
-  row.innerHTML = `
-    <div class="msg-bot">
-      <div class="msg-meta">${esc(mName)}</div>
-      <div class="msg-bubble">${rendered}</div>
-    </div>`;
-
-  // Intercept external links
-  row.querySelectorAll('a[href]').forEach(a => {
-    a.addEventListener('click', e => {
-      const href = a.getAttribute('href');
-      if (href && href.startsWith('http')) {
-        e.preventDefault();
-        openLinkModal(href);
-      }
-    });
-  });
-
-  msgs.appendChild(row);
-}
-
-function appendErrorBubble(msg) {
-  const msgs = document.getElementById('messages');
-  const row  = document.createElement('div');
-  row.className = 'msg-row';
-  row.innerHTML = `<div class="msg-bot"><div class="msg-error">⚠ ${esc(msg)}</div></div>`;
-  msgs.appendChild(row);
-}
-
-function appendThinking() {
-  const msgs = document.getElementById('messages');
-  const row  = document.createElement('div');
-  row.className = 'msg-row';
-  row.innerHTML = `<div class="msg-bot"><div class="think-row"><div class="think-dot"></div><div class="think-dot"></div><div class="think-dot"></div></div></div>`;
-  msgs.appendChild(row);
-  return row;
-}
-
-function renderMd(text) {
-  if (typeof marked !== 'undefined') {
-    try { return marked.parse(text || ''); } catch (e) { /* fall through */ }
-  }
-  return esc(text).replace(/\n/g, '<br>');
-}
-
-function scrollBottom() {
-  const area = document.getElementById('chat-area');
-  if (area) requestAnimationFrame(() => { area.scrollTop = area.scrollHeight; });
-}
-
-function showMessagesPanel() {
-  document.getElementById('messages').style.display = '';
-  document.getElementById('empty-state').style.display = 'none';
-}
-
-function clearMessagesUI() {
-  const msgs  = document.getElementById('messages');
-  const empty = document.getElementById('empty-state');
-  msgs.innerHTML      = '';
-  msgs.style.display  = 'none';
-  empty.style.display = '';
-}
-
-function resetInput() {
-  const inp = document.getElementById('chat-input');
-  inp.value = '';
-  inp.style.height = 'auto';
-  document.getElementById('send-btn').disabled = true;
-  document.getElementById('img-strip').innerHTML = '';
-}
-
-/* ── Model selector ──────────────────────────────────────── */
-function toggleModelMenu(e) {
-  if (e) e.stopPropagation();
-  modelOpen = !modelOpen;
-  document.getElementById('model-menu').classList.toggle('open', modelOpen);
-  document.getElementById('model-pill-btn').classList.toggle('open', modelOpen);
-}
-
-function closeModelMenu() {
-  modelOpen = false;
-  document.getElementById('model-menu')?.classList.remove('open');
-  document.getElementById('model-pill-btn')?.classList.remove('open');
-}
-
-function selectModel(m) {
-  curModel = m;
-  updateModelDisplay();
-  closeModelMenu();
-}
-
-function updateModelDisplay() {
-  const info = MODELS[curModel] || MODELS.pneuma;
-  const lbl  = document.getElementById('model-btn-label');
-  if (lbl) lbl.textContent = info.name;
-
-  Object.keys(MODELS).forEach(k => {
-    document.getElementById('opt-' + k)?.classList.toggle('active', k === curModel);
-  });
-}
-
-/* ── Input handling ──────────────────────────────────────── */
-function onInput(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 180) + 'px';
-  document.getElementById('send-btn').disabled = !el.value.trim() && !pendingImgs.length;
-}
-
-function onKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
-    e.preventDefault();
-    send();
-  }
-}
-
-function onPaste(e) {
-  const items = e.clipboardData?.items;
-  if (!items) return;
-  for (const item of items) {
-    if (item.type.startsWith('image/')) {
-      e.preventDefault();
-      const f = item.getAsFile();
-      if (f) addImage(f);
-      break;
-    }
-  }
-}
-
-function onImgPick(input) {
-  Array.from(input.files || []).forEach(addImage);
-  input.value = '';
-}
-
-function addImage(file) {
-  if (pendingImgs.length >= 4) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    pendingImgs.push({ dataUrl: ev.target.result, name: file.name });
-    renderImgStrip();
-    document.getElementById('send-btn').disabled = false;
-  };
-  reader.readAsDataURL(file);
-}
-
-function renderImgStrip() {
-  const strip = document.getElementById('img-strip');
-  strip.innerHTML = pendingImgs.map((img, i) => `
-    <div class="img-thumb-wrap">
-      <img src="${esc(img.dataUrl)}" alt="${esc(img.name)}"
-           style="width:52px;height:52px;object-fit:cover;border-radius:8px;
-                  border:1px solid rgba(128,128,128,.2);display:block">
-      <button class="img-thumb-del" onclick="removeImg(${i})">✕</button>
-    </div>`).join('');
-}
-
-function removeImg(i) {
-  pendingImgs.splice(i, 1);
-  renderImgStrip();
-  const inp = document.getElementById('chat-input');
-  document.getElementById('send-btn').disabled = !inp.value.trim() && !pendingImgs.length;
-}
-
-/* ── Think / Homework mode ───────────────────────────────── */
-function toggleThinkMode() {
-  thinkMode = !thinkMode;
-  updateModeLabels();
-  closePlusMenu();
-}
-
-function toggleHwMode() {
-  hwMode = !hwMode;
-  updateModeLabels();
-  closePlusMenu();
-}
-
-function updateModeLabels() {
-  document.getElementById('think-label').style.display    = thinkMode ? 'flex' : 'none';
-  document.getElementById('hw-label').style.display       = hwMode    ? 'flex' : 'none';
-  document.getElementById('menu-think')?.classList.toggle('on', thinkMode);
-  document.getElementById('menu-homework')?.classList.toggle('on', hwMode);
-}
-
-/* ── Plus menu ───────────────────────────────────────────── */
-function togglePlusMenu(e) {
-  if (e) e.stopPropagation();
-  plusOpen = !plusOpen;
-  document.getElementById('plus-menu').style.display = plusOpen ? 'block' : 'none';
-  document.getElementById('plus-btn').classList.toggle('active', plusOpen);
-}
-
-function closePlusMenu() {
-  plusOpen = false;
-  const pm = document.getElementById('plus-menu');
-  const pb = document.getElementById('plus-btn');
-  if (pm) pm.style.display = 'none';
-  if (pb) pb.classList.remove('active');
-}
-
-/* ── Sidebar ─────────────────────────────────────────────── */
-function toggleSidebar() {
-  const sb  = document.getElementById('sidebar');
-  const ov  = document.getElementById('sb-overlay');
-  const mob = window.innerWidth < 768;
-
-  if (mob) {
-    const open = sb.classList.toggle('mobile-open');
-    ov.style.display = open ? 'block' : 'none';
-  } else {
-    sb.classList.toggle('collapsed');
-  }
-}
-
-function closeMobileSidebar() {
-  document.getElementById('sidebar').classList.remove('mobile-open');
-  document.getElementById('sb-overlay').style.display = 'none';
-}
-
-/* ── Chip shortcuts ──────────────────────────────────────── */
-function chipSend(text) {
-  const inp = document.getElementById('chat-input');
-  inp.value = text;
-  onInput(inp);
-  inp.focus();
-}
-
-/* ── Dark mode ───────────────────────────────────────────── */
-function toggleDark() {
-  const dark = document.documentElement.classList.toggle('dark');
-  localStorage.setItem('cloak_dark', dark ? '1' : '0');
-  updateDarkLabel();
-}
-
-function updateDarkLabel() {
-  const dark = document.documentElement.classList.contains('dark');
-  const el   = document.getElementById('mode-label');
-  if (el) el.textContent = dark ? 'dark' : 'light';
-}
-
-/* ── Themes ──────────────────────────────────────────────── */
-function setTheme(t) {
-  document.documentElement.setAttribute('data-theme', t);
-  localStorage.setItem('cloak_theme', t);
-  updateThemeCards();
-}
-
-function updateThemeCards() {
-  const cur = localStorage.getItem('cloak_theme') || 'default';
-  ['default', 'eco', 'aqua'].forEach(t => {
-    document.getElementById('theme-' + t)?.classList.toggle('active', t === cur);
-  });
-}
-
-/* ── Settings modal ──────────────────────────────────────── */
-function openSettings() {
-  document.getElementById('modal-settings').style.display = 'flex';
-  updateConsoleStats();
-  renderConsoleLogs();
-}
-
-function closeModal(id) {
-  const el = document.getElementById(id);
-  if (el) el.style.display = 'none';
-}
-
-function overlayClick(e, id) {
-  if (e.target.id === id) closeModal(id);
-}
-
-function switchSettingsTab(tab) {
-  ['appearance', 'console'].forEach(t => {
-    document.getElementById('snav-' + t)?.classList.toggle('on', t === tab);
-    document.getElementById('spane-' + t)?.classList.toggle('on', t === tab);
-  });
-}
-
-/* ── Console logging ─────────────────────────────────────── */
-function cLog(type, msg) {
-  cLogs.unshift({ type, msg, ts: Date.now() });
-  if (cLogs.length > 300) cLogs.length = 300;
-}
-
-function renderConsoleLogs() {
-  const el = document.getElementById('console-log');
-  if (!el) return;
-
-  const filtered = cFilter === 'all' ? cLogs : cLogs.filter(l => l.type === cFilter);
-
-  if (!filtered.length) {
-    el.innerHTML = '<div class="log-empty">No logs yet</div>';
-    return;
-  }
-
-  el.innerHTML = filtered.map(l => {
-    const time = new Date(l.ts).toLocaleTimeString();
-    return `<div class="log-row log-${l.type}">
-      <span class="log-time">${time}</span>
-      <span class="log-tag">${l.type.toUpperCase()}</span>
-      <span class="log-msg">${esc(l.msg)}</span>
-    </div>`;
-  }).join('');
-}
-
-function updateConsoleStats() {
-  const el = id => document.getElementById(id);
-  el('st-req').textContent = cStats.req;
-  el('st-res').textContent = cStats.res;
-  el('st-err').textContent = cStats.err;
-  const avg = cStats.lat.length
-    ? Math.round(cStats.lat.reduce((a, b) => a + b, 0) / cStats.lat.length) + 'ms'
-    : '—';
-  el('st-lat').textContent = avg;
-}
-
-function setFilter(f, btn) {
-  cFilter = f;
-  document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  renderConsoleLogs();
-}
-
-function clearLogs() {
-  cLogs  = [];
-  cStats = { req: 0, res: 0, err: 0, lat: [] };
-  updateConsoleStats();
-  renderConsoleLogs();
-}
-
-/* ── Link intercept ──────────────────────────────────────── */
-function openLinkModal(url) {
-  document.getElementById('link-url-display').textContent = url;
-  document.getElementById('link-go-btn').onclick = () => {
-    window.open(url, '_blank', 'noopener,noreferrer');
-    closeLinkModal();
-  };
-  document.getElementById('link-modal').style.display = 'flex';
-}
-
-function closeLinkModal() {
-  document.getElementById('link-modal').style.display = 'none';
-}
-
-/* ── Onboarding ──────────────────────────────────────────── */
-function toggleOnboardCheck() {
-  const cb    = document.getElementById('onboard-checkbox');
-  const btn   = document.getElementById('onboard-btn');
-  const check = cb.classList.toggle('checked');
-  btn.disabled        = !check;
-  btn.style.cursor    = check ? 'pointer' : 'not-allowed';
-  btn.style.opacity   = check ? '1' : '.32';
-}
-
-function confirmOnboarding() {
-  localStorage.setItem('cloak_onboarded', '1');
-  document.getElementById('onboard-modal').style.display = 'none';
-}
-
-/* ── Voice mode ──────────────────────────────────────────── */
-let voiceRec    = null;
-let voiceAlive  = false;
-let voiceAsciiTimer = null;
-
-function startVoiceMode() {
-  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRec) {
-    alert('Voice mode is not supported in this browser. Try Chrome or Edge.');
-    return;
-  }
-
-  document.getElementById('voice-overlay').style.display = 'flex';
-  voiceAlive = true;
-
-  const statusEl     = document.getElementById('voice-status');
-  const transcriptEl = document.getElementById('voice-transcript');
-  statusEl.textContent     = 'Listening…';
-  transcriptEl.textContent = 'Say something…';
-
-  voiceRec = new SpeechRec();
-  voiceRec.continuous      = false;
-  voiceRec.interimResults  = true;
-  voiceRec.lang            = 'en-US';
-
-  voiceRec.onresult = ev => {
-    const t = Array.from(ev.results).map(r => r[0].transcript).join('');
-    transcriptEl.textContent = t;
-    if (ev.results[ev.results.length - 1].isFinal) {
-      stopVoiceMode();
-      const inp = document.getElementById('chat-input');
-      inp.value = t;
-      onInput(inp);
-      send();
-    }
-  };
-
-  voiceRec.onerror = () => {
-    statusEl.textContent = 'Error — try again';
-    setTimeout(stopVoiceMode, 1600);
-  };
-
-  voiceRec.onend = () => {
-    if (voiceAlive) statusEl.textContent = 'Processing…';
-  };
-
-  voiceRec.start();
-  startVoiceAnim();
-}
-
-function stopVoiceMode() {
-  voiceAlive = false;
-  voiceRec?.stop();
-  clearInterval(voiceAsciiTimer);
-  document.getElementById('voice-overlay').style.display = 'none';
-}
-
-function startVoiceAnim() {
-  const frames = [
-    '[ - - - - - ]', '[ = - - - - ]', '[ = = - - - ]',
-    '[ = = = - - ]', '[ = = = = - ]', '[ = = = = = ]',
-    '[ - = = = = ]', '[ - - = = = ]', '[ - - - = = ]', '[ - - - - = ]'
-  ];
-  let i = 0;
-  const el = document.getElementById('voice-ascii');
-  voiceAsciiTimer = setInterval(() => {
-    if (!voiceAlive) { clearInterval(voiceAsciiTimer); return; }
-    el.textContent = frames[i++ % frames.length];
-  }, 110);
-}
-
-/* ── Utilities ───────────────────────────────────────────── */
-function esc(s) {
-  return String(s || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-function extractText(content) {
-  if (typeof content === 'string') return content;
-  if (Array.isArray(content)) {
-    const t = content.find(x => x.type === 'text');
-    return t?.text || '';
-  }
-  return '';
-}
+// Also expose reset so cloak.js can call it directly
+window.resetCloakHistory = function() { cloakHistory = []; };
 </script>
 </body>
 </html>
