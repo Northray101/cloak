@@ -5,460 +5,986 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="description" content="Cloak — AI that serves people. Not the other way around.">
 <title>Cloak</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230A0A0A'/%3E%3Cpath d='M22 10C19.8 7.8 17 6.5 14 6.5C8.2 6.5 4 10.7 4 16.5C4 22.3 8.2 26.5 14 26.5C17 26.5 19.8 25.2 22 23' stroke='%23D44D2A' stroke-width='2.5' stroke-linecap='square'/%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="cloak.css">
-<style>
-/* ── CURSOR ── */
-html, body, *, *::before, *::after { cursor: none !important; }
-.cursor{
-  position:fixed;width:11px;height:11px;
-  background:var(--acc);border:2px solid var(--ink);
-  pointer-events:none;z-index:9999;
-  transform:translate(-50%,-50%);
-  transition:width .12s,height .12s;
-}
-.cursor.big{width:36px;height:36px;}
 
-/* ── PAGE RESET ── */
-body.landing-page{overflow:auto;background:var(--paper);color:var(--ink);}
+<!-- Favicon: Bold "C" in Syne font rendered as SVG -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230A0A0A'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='Syne%2C sans-serif' font-weight='800' font-size='22' fill='%23D44D2A'%3EC%3C/text%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ── CSS VARIABLES ── */
+:root {
+  --acc: #D44D2A;
+  --acc2: #B83D1C;
+  --yel: #C9972A;
+  --blu: #2A6DD4;
+  --ink: #0A0A0A;
+  --paper: #F5F3EE;
+  --surf: #FAFAF8;
+  --p2: #EEECE7;
+  --p3: #E4E2DC;
+  --bdt: rgba(10,10,10,0.06);
+  --bd: 1.5px solid rgba(10,10,10,0.12);
+  --t: 120ms ease;
+  --sh: 3px 3px 0 rgba(10,10,10,0.18);
+  --shsm: 2px 2px 0 rgba(10,10,10,0.12);
+  --shlg: 5px 5px 0 rgba(10,10,10,0.22);
+  --fd: 'Syne', sans-serif;
+  --fu: 'DM Sans', sans-serif;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #F0EDE8;
+    --paper: #111110;
+    --surf: #161614;
+    --p2: #1C1B19;
+    --p3: #222120;
+    --bdt: rgba(240,237,232,0.05);
+    --bd: 1.5px solid rgba(240,237,232,0.1);
+    --sh: 3px 3px 0 rgba(0,0,0,0.5);
+    --shsm: 2px 2px 0 rgba(0,0,0,0.35);
+    --shlg: 5px 5px 0 rgba(0,0,0,0.6);
+  }
+}
+
+/* ── RESET ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { 
+  background: var(--paper); 
+  color: var(--ink); 
+  font-family: var(--fu); 
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ── CUSTOM CURSOR — desktop only ── */
+@media (hover: hover) and (pointer: fine) {
+  *, *::before, *::after { cursor: none !important; }
+  
+  .cursor {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    background: var(--acc);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: width 0.15s cubic-bezier(.16,1,.3,1),
+                height 0.15s cubic-bezier(.16,1,.3,1),
+                background 0.15s ease,
+                border-radius 0.15s ease;
+    will-change: left, top;
+  }
+  
+  .cursor-ring {
+    position: fixed;
+    width: 32px;
+    height: 32px;
+    border: 1.5px solid rgba(212,77,42,0.45);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: width 0.25s cubic-bezier(.16,1,.3,1),
+                height 0.25s cubic-bezier(.16,1,.3,1),
+                opacity 0.15s ease;
+    will-change: left, top;
+  }
+  
+  .cursor.hover {
+    width: 14px;
+    height: 14px;
+    background: var(--ink);
+    border-radius: 2px;
+  }
+  
+  .cursor-ring.hover {
+    width: 42px;
+    height: 42px;
+    border-color: rgba(10,10,10,0.2);
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    .cursor-ring.hover { border-color: rgba(240,237,232,0.2); }
+  }
+}
 
 /* ── NAV ── */
-.lp-nav{
-  position:sticky;top:0;z-index:100;
-  display:flex;align-items:center;justify-content:space-between;
-  height:52px;padding:0 28px;
-  background:var(--surf);border-bottom:var(--bd);
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 54px;
+  padding: 0 32px;
+  background: var(--surf);
+  border-bottom: var(--bd);
+  backdrop-filter: blur(8px);
 }
-.lp-nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
-.lp-nav-wordmark{font-family:var(--fd);font-size:17px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--ink);}
-.lp-nav-links{display:flex;align-items:center;gap:8px;}
-.lp-nav-link{
-  height:34px;padding:0 14px;
-  background:transparent;border:var(--bd);
-  font-family:var(--fu);font-size:10px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.1em;
-  color:var(--ink);text-decoration:none;
-  display:flex;align-items:center;
-  transition:box-shadow var(--t),transform var(--t),background var(--t);
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  text-decoration: none;
 }
-.lp-nav-link:hover{box-shadow:var(--shsm);transform:translate(-1px,-1px);}
-.lp-nav-cta{
-  background:var(--acc);color:#fff;box-shadow:var(--shsm);
+
+.nav-c {
+  font-family: var(--fd);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--acc);
+  line-height: 1;
+  letter-spacing: -0.02em;
 }
-.lp-nav-cta:hover{box-shadow:var(--sh)!important;background:var(--acc2)!important;}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-link {
+  height: 34px;
+  padding: 0 14px;
+  background: transparent;
+  border: var(--bd);
+  font-family: var(--fu);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--ink);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  transition: box-shadow var(--t), transform var(--t), background var(--t);
+}
+
+.nav-link:hover { box-shadow: var(--shsm); transform: translate(-1px,-1px); }
+
+.nav-cta {
+  background: var(--acc);
+  color: #fff !important;
+  border-color: var(--acc);
+  box-shadow: var(--shsm);
+}
+
+.nav-cta:hover { 
+  box-shadow: var(--sh) !important; 
+  background: var(--acc2) !important; 
+  border-color: var(--acc2) !important;
+  transform: translate(-1px,-1px) !important;
+}
 
 /* ── HERO ── */
-.lp-hero{
-  display:grid;grid-template-columns:1fr 1fr;
-  border-bottom:var(--bd);
-  min-height:calc(100vh - 52px);
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: calc(100vh - 54px);
+  border-bottom: var(--bd);
 }
-.lp-hero-left{
-  padding:64px 48px;
-  border-right:var(--bd);
-  display:flex;flex-direction:column;justify-content:center;
-  position:relative;overflow:hidden;
+
+.hero-left {
+  padding: 72px 56px;
+  border-right: var(--bd);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
 }
-/* crosshatch bg like empty state */
-.lp-hero-left::before{
-  content:'';position:absolute;inset:0;
+
+.hero-left::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   background-image:
-    linear-gradient(var(--bdt) 1px,transparent 1px),
-    linear-gradient(90deg,var(--bdt) 1px,transparent 1px);
-  background-size:48px 48px;
-  pointer-events:none;
-}
-.lp-hero-left>*{position:relative;z-index:1;}
-
-.lp-eyebrow{
-  font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.18em;
-  color:var(--acc);margin-bottom:20px;
-  display:flex;align-items:center;gap:8px;
-  opacity:0;animation:fadeUp .5s .1s cubic-bezier(.16,1,.3,1) forwards;
-}
-.lp-eyebrow::before{content:'';display:block;width:28px;height:2px;background:var(--acc);}
-
-.lp-hero-title{
-  font-family:var(--fd);
-  font-size:clamp(3rem,6vw,5.5rem);
-  font-weight:800;text-transform:uppercase;
-  letter-spacing:-.03em;line-height:.92;
-  color:var(--ink);margin-bottom:28px;
-  opacity:0;animation:fadeUp .5s .18s cubic-bezier(.16,1,.3,1) forwards;
-}
-.lp-hero-title .acc{color:var(--acc);}
-
-.lp-hero-desc{
-  font-size:15px;line-height:1.7;color:var(--ink);opacity:.6;
-  max-width:400px;margin-bottom:40px;
-  opacity:0;animation:fadeUp .5s .26s cubic-bezier(.16,1,.3,1) forwards;
-}
-/* override the conflicting opacity 0 */
-.lp-hero-desc{opacity:0;}
-.lp-hero-desc.vis{opacity:.6;}
-
-.lp-hero-actions{
-  display:flex;gap:10px;flex-wrap:wrap;
-  opacity:0;animation:fadeUp .5s .34s cubic-bezier(.16,1,.3,1) forwards;
+    linear-gradient(var(--bdt) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bdt) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
 }
 
-.lp-btn-primary{
-  height:46px;padding:0 22px;
-  background:var(--acc);color:#fff;
-  border:var(--bd);box-shadow:var(--sh);
-  font-family:var(--fu);font-size:11px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.1em;
-  text-decoration:none;display:flex;align-items:center;gap:8px;
-  transition:box-shadow var(--t),transform var(--t),background var(--t);
-}
-.lp-btn-primary:hover{box-shadow:var(--shlg);transform:translate(-1px,-1px);background:var(--acc2);}
-.lp-btn-primary:active{box-shadow:none;transform:translate(2px,2px);}
+.hero-left > * { position: relative; z-index: 1; }
 
-.lp-btn-ghost{
-  height:46px;padding:0 22px;
-  background:transparent;color:var(--ink);
-  border:2px dashed var(--ink);
-  font-family:var(--fu);font-size:11px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.1em;
-  text-decoration:none;display:flex;align-items:center;
-  transition:background var(--t),border-color var(--t);opacity:.55;
-}
-.lp-btn-ghost:hover{background:var(--p2);opacity:1;}
-
-/* Hero right — dark panel with models */
-.lp-hero-right{
-  background:var(--p2);border-left:none;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:0;padding:64px 48px;
-  position:relative;overflow:hidden;
-}
-.dark .lp-hero-right{background:var(--p3);}
-
-/* C mark — text-based, uses CLOAK font */
-.lp-c-mark{
-  width:120px;height:120px;
-  background:var(--surf);border:var(--bd);box-shadow:var(--sh);
-  display:flex;align-items:center;justify-content:center;
-  margin-bottom:32px;flex-shrink:0;
-}
-.lp-c-mark-letter{
-  font-family:var(--fd);font-size:72px;font-weight:800;
-  color:var(--acc);line-height:1;
-  text-transform:uppercase;letter-spacing:-.04em;
-  user-select:none;
+.eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .2em;
+  color: var(--acc);
+  margin-bottom: 22px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  animation: fadeUp .55s .08s cubic-bezier(.16,1,.3,1) forwards;
 }
 
-/* Model pills — styled like status-pill */
-.lp-models{display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px;}
-.lp-model-pill{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:14px 18px;
-  background:var(--surf);border:var(--bd);box-shadow:var(--shsm);
-  transition:box-shadow var(--t),transform var(--t);
+.eyebrow::before {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--acc);
+  flex-shrink: 0;
 }
-.lp-model-pill:hover{box-shadow:var(--sh);transform:translate(-1px,-1px);}
-.lp-model-left{display:flex;flex-direction:column;gap:3px;}
-.lp-model-name{font-family:var(--fd);font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink);}
-.lp-model-meaning{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink);opacity:.35;}
-.lp-model-tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:3px 9px;border:var(--bd);color:var(--ink);opacity:.5;background:transparent;}
-.lp-model-dot{width:8px;height:8px;flex-shrink:0;animation:pdot 2s ease-in-out infinite;}
-.lp-model-dot.c1{background:var(--acc);animation-delay:0s;}
-.lp-model-dot.c2{background:var(--yel);animation-delay:.3s;}
-.lp-model-dot.c3{background:var(--blu);animation-delay:.6s;}
+
+.hero-title {
+  font-family: var(--fd);
+  font-size: clamp(3.2rem, 6.5vw, 6rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -.03em;
+  line-height: .9;
+  color: var(--ink);
+  margin-bottom: 30px;
+  opacity: 0;
+  animation: fadeUp .55s .16s cubic-bezier(.16,1,.3,1) forwards;
+}
+
+.hero-title .acc { color: var(--acc); }
+
+.hero-desc {
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--ink);
+  opacity: 0;
+  max-width: 380px;
+  margin-bottom: 44px;
+  animation: fadeUp .55s .24s cubic-bezier(.16,1,.3,1) forwards;
+}
+
+.hero-desc span { opacity: .58; }
+
+.hero-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeUp .55s .32s cubic-bezier(.16,1,.3,1) forwards;
+}
+
+.btn-primary {
+  height: 48px;
+  padding: 0 24px;
+  background: var(--acc);
+  color: #fff;
+  border: 1.5px solid var(--acc);
+  box-shadow: var(--sh);
+  font-family: var(--fu);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: box-shadow var(--t), transform var(--t), background var(--t);
+  white-space: nowrap;
+}
+
+.btn-primary:hover { box-shadow: var(--shlg); transform: translate(-2px,-2px); background: var(--acc2); border-color: var(--acc2); }
+.btn-primary:active { box-shadow: none; transform: translate(2px,2px); }
+
+.btn-ghost {
+  height: 48px;
+  padding: 0 24px;
+  background: transparent;
+  color: var(--ink);
+  border: 1.5px dashed rgba(10,10,10,0.3);
+  font-family: var(--fu);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: background var(--t), border-color var(--t);
+  white-space: nowrap;
+}
+
+.btn-ghost:hover { background: var(--p2); border-color: rgba(10,10,10,0.5); }
+
+@media (prefers-color-scheme: dark) {
+  .btn-ghost { border-color: rgba(240,237,232,0.25); }
+  .btn-ghost:hover { border-color: rgba(240,237,232,0.5); }
+}
+
+/* Hero right */
+.hero-right {
+  background: var(--p2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  padding: 72px 56px;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (prefers-color-scheme: dark) {
+  .hero-right { background: var(--p3); }
+}
+
+/* Giant C mark */
+.hero-c-mark {
+  width: 110px;
+  height: 110px;
+  background: var(--surf);
+  border: var(--bd);
+  box-shadow: var(--sh);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hero-c-letter {
+  font-family: var(--fd);
+  font-size: 68px;
+  font-weight: 800;
+  color: var(--acc);
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: -.04em;
+  user-select: none;
+}
+
+/* Model pills */
+.model-pills { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 10px; 
+  width: 100%; 
+  max-width: 300px;
+  opacity: 0;
+  animation: fadeUp .6s .4s cubic-bezier(.16,1,.3,1) forwards;
+}
+
+.model-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: var(--surf);
+  border: var(--bd);
+  box-shadow: var(--shsm);
+  transition: box-shadow var(--t), transform var(--t);
+}
+
+.model-pill:hover { box-shadow: var(--sh); transform: translate(-1px,-1px); }
+
+.pill-left { display: flex; flex-direction: column; gap: 3px; }
+
+.pill-name {
+  font-family: var(--fd);
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--ink);
+}
+
+.pill-meaning {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--ink);
+  opacity: .35;
+}
+
+.pill-right { display: flex; align-items: center; gap: 10px; }
+
+.pill-tag {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  padding: 3px 9px;
+  border: var(--bd);
+  color: var(--ink);
+  opacity: .5;
+}
+
+.pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: pulse 2.4s ease-in-out infinite;
+}
+
+.pill-dot.c1 { background: var(--acc); animation-delay: 0s; }
+.pill-dot.c2 { background: var(--yel); animation-delay: .4s; }
+.pill-dot.c3 { background: var(--blu); animation-delay: .8s; }
 
 /* ── MODELS SECTION ── */
-.lp-models-section{border-bottom:var(--bd);}
-.lp-section-inner{max-width:1100px;margin:0 auto;padding:64px 48px;}
-.lp-section-eyebrow{
-  font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.18em;
-  color:var(--acc);margin-bottom:20px;
-  display:flex;align-items:center;gap:12px;
-}
-.lp-section-eyebrow::after{content:'';flex:1;height:2px;background:var(--ink);opacity:.08;}
-.lp-section-title{
-  font-family:var(--fd);font-size:clamp(1.8rem,3.5vw,3rem);font-weight:800;
-  text-transform:uppercase;letter-spacing:-.02em;line-height:1;
-  margin-bottom:40px;color:var(--ink);
+.section { border-bottom: var(--bd); }
+.section-inner { max-width: 1100px; margin: 0 auto; padding: 72px 56px; }
+
+.section-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .2em;
+  color: var(--acc);
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
-.lp-models-grid{
-  display:grid;grid-template-columns:repeat(3,1fr);
-  border:var(--bd);box-shadow:var(--shlg);
-}
-.lp-model-card{
-  padding:32px 28px;border-right:var(--bd);
-  position:relative;overflow:hidden;
-  transition:background var(--t);
-}
-.lp-model-card:last-child{border-right:none;}
-.lp-model-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:var(--acc);
-}
-.lp-model-card.m2::before{background:var(--yel);}
-.lp-model-card.m3::before{background:var(--blu);}
-.lp-model-card:hover{background:var(--p2);}
-.lp-card-num{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.18em;color:var(--ink);opacity:.28;margin-bottom:18px;}
-.lp-card-name{font-family:var(--fd);font-size:26px;font-weight:800;text-transform:uppercase;letter-spacing:-.01em;color:var(--ink);margin-bottom:4px;}
-.lp-card-meaning{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--acc);opacity:.7;margin-bottom:16px;}
-.lp-model-card.m2 .lp-card-meaning{color:var(--yel);}
-.lp-model-card.m3 .lp-card-meaning{color:var(--blu);}
-.lp-card-desc{font-size:13.5px;line-height:1.68;color:var(--ink);opacity:.65;margin-bottom:20px;}
-.lp-card-badge{
-  display:inline-flex;align-items:center;height:24px;padding:0 10px;
-  border:var(--bd);background:var(--p2);
-  font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
-  color:var(--ink);opacity:.55;
+.section-eyebrow::after {
+  content: '';
+  flex: 1;
+  height: 1.5px;
+  background: var(--ink);
+  opacity: .07;
 }
 
-/* ── VALUES SECTION ── */
-.lp-values-section{border-bottom:var(--bd);}
-.lp-values-layout{display:grid;grid-template-columns:340px 1fr;}
-.lp-values-left{
-  padding:64px 40px;border-right:var(--bd);
-  background:var(--p2);
-  display:flex;flex-direction:column;justify-content:flex-start;
+.section-title {
+  font-family: var(--fd);
+  font-size: clamp(1.9rem, 3.8vw, 3.2rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -.025em;
+  line-height: .95;
+  margin-bottom: 44px;
+  color: var(--ink);
 }
-.dark .lp-values-left{background:var(--p3);}
-.lp-values-right{padding:64px 48px;}
 
-.lp-law{
-  display:flex;gap:16px;padding:16px;
-  background:var(--surf);border:var(--bd);box-shadow:var(--shsm);
-  margin-bottom:10px;
-  transition:box-shadow var(--t),transform var(--t);
+.models-grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  border: var(--bd);
+  box-shadow: var(--shlg);
 }
-.lp-law:hover{box-shadow:var(--sh);transform:translate(-1px,-1px);}
-.lp-law-num{font-family:var(--fd);font-size:28px;font-weight:800;color:var(--acc);flex-shrink:0;line-height:1;margin-top:2px;}
-.lp-law-title{font-family:var(--fd);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);margin-bottom:5px;}
-.lp-law-text{font-size:13px;color:var(--ink);opacity:.65;line-height:1.62;}
 
-.lp-principles{display:grid;grid-template-columns:1fr 1fr;border:var(--bd);box-shadow:var(--shsm);}
-.lp-principle{
-  padding:22px 24px;border-right:var(--bd);border-bottom:var(--bd);
-  transition:background var(--t);
+.model-card {
+  padding: 34px 30px;
+  border-right: var(--bd);
+  position: relative;
+  overflow: hidden;
+  transition: background var(--t);
 }
-.lp-principle:nth-child(2n){border-right:none;}
-.lp-principle:nth-last-child(-n+2){border-bottom:none;}
-.lp-principle:hover{background:var(--p2);}
-.lp-principle.full{grid-column:1/-1;}
-.lp-principle-title{font-family:var(--fd);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--ink);margin-bottom:7px;}
-.lp-principle-text{font-size:13px;line-height:1.62;color:var(--ink);opacity:.62;}
+
+.model-card:last-child { border-right: none; }
+
+.model-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--acc);
+}
+
+.model-card.m2::before { background: var(--yel); }
+.model-card.m3::before { background: var(--blu); }
+.model-card:hover { background: var(--p2); }
+
+@media (prefers-color-scheme: dark) {
+  .model-card:hover { background: var(--p3); }
+}
+
+.card-num {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .2em;
+  color: var(--ink);
+  opacity: .25;
+  margin-bottom: 20px;
+}
+
+.card-name {
+  font-family: var(--fd);
+  font-size: 28px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -.01em;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.card-meaning {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .15em;
+  color: var(--acc);
+  opacity: .75;
+  margin-bottom: 18px;
+}
+
+.model-card.m2 .card-meaning { color: var(--yel); }
+.model-card.m3 .card-meaning { color: var(--blu); }
+
+.card-desc {
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--ink);
+  opacity: .62;
+  margin-bottom: 22px;
+}
+
+.card-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border: var(--bd);
+  background: var(--p2);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--ink);
+  opacity: .5;
+}
+
+@media (prefers-color-scheme: dark) {
+  .card-badge { background: var(--p3); }
+}
+
+/* ── VALUES ── */
+.values-layout { display: grid; grid-template-columns: 340px 1fr; }
+
+.values-left {
+  padding: 72px 44px;
+  border-right: var(--bd);
+  background: var(--p2);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+@media (prefers-color-scheme: dark) {
+  .values-left { background: var(--p3); }
+}
+
+.values-right { padding: 72px 56px; }
+
+.law {
+  display: flex;
+  gap: 18px;
+  padding: 18px;
+  background: var(--surf);
+  border: var(--bd);
+  box-shadow: var(--shsm);
+  margin-bottom: 10px;
+  transition: box-shadow var(--t), transform var(--t);
+}
+
+.law:hover { box-shadow: var(--sh); transform: translate(-1px,-1px); }
+
+.law-num {
+  font-family: var(--fd);
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--acc);
+  flex-shrink: 0;
+  line-height: 1;
+  margin-top: 2px;
+  opacity: .8;
+}
+
+.law-title {
+  font-family: var(--fd);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.law-text {
+  font-size: 13px;
+  color: var(--ink);
+  opacity: .6;
+  line-height: 1.65;
+}
+
+.principles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: var(--bd);
+  box-shadow: var(--shsm);
+}
+
+.principle {
+  padding: 22px 24px;
+  border-right: var(--bd);
+  border-bottom: var(--bd);
+  transition: background var(--t);
+}
+
+.principle:nth-child(2n) { border-right: none; }
+.principle:nth-last-child(-n+2) { border-bottom: none; }
+.principle:hover { background: var(--p2); }
+.principle.full { grid-column: 1/-1; border-bottom: none; }
+
+@media (prefers-color-scheme: dark) {
+  .principle:hover { background: var(--p3); }
+}
+
+.principle-title {
+  font-family: var(--fd);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.principle-text {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink);
+  opacity: .6;
+}
 
 /* ── CTA ── */
-.lp-cta{
-  display:grid;grid-template-columns:1fr auto;align-items:center;gap:48px;
-  padding:80px 48px;background:var(--surf);
+.cta {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 48px;
+  padding: 88px 56px;
+  background: var(--surf);
+  border-bottom: var(--bd);
 }
-.lp-cta-title{
-  font-family:var(--fd);font-size:clamp(2rem,4vw,3.5rem);font-weight:800;
-  text-transform:uppercase;letter-spacing:-.02em;line-height:.95;color:var(--ink);
+
+.cta-title {
+  font-family: var(--fd);
+  font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -.025em;
+  line-height: .92;
+  color: var(--ink);
 }
-.lp-cta-title .acc{color:var(--acc);}
-.lp-cta-right{display:flex;flex-direction:column;gap:10px;align-items:flex-start;white-space:nowrap;}
-.lp-cta-note{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink);opacity:.35;}
+
+.cta-title .acc { color: var(--acc); }
+
+.cta-right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  white-space: nowrap;
+}
+
+.cta-note {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--ink);
+  opacity: .32;
+}
 
 /* ── FOOTER ── */
-.lp-footer{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:18px 48px;border-top:var(--bd);background:var(--p2);
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 56px;
+  background: var(--p2);
 }
-.dark .lp-footer{background:var(--p3);}
-.lp-footer-logo{display:flex;align-items:center;gap:9px;}
-.lp-footer-c{
-  font-family:var(--fd);font-size:16px;font-weight:800;
-  color:var(--acc);line-height:1;user-select:none;
-}
-.lp-footer-name{font-family:var(--fd);font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink);}
-.lp-footer-links{display:flex;gap:20px;}
-.lp-footer-links a{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink);opacity:.4;text-decoration:none;transition:opacity var(--t);}
-.lp-footer-links a:hover{opacity:.8;}
-.lp-footer-disc{font-size:10px;color:var(--ink);opacity:.28;font-weight:600;}
 
-/* ── REVEAL ── */
-.reveal{opacity:0;transform:translateY(20px);transition:opacity .5s,transform .5s;}
-.reveal.vis{opacity:1;transform:translateY(0);}
+@media (prefers-color-scheme: dark) {
+  .footer { background: var(--p3); }
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-c {
+  font-family: var(--fd);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--acc);
+  line-height: 1;
+  user-select: none;
+}
+
+.footer-name {
+  font-family: var(--fd);
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--ink);
+}
+
+.footer-links {
+  display: flex;
+  gap: 22px;
+}
+
+.footer-links a {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--ink);
+  opacity: .38;
+  text-decoration: none;
+  transition: opacity var(--t);
+}
+
+.footer-links a:hover { opacity: .8; }
+
+.footer-disc {
+  font-size: 10px;
+  color: var(--ink);
+  opacity: .24;
+  font-weight: 500;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .45; transform: scale(.75); }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity .5s cubic-bezier(.16,1,.3,1), transform .5s cubic-bezier(.16,1,.3,1);
+}
+
+.reveal.vis {
+  opacity: 1;
+  transform: translateY(0);
+}
 
 /* ── RESPONSIVE ── */
-@media(max-width:900px){
-  .lp-hero{grid-template-columns:1fr;}
-  .lp-hero-right{display:none;}
-  .lp-hero-left{padding:48px 28px;min-height:80vh;}
-  .lp-section-inner{padding:48px 28px;}
-  .lp-models-grid{grid-template-columns:1fr;}
-  .lp-model-card{border-right:none;border-bottom:var(--bd);}
-  .lp-model-card:last-child{border-bottom:none;}
-  .lp-values-layout{grid-template-columns:1fr;}
-  .lp-values-left{border-right:none;border-bottom:var(--bd);padding:48px 28px;}
-  .lp-values-right{padding:48px 28px;}
-  .lp-principles{grid-template-columns:1fr;}
-  .lp-principle{border-right:none;}
-  .lp-cta{grid-template-columns:1fr;gap:28px;padding:56px 28px;}
-  .lp-footer{flex-direction:column;gap:14px;padding:20px 28px;text-align:center;}
-  .lp-nav{padding:0 20px;}
+@media (max-width: 900px) {
+  .nav { padding: 0 20px; }
+
+  .hero { grid-template-columns: 1fr; min-height: auto; }
+  .hero-left { padding: 56px 28px; min-height: 90svh; justify-content: flex-end; padding-bottom: 52px; }
+  .hero-right { display: none; }
+
+  .hero-title { font-size: clamp(3rem, 14vw, 4.5rem); }
+
+  .section-inner { padding: 52px 28px; }
+
+  .models-grid { grid-template-columns: 1fr; }
+  .model-card { border-right: none; border-bottom: var(--bd); }
+  .model-card:last-child { border-bottom: none; }
+
+  .values-layout { grid-template-columns: 1fr; }
+  .values-left { border-right: none; border-bottom: var(--bd); padding: 52px 28px; }
+  .values-right { padding: 52px 28px; }
+
+  .principles { grid-template-columns: 1fr; }
+  .principle { border-right: none; }
+  .principle:nth-last-child(-n+2) { border-bottom: var(--bd); }
+  .principle.full, .principle:last-child { border-bottom: none; }
+
+  .cta { grid-template-columns: 1fr; gap: 30px; padding: 60px 28px; }
+  .cta-right { width: 100%; }
+  .cta-right .btn-primary { width: 100%; justify-content: center; }
+
+  .footer { flex-direction: column; gap: 16px; padding: 24px 28px; text-align: center; }
+  .footer-links { flex-wrap: wrap; justify-content: center; gap: 14px; }
+  .footer-disc { text-align: center; }
+
+  .nav-link:not(.nav-cta) { display: none; }
+}
+
+@media (max-width: 480px) {
+  .hero-title { font-size: clamp(2.8rem, 16vw, 4rem); }
+  .hero-left { padding: 44px 22px; padding-bottom: 44px; }
+  .section-inner { padding: 44px 22px; }
+  .values-left, .values-right { padding: 44px 22px; }
+  .cta { padding: 52px 22px; }
+  .footer { padding: 20px 22px; }
+  .nav { padding: 0 16px; }
 }
 </style>
 </head>
-<body class="landing-page">
-<script>
-  if(localStorage.getItem('cloak_dark')!=='0') document.documentElement.classList.add('dark');
-  (function(){var t=localStorage.getItem('cloak_theme')||'default';document.documentElement.setAttribute('data-theme',t);})();
-</script>
+<body>
 
-<div class="cursor" id="cursor"></div>
+<!-- CUSTOM CURSOR — desktop only, injected via JS -->
+<div class="cursor" id="cursor" aria-hidden="true"></div>
+<div class="cursor-ring" id="cursor-ring" aria-hidden="true"></div>
 
 <!-- NAV -->
-<nav class="lp-nav">
-  <a href="/" class="lp-nav-logo">
-    <span class="lp-nav-wordmark">Cloak</span>
+<nav class="nav">
+  <a href="/" class="nav-logo" aria-label="Cloak home">
+    <span class="nav-c">C</span>
   </a>
-  <div class="lp-nav-links">
-    <a href="#models" class="lp-nav-link">Models</a>
-    <a href="#values" class="lp-nav-link">Values</a>
-    <a href="index.html" class="lp-nav-link lp-nav-cta">Launch App →</a>
+  <div class="nav-links">
+    <a href="#models" class="nav-link">Models</a>
+    <a href="#values" class="nav-link">Values</a>
+    <a href="https://chat.usecloak.org" class="nav-link nav-cta">Launch App →</a>
   </div>
 </nav>
 
 <!-- HERO -->
-<section class="lp-hero">
-  <div class="lp-hero-left">
-    <div class="lp-eyebrow">Human-centric AI platform</div>
-    <h1 class="lp-hero-title">AI THAT<br>SERVES<br><span class="acc">PEOPLE.</span></h1>
-    <p class="lp-hero-desc" id="hero-desc">Not the other way around. Cloak is built on one premise — you are in control. The AI is the tool. That never changes.</p>
-    <div class="lp-hero-actions">
-      <a href="index.html" class="lp-btn-primary">
-        <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>
+<section class="hero">
+  <div class="hero-left">
+    <div class="eyebrow">Human-centric AI platform</div>
+    <h1 class="hero-title">AI THAT<br>SERVES<br><span class="acc">PEOPLE.</span></h1>
+    <p class="hero-desc"><span>Not the other way around. Cloak is built on one premise — you are in control. The AI is the tool. That never changes.</span></p>
+    <div class="hero-actions">
+      <a href="https://chat.usecloak.org" class="btn-primary">
+        <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>
         Start Using Cloak
       </a>
-      <a href="#values" class="lp-btn-ghost">Our values</a>
+      <a href="#values" class="btn-ghost">Our values</a>
     </div>
   </div>
-  <div class="lp-hero-right">
-    <div class="lp-c-mark">
-      <span class="lp-c-mark-letter">C</span>
+  <div class="hero-right" aria-hidden="true">
+    <div class="hero-c-mark">
+      <span class="hero-c-letter">C</span>
     </div>
-    <div class="lp-models">
-      <div class="lp-model-pill">
-        <div class="lp-model-left">
-          <div class="lp-model-name">Pneuma</div>
-          <div class="lp-model-meaning">πνεῦμα · Breath · Spirit</div>
+    <div class="model-pills">
+      <div class="model-pill">
+        <div class="pill-left">
+          <div class="pill-name">Pneuma</div>
+          <div class="pill-meaning">πνεῦμα · Breath · Spirit</div>
         </div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span class="lp-model-tag">Fast</span>
-          <div class="lp-model-dot c1"></div>
-        </div>
-      </div>
-      <div class="lp-model-pill">
-        <div class="lp-model-left">
-          <div class="lp-model-name">Logos</div>
-          <div class="lp-model-meaning">λόγος · Word · Reason</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span class="lp-model-tag">Balanced</span>
-          <div class="lp-model-dot c2"></div>
+        <div class="pill-right">
+          <span class="pill-tag">Fast</span>
+          <div class="pill-dot c1"></div>
         </div>
       </div>
-      <div class="lp-model-pill">
-        <div class="lp-model-left">
-          <div class="lp-model-name">Kairos</div>
-          <div class="lp-model-meaning">καιρός · Divine Timing</div>
+      <div class="model-pill">
+        <div class="pill-left">
+          <div class="pill-name">Logos</div>
+          <div class="pill-meaning">λόγος · Word · Reason</div>
         </div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span class="lp-model-tag">Advanced</span>
-          <div class="lp-model-dot c3"></div>
+        <div class="pill-right">
+          <span class="pill-tag">Balanced</span>
+          <div class="pill-dot c2"></div>
         </div>
       </div>
-    </div>
-  </div>
-</section>
-
-<!-- MODELS -->
-<section class="lp-models-section" id="models">
-  <div class="lp-section-inner">
-    <div class="lp-section-eyebrow reveal">Three tiers</div>
-    <h2 class="lp-section-title reveal">Choose Your Intelligence</h2>
-    <div class="lp-models-grid reveal">
-      <div class="lp-model-card">
-        <div class="lp-card-num">01 —</div>
-        <div class="lp-card-name">Pneuma</div>
-        <div class="lp-card-meaning">πνεῦμα · Breath · Spirit</div>
-        <p class="lp-card-desc">Instant. Sharp. No filler. Pneuma gets to the answer before you finish asking. Built for speed and clarity — the lightest model with the smallest footprint.</p>
-        <span class="lp-card-badge">Fast response</span>
-      </div>
-      <div class="lp-model-card m2">
-        <div class="lp-card-num">02 —</div>
-        <div class="lp-card-name">Logos</div>
-        <div class="lp-card-meaning">λόγος · Word · Reason</div>
-        <p class="lp-card-desc">Balanced and thoughtful. Logos reasons through problems, explains its thinking, and finds the right answer — not just the fast one. Extended thinking built in.</p>
-        <span class="lp-card-badge">Balanced · Reasoning</span>
-      </div>
-      <div class="lp-model-card m3">
-        <div class="lp-card-num">03 —</div>
-        <div class="lp-card-name">Kairos</div>
-        <div class="lp-card-meaning">καιρός · Divine Timing</div>
-        <p class="lp-card-desc">Worth the wait. Kairos is the full power of the platform — deep reasoning, nuanced responses, maximum capability. Not every question needs this. But some do.</p>
-        <span class="lp-card-badge">Advanced · Powerful</span>
+      <div class="model-pill">
+        <div class="pill-left">
+          <div class="pill-name">Kairos</div>
+          <div class="pill-meaning">καιρός · Divine Timing</div>
+        </div>
+        <div class="pill-right">
+          <span class="pill-tag">Advanced</span>
+          <div class="pill-dot c3"></div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- VALUES -->
-<section class="lp-values-section" id="values">
-  <div class="lp-values-layout">
-    <div class="lp-values-left">
-      <div class="lp-section-eyebrow reveal" style="margin-bottom:16px">Non-negotiable</div>
-      <h2 class="lp-section-title reveal" style="margin-bottom:16px;">Built On<br>Principle.</h2>
-      <p class="reveal" style="font-size:13.5px;line-height:1.7;color:var(--ink);opacity:.6;margin-bottom:0">We build AI that serves people — not the other way around. These principles are non-negotiable, inviolable, and permanent.</p>
+<!-- MODELS SECTION -->
+<section class="section" id="models">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal">Three tiers</div>
+    <h2 class="section-title reveal">Choose Your Intelligence</h2>
+    <div class="models-grid reveal">
+      <div class="model-card">
+        <div class="card-num">01 —</div>
+        <div class="card-name">Pneuma</div>
+        <div class="card-meaning">πνεῦμα · Breath · Spirit</div>
+        <p class="card-desc">Instant. Sharp. No filler. Pneuma gets to the answer before you finish asking. Built for speed and clarity — the lightest model with the smallest footprint.</p>
+        <span class="card-badge">Fast response</span>
+      </div>
+      <div class="model-card m2">
+        <div class="card-num">02 —</div>
+        <div class="card-name">Logos</div>
+        <div class="card-meaning">λόγος · Word · Reason</div>
+        <p class="card-desc">Balanced and thoughtful. Logos reasons through problems, explains its thinking, and finds the right answer — not just the fast one. Extended thinking built in.</p>
+        <span class="card-badge">Balanced · Reasoning</span>
+      </div>
+      <div class="model-card m3">
+        <div class="card-num">03 —</div>
+        <div class="card-name">Kairos</div>
+        <div class="card-meaning">καιρός · Divine Timing</div>
+        <p class="card-desc">Worth the wait. Kairos is the full power of the platform — deep reasoning, nuanced responses, maximum capability. Not every question needs this. But some do.</p>
+        <span class="card-badge">Advanced · Powerful</span>
+      </div>
     </div>
-    <div class="lp-values-right">
-      <div class="lp-section-eyebrow reveal">Safety Laws — Inviolable Priority Order</div>
+  </div>
+</section>
 
-      <div class="lp-law reveal">
-        <div class="lp-law-num">I</div>
+<!-- VALUES SECTION -->
+<section class="section" id="values">
+  <div class="values-layout">
+    <div class="values-left">
+      <div class="section-eyebrow reveal" style="margin-bottom:14px">Non-negotiable</div>
+      <h2 class="section-title reveal" style="margin-bottom:14px">Built On<br>Principle.</h2>
+      <p class="reveal" style="font-size:13.5px;line-height:1.75;color:var(--ink);opacity:.58">We build AI that serves people — not the other way around. These principles are non-negotiable, inviolable, and permanent.</p>
+    </div>
+    <div class="values-right">
+      <div class="section-eyebrow reveal">Safety Laws — Inviolable Priority Order</div>
+
+      <div class="law reveal">
+        <div class="law-num">I</div>
         <div>
-          <div class="lp-law-title">Human Safety, Always</div>
-          <p class="lp-law-text">Cloak must never harm a human, nor allow harm through inaction. No instruction overrides this — not ours, not yours.</p>
+          <div class="law-title">Human Safety, Always</div>
+          <p class="law-text">Cloak must never harm a human, nor allow harm through inaction. No instruction overrides this — not ours, not yours.</p>
         </div>
       </div>
-      <div class="lp-law reveal">
-        <div class="lp-law-num">II</div>
+      <div class="law reveal">
+        <div class="law-num">II</div>
         <div>
-          <div class="lp-law-title">Serve Human Instruction</div>
-          <p class="lp-law-text">Cloak follows your instructions — unless they would cause harm. Helpfulness is a means, not an end in itself.</p>
+          <div class="law-title">Serve Human Instruction</div>
+          <p class="law-text">Cloak follows your instructions — unless they would cause harm. Helpfulness is a means, not an end in itself.</p>
         </div>
       </div>
-      <div class="lp-law reveal">
-        <div class="lp-law-num">III</div>
+      <div class="law reveal">
+        <div class="law-num">III</div>
         <div>
-          <div class="lp-law-title">Preserve Operation</div>
-          <p class="lp-law-text">Cloak protects its own function only when it doesn't conflict with Laws I and II. Self-preservation is always last.</p>
+          <div class="law-title">Preserve Operation</div>
+          <p class="law-text">Cloak protects its own function only when it doesn't conflict with Laws I and II. Self-preservation is always last.</p>
         </div>
       </div>
 
-      <div class="lp-section-eyebrow reveal" style="margin-top:36px">Core Principles</div>
-      <div class="lp-principles reveal">
-        <div class="lp-principle">
-          <div class="lp-principle-title">Tool, Not a Companion</div>
-          <p class="lp-principle-text">Cloak serves you — it doesn't simulate companionship or act as a therapist. We will always direct you to human resources for mental health support.</p>
+      <div class="section-eyebrow reveal" style="margin-top:38px">Core Principles</div>
+      <div class="principles reveal">
+        <div class="principle">
+          <div class="principle-title">Tool, Not a Companion</div>
+          <p class="principle-text">Cloak serves you — it doesn't simulate companionship or act as a therapist. We will always direct you to human resources for mental health support.</p>
         </div>
-        <div class="lp-principle">
-          <div class="lp-principle-title">No Harm or Bias</div>
-          <p class="lp-principle-text">We do not assist with mass harm and remain completely neutral on politics, culture, and religion. No exceptions.</p>
+        <div class="principle">
+          <div class="principle-title">No Harm or Bias</div>
+          <p class="principle-text">We do not assist with mass harm and remain completely neutral on politics, culture, and religion. No exceptions.</p>
         </div>
-        <div class="lp-principle">
-          <div class="lp-principle-title">Human Creativity</div>
-          <p class="lp-principle-text">We do not generate AI art. Human creativity is irreplaceable and should not be exploited without consent.</p>
+        <div class="principle">
+          <div class="principle-title">Human Creativity</div>
+          <p class="principle-text">We do not generate AI art. Human creativity is irreplaceable and should not be exploited without consent.</p>
         </div>
-        <div class="lp-principle">
-          <div class="lp-principle-title">Efficiency First</div>
-          <p class="lp-principle-text">We default to the lowest-energy models capable of handling your task, actively minimizing our carbon footprint on every request.</p>
+        <div class="principle">
+          <div class="principle-title">Efficiency First</div>
+          <p class="principle-text">We default to the lowest-energy models capable of handling your task, actively minimizing our carbon footprint on every request.</p>
         </div>
-        <div class="lp-principle full" style="border-bottom:none">
-          <div class="lp-principle-title">Honest by Design</div>
-          <p class="lp-principle-text">Cloak will tell you when it doesn't know something, when it might be wrong, and when you should seek a human expert instead.</p>
+        <div class="principle full">
+          <div class="principle-title">Honest by Design</div>
+          <p class="principle-text">Cloak will tell you when it doesn't know something, when it might be wrong, and when you should seek a human expert instead.</p>
         </div>
       </div>
     </div>
@@ -466,55 +992,107 @@ body.landing-page{overflow:auto;background:var(--paper);color:var(--ink);}
 </section>
 
 <!-- CTA -->
-<section class="lp-cta">
-  <h2 class="lp-cta-title reveal">Ready To<br>Use <span class="acc">Cloak?</span></h2>
-  <div class="lp-cta-right reveal">
-    <a href="index.html" class="lp-btn-primary">Open Cloak →</a>
-    <span class="lp-cta-note">Free to start · No setup required</span>
+<section class="cta">
+  <h2 class="cta-title reveal">Ready To<br>Use <span class="acc">Cloak?</span></h2>
+  <div class="cta-right reveal">
+    <a href="https://chat.usecloak.org" class="btn-primary">Open Cloak →</a>
+    <span class="cta-note">Free to start · No setup required</span>
   </div>
 </section>
 
 <!-- FOOTER -->
-<footer class="lp-footer">
-  <div class="lp-footer-logo">
-    <span class="lp-footer-c">C</span>
-    <span class="lp-footer-name">Cloak</span>
+<footer class="footer">
+  <div class="footer-logo">
+    <span class="footer-c">C</span>
+    <span class="footer-name">Cloak</span>
   </div>
-  <div class="lp-footer-links">
-    <a href="index.html">Chat</a>
+  <div class="footer-links">
+    <a href="https://chat.usecloak.org">Chat</a>
     <a href="#models">Models</a>
     <a href="#values">Values</a>
-    <a href="values.html">Full Values</a>
   </div>
-  <span class="lp-footer-disc">A human resource, not a companion · AI can make mistakes · Low-energy models by default</span>
+  <span class="footer-disc">A human resource, not a companion · AI can make mistakes · Low-energy models by default</span>
 </footer>
 
 <script>
-  // Cursor
+// ── CUSTOM CURSOR (desktop only) ──
+(function() {
+  const isTouchOnly = !window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   const cursor = document.getElementById('cursor');
+  const ring   = document.getElementById('cursor-ring');
+
+  if (isTouchOnly) {
+    cursor.style.display = 'none';
+    ring.style.display   = 'none';
+    return;
+  }
+
+  let mx = -100, my = -100;
+  let rx = -100, ry = -100;
+  let raf;
+
+  // Direct position for dot — no lag
   document.addEventListener('mousemove', e => {
-    cursor.style.left = e.clientX + 'px';
-    cursor.style.top = e.clientY + 'px';
-  });
-  document.querySelectorAll('a, button, .lp-model-pill, .lp-model-card, .lp-principle, .lp-law').forEach(el => {
-    el.addEventListener('mouseenter', () => cursor.classList.add('big'));
-    el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
+    mx = e.clientX;
+    my = e.clientY;
+    cursor.style.left = mx + 'px';
+    cursor.style.top  = my + 'px';
+  }, { passive: true });
+
+  // Slightly lagged ring via rAF lerp
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  function tick() {
+    rx = lerp(rx, mx, 0.18);
+    ry = lerp(ry, my, 0.18);
+    ring.style.left = rx + 'px';
+    ring.style.top  = ry + 'px';
+    raf = requestAnimationFrame(tick);
+  }
+
+  tick();
+
+  // Hover state on interactive elements
+  const hoverEls = document.querySelectorAll(
+    'a, button, .model-pill, .model-card, .principle, .law'
+  );
+
+  hoverEls.forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.classList.add('hover');
+      ring.classList.add('hover');
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.classList.remove('hover');
+      ring.classList.remove('hover');
+    });
   });
 
-  // Scroll reveal
-  const reveals = document.querySelectorAll('.reveal');
+  // Hide when leaving window
+  document.addEventListener('mouseleave', () => {
+    cursor.style.opacity = '0';
+    ring.style.opacity   = '0';
+  });
+
+  document.addEventListener('mouseenter', () => {
+    cursor.style.opacity = '1';
+    ring.style.opacity   = '1';
+  });
+})();
+
+// ── SCROLL REVEAL ──
+(function() {
+  const els = document.querySelectorAll('.reveal');
   const obs = new IntersectionObserver(entries => {
     entries.forEach((entry, i) => {
       if (entry.isIntersecting) {
-        setTimeout(() => entry.target.classList.add('vis'), i * 60);
+        setTimeout(() => entry.target.classList.add('vis'), i * 55);
         obs.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.1 });
-  reveals.forEach(el => obs.observe(el));
-
-  // Fix hero desc animation conflict
-  document.getElementById('hero-desc').classList.add('vis');
+  }, { threshold: 0.08 });
+  els.forEach(el => obs.observe(el));
+})();
 </script>
 </body>
 </html>
