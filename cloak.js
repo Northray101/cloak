@@ -22,14 +22,56 @@ let _fetchController=null;
 let _streamAbort=false;
 let _thinkTimer=null, _thinkPhaseIdx=0;
 
-/* Thinking animation phases */
-const THINK_PHASES=[
-  {label:'Connecting…'},
-  {label:'Analyzing request…'},
-  {label:'Generating response…'},
-  {label:'Putting it together…'},
-];
-const THINK_PHASE_MS=[2000,5000,14000];
+/* ── THOUGHT SYSTEM STATE ── */
+let _thoughts=[];           // [{title, body, done}]
+let _thoughtEls=[];         // DOM elements for each thought
+let _currentThoughtIdx=-1;
+let _statusBox=null;
+let _wordCursorSpan=null;
+
+/* ── THOUGHT PHASES for each model tier ── */
+// "balanced" = logos/kairos, "fast" = pneuma (only if thinkModeActive)
+const THOUGHT_SCRIPTS = {
+  default: [
+    {title:'Parsing request',   body:'Breaking down what you\'re asking — intent, scope, any constraints embedded in the phrasing.'},
+    {title:'Retrieving context',body:'Pulling in relevant knowledge, cross-referencing what I know with what the conversation has established.'},
+    {title:'Structuring answer', body:'Deciding on the best form for the response — length, format, level of detail, tone.'},
+    {title:'Drafting response',  body:'Composing the actual reply with the structure decided above, refining as I go.'},
+  ],
+  reasoning: [
+    {title:'Decomposing problem',  body:'Identifying the core question and any sub-problems that need to be resolved first.'},
+    {title:'Exploring approaches', body:'Considering multiple ways to attack this — weighing trade-offs between them.'},
+    {title:'Stress-testing logic', body:'Checking for edge cases, contradictions, or gaps in the reasoning chain.'},
+    {title:'Synthesizing answer',  body:'Integrating the best approach into a coherent, well-reasoned response.'},
+    {title:'Final review',         body:'Scanning for accuracy, completeness, and clarity before committing.'},
+  ],
+  creative: [
+    {title:'Setting the tone',   body:'Calibrating voice, register, and style to match what this moment calls for.'},
+    {title:'Finding the angle',  body:'Looking for the unexpected entry point — the framing that makes the response memorable.'},
+    {title:'Building structure', body:'Laying out the arc or flow — what comes first, what pays off, what lands the ending.'},
+    {title:'Writing',            body:'Generating the actual content with an eye toward rhythm, specificity, and surprise.'},
+    {title:'Polishing',          body:'Tightening language, cutting what\'s weak, elevating what\'s strong.'},
+  ],
+};
+
+/* Model → script key */
+function _thoughtScriptFor(model) {
+  if(model==='logos')  return 'reasoning';
+  if(model==='kairos') return 'creative';
+  return 'default';
+}
+
+/* Should this model do forced thoughts? */
+function _shouldThink(model) {
+  return model==='logos' || model==='kairos' || thinkModeActive;
+}
+
+/* Timing between thoughts (ms) */
+const THOUGHT_DELAY_MS = {
+  logos:  [1400, 2800, 4200, 6000, 8000],
+  kairos: [1200, 2600, 4000, 5800, 8000],
+  pneuma: [900,  2000, 3400, 5000, 7000],
+};
 
 /* Voice Mode Variables */
 let voiceMode = false;
@@ -53,12 +95,8 @@ function whenDomReady(){
 async function loadAppConfig() {
   try {
     const { data } = await sb.from('app_config').select('value').eq('key', 'model_list').single();
-    if (data && data.value) {
-      log('inf', 'Config loaded');
-    }
-  } catch(e) {
-    log('err', 'Config load failed: ' + e.message);
-  }
+    if (data && data.value) log('inf', 'Config loaded');
+  } catch(e) { log('err', 'Config load failed: ' + e.message); }
 }
 
 /* ── THEME ── */
@@ -104,56 +142,293 @@ rend.link=(href,title,text)=>{
 };
 marked.use({renderer:rend,mangle:false,headerIds:false});
 
-/* ── STREAM ANIMATION ── */
-function streamContent(container, rawText, onComplete) {
-  _streamAbort=false;
-  let pos=0;
-  const total=rawText.length;
+/* ════════════════════════════════════════
+   THOUGHT SYSTEM
+   ════════════════════════════════════════ */
 
-  function renderPartial(text){
-    if(!text){container.innerHTML='<span class="sc"></span>';return;}
-    const lastBlock=text.lastIndexOf('\n\n');
-    let html;
-    if(lastBlock===-1){
-      html='<p>'+hesc(text)+'<span class="sc"></span></p>';
-    }else{
-      const complete=text.slice(0,lastBlock+2);
-      const trailing=text.slice(lastBlock+2);
-      html=marked.parse(complete);
-      if(trailing)html+='<p>'+hesc(trailing)+'<span class="sc"></span></p>';
-      else html+='<span class="sc"></span>';
+/**
+ * Creates the thought chain UI inside a bot message wrapper.
+ * Returns { chain, statusBox } for further manipulation.
+ */
+function createThoughtChain(botMsgEl) {
+  const botBody = botMsgEl.querySelector('.bot-body');
+  if(!botBody) return null;
+
+  // Clear any existing content
+  const existingChain = botBody.querySelector('.thought-chain');
+  if(existingChain) existingChain.remove();
+
+  const chain = document.createElement('div');
+  chain.className = 'thought-chain';
+  botBody.insertBefore(chain, botBody.querySelector('.bot-content'));
+
+  // Status box (pulsing square) — sits below chain
+  const statusBox = document.createElement('div');
+  statusBox.className = 'cloak-status-box';
+  statusBox.innerHTML = '<div class="cloak-status-square"></div><span class="cloak-status-label">Thinking…</span>';
+  botBody.insertBefore(statusBox, botBody.querySelector('.bot-content'));
+
+  _statusBox = statusBox;
+  return { chain, statusBox };
+}
+
+/**
+ * Adds a thought item to the chain.
+ * idx — 0-based index for numbering.
+ */
+function addThoughtItem(chain, idx, title, body, isActive) {
+  const item = document.createElement('div');
+  item.className = 'thought-item' + (isActive ? ' thought-active' : '');
+  item.style.animationDelay = (idx * 60) + 'ms';
+
+  const num = String(idx + 1).padStart(2,'0');
+
+  item.innerHTML = `
+    <div class="thought-header" onclick="toggleThought(this.parentElement)">
+      <span class="thought-num">${num}</span>
+      <span class="thought-title">${hesc(title)}</span>
+      <span class="thought-status-dot"></span>
+      <span class="thought-chevron">
+        <svg width="9" height="5" viewBox="0 0 9 5" fill="none">
+          <path d="M1 1L4.5 4L8 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </span>
+    </div>
+    <div class="thought-body">${hesc(body)}</div>
+  `;
+
+  chain.appendChild(item);
+
+  // SVG trace box — injected as overlay on the item
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.classList.add('thought-trace-svg');
+  svg.style.display = 'none';
+  svg.setAttribute('width','100%');
+  svg.setAttribute('height','100%');
+  const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+  rect.classList.add('thought-trace-rect');
+  rect.setAttribute('x','1');
+  rect.setAttribute('y','1');
+  rect.setAttribute('rx','0');
+  // width/height set dynamically
+  svg.appendChild(rect);
+  item.appendChild(svg);
+
+  return item;
+}
+
+/**
+ * Show/hide the trace SVG on the thought item and size it correctly.
+ */
+function setThoughtTrace(itemEl, visible) {
+  const svg = itemEl.querySelector('.thought-trace-svg');
+  if(!svg) return;
+  if(visible) {
+    svg.style.display = 'block';
+    const w = itemEl.offsetWidth;
+    const h = itemEl.offsetHeight;
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    const rect = svg.querySelector('.thought-trace-rect');
+    rect.setAttribute('width', w - 2);
+    rect.setAttribute('height', h - 2);
+  } else {
+    svg.style.display = 'none';
+  }
+}
+
+/**
+ * Mark a thought as done (not active, dim dot).
+ */
+function markThoughtDone(itemEl) {
+  itemEl.classList.remove('thought-active');
+  setThoughtTrace(itemEl, false);
+  const dot = itemEl.querySelector('.thought-status-dot');
+  if(dot) { dot.style.animation='none'; dot.style.opacity='0.18'; }
+}
+
+/**
+ * Transition the trace box from thought → response content.
+ * Removes trace from thought, marks status box as responding (fades it),
+ * then moves bot-dot back to its normal position.
+ */
+function transitionToResponse(botMsgEl) {
+  if(_thoughtEls.length) {
+    _thoughtEls.forEach(el => { markThoughtDone(el); });
+  }
+  if(_statusBox) {
+    _statusBox.classList.add('responding');
+    setTimeout(() => { if(_statusBox) _statusBox.remove(); _statusBox=null; }, 350);
+  }
+  // Restore the bot-dot to its meta row
+  const botDot = botMsgEl.querySelector('.bot-dot');
+  if(botDot) {
+    botDot.style.animation = '';
+    botDot.style.opacity   = '';
+  }
+}
+
+/**
+ * Toggle expand/collapse on a thought item.
+ */
+function toggleThought(itemEl) {
+  itemEl.classList.toggle('thought-open');
+}
+
+/* ── THOUGHT SEQUENCE RUNNER ── */
+/**
+ * Runs the thought sequence for a given model before the response comes in.
+ * Returns a promise that resolves when all thoughts are shown.
+ * While running, the API fetch can happen in parallel.
+ */
+async function runThoughtSequence(botMsgEl, model, responsePromise) {
+  const script = THOUGHT_SCRIPTS[_thoughtScriptFor(model)];
+  const delays = THOUGHT_DELAYS(model, script.length);
+
+  const { chain } = createThoughtChain(botMsgEl);
+
+  _thoughts = [];
+  _thoughtEls = [];
+  _currentThoughtIdx = -1;
+
+  // Show thoughts one by one, but let the actual API response abort the sequence
+  // if it resolves faster than the thought timing.
+  let resolved = false;
+  let responseReady = false;
+  responsePromise.then(() => { responseReady = true; });
+
+  for(let i = 0; i < script.length; i++) {
+    if(resolved) break;
+
+    const isActive = true;
+    const t = script[i];
+    const itemEl = addThoughtItem(chain, i, t.title, t.body, isActive);
+
+    _thoughts.push(t);
+    _thoughtEls.push(itemEl);
+    _currentThoughtIdx = i;
+
+    // Deactivate previous thought
+    if(i > 0) markThoughtDone(_thoughtEls[i-1]);
+
+    // Show trace on current
+    setTimeout(() => setThoughtTrace(itemEl, true), 40);
+
+    scrollBottom();
+
+    // Wait for delay (or until response is ready, whichever comes first)
+    const delay = delays[i] || delays[delays.length-1];
+    await Promise.race([
+      sleep(delay),
+      new Promise(r => {
+        const check = setInterval(() => {
+          if(responseReady) { clearInterval(check); r(); }
+        }, 80);
+      })
+    ]);
+  }
+
+  // All thoughts shown — mark final thought done
+  if(_thoughtEls.length) markThoughtDone(_thoughtEls[_thoughtEls.length-1]);
+
+  return chain;
+}
+
+function THOUGHT_DELAYS(model, count) {
+  const base = THOUGHT_DELAY_MS[model] || THOUGHT_DELAY_MS.pneuma;
+  const out = [];
+  for(let i=0; i<count; i++) out.push(base[i] || base[base.length-1] || 1800);
+  return out;
+}
+
+/* ════════════════════════════════════════
+   STREAM CONTENT WITH WORD CURSOR
+   ════════════════════════════════════════ */
+
+/**
+ * Streams rawText into container char by char.
+ * As words appear, the "active word" gets a cursor-box highlight.
+ * When done, all special spans are cleaned up.
+ */
+function streamContent(container, rawText, onComplete) {
+  _streamAbort = false;
+  let pos = 0;
+  const total = rawText.length;
+  let lastWordSpan = null;
+
+  function clearWordCursor() {
+    if(lastWordSpan) {
+      lastWordSpan.classList.remove('word-cursor-box','word-active');
+      lastWordSpan.outerHTML = lastWordSpan.textContent; // flatten to text
+      lastWordSpan = null;
     }
-    container.innerHTML=html;
+  }
+
+  function renderPartial(text) {
+    if(!text) { container.innerHTML = '<span class="sc"></span>'; return; }
+
+    const lastNewline = text.lastIndexOf('\n\n');
+    let html;
+    if(lastNewline === -1) {
+      // Split into complete words and the in-progress word
+      const words = text.split(/(\s+)/);
+      const lastWord = words.pop() || '';
+      const rest = words.join('');
+      html = '<p>' + hesc(rest);
+      if(lastWord.trim()) {
+        html += '<span class="word-cursor-box word-active">' + hesc(lastWord) + '</span>';
+      }
+      html += '</p>';
+    } else {
+      const complete = text.slice(0, lastNewline + 2);
+      const trailing = text.slice(lastNewline + 2);
+      html = marked.parse(complete);
+      if(trailing) {
+        const words = trailing.split(/(\s+)/);
+        const lastWord = words.pop() || '';
+        const rest = words.join('');
+        html += '<p>' + hesc(rest);
+        if(lastWord.trim()) {
+          html += '<span class="word-cursor-box word-active">' + hesc(lastWord) + '</span>';
+        }
+        html += '</p>';
+      }
+    }
+    container.innerHTML = html;
     scrollBottom();
   }
 
-  function tick(){
-    if(_streamAbort||pos>=total){
-      container.innerHTML=marked.parse(rawText);
-      postProcessBotEl(container.closest('.msg'),rawText);
+  function tick() {
+    if(_streamAbort || pos >= total) {
+      // Done — clean up cursor, render final
+      container.innerHTML = marked.parse(rawText);
+      postProcessBotEl(container.closest('.msg'), rawText);
       scrollBottom();
-      if(onComplete)onComplete();
+      if(onComplete) onComplete();
       return;
     }
-    const prevChar=pos>0?rawText[pos-1]:'';
-    let chunk,delay;
-    if('.!?'.includes(prevChar)&&rawText[pos]===' '){
-      chunk=1;delay=55+Math.random()*75;
-    } else if(',;'.includes(prevChar)){
-      chunk=1;delay=12+Math.random()*18;
-    } else if(prevChar==='\n'){
-      chunk=1;delay=25+Math.random()*40;
+
+    const prevChar = pos > 0 ? rawText[pos-1] : '';
+    let chunk, delay;
+
+    if('.!?'.includes(prevChar) && rawText[pos] === ' ') {
+      chunk=1; delay=60+Math.random()*80;
+    } else if(',;'.includes(prevChar)) {
+      chunk=1; delay=14+Math.random()*18;
+    } else if(prevChar==='\n') {
+      chunk=1; delay=28+Math.random()*44;
     } else {
-      const r=Math.random();
-      if(r<0.08){chunk=1;delay=40+Math.random()*30;}
-      else if(r<0.25){chunk=1;delay=12+Math.random()*10;}
-      else if(r<0.65){chunk=Math.floor(2+Math.random()*3);delay=8+Math.random()*6;}
-      else{chunk=Math.floor(4+Math.random()*6);delay=4+Math.random()*4;}
+      const r = Math.random();
+      if(r<0.08)       { chunk=1; delay=44+Math.random()*32; }
+      else if(r<0.25)  { chunk=1; delay=13+Math.random()*10; }
+      else if(r<0.65)  { chunk=Math.floor(2+Math.random()*3); delay=9+Math.random()*6; }
+      else             { chunk=Math.floor(4+Math.random()*6); delay=4+Math.random()*4; }
     }
-    pos=Math.min(pos+chunk,total);
-    renderPartial(rawText.slice(0,pos));
-    setTimeout(tick,delay);
+
+    pos = Math.min(pos+chunk, total);
+    renderPartial(rawText.slice(0, pos));
+    setTimeout(tick, delay);
   }
+
   tick();
 }
 
@@ -288,8 +563,7 @@ function startVoiceMode() {
     const supported = initVoice();
     if(!supported) { alert("Voice dictation is not supported in your browser."); return; }
   }
-  voiceMode = true;
-  voiceState = 'idle';
+  voiceMode = true; voiceState = 'idle';
   document.getElementById('voice-overlay').classList.add('active');
   document.getElementById('voice-transcript').textContent = 'Listening...';
   startAsciiAnim();
@@ -391,58 +665,41 @@ function setBusy(b){
 
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 
+/* ── OLD THINKING BUBBLE — now replaced by thought system ── */
+// Legacy insertThinkingBubble kept for fallback (pneuma without thinkMode)
 function insertThinkingBubble() {
   const box = document.getElementById('messages');
   showMessages();
   const wrap = document.createElement('div');
   wrap.className = 'msg bot';
-  wrap.innerHTML = '<div class="bot-body"><div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="bot-content"><div class="think-anim"><span class="think-phase-label">'+THINK_PHASES[0].label+'</span><div class="think-anim-dots"><span></span><span></span><span></span></div></div></div></div>';
+  wrap.innerHTML = '<div class="bot-body"><div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="bot-content"><div style="display:flex;align-items:center;gap:7px;height:32px"><div class="dot"></div><div class="dot" style="animation-delay:.16s"></div><div class="dot" style="background:var(--acc);animation-delay:.32s"></div></div></div></div>';
   box.appendChild(wrap);
   scrollBottom();
-  _startThinkAnimation(wrap);
   return wrap;
 }
 
-function _startThinkAnimation(wrap) {
-  _thinkPhaseIdx = 0;
-  stopThinkAnimation();
-  const t0 = Date.now();
-  function advance() {
-    if (!wrap.isConnected) return;
-    const elapsed = Date.now() - t0;
-    let nextIdx = _thinkPhaseIdx;
-    for (let i = _thinkPhaseIdx + 1; i < THINK_PHASES.length; i++) {
-      if (elapsed >= THINK_PHASE_MS[i - 1]) nextIdx = i;
-    }
-    if (nextIdx !== _thinkPhaseIdx) {
-      _thinkPhaseIdx = nextIdx;
-      const labelEl = wrap.querySelector('.think-phase-label');
-      if (labelEl) {
-        labelEl.classList.add('phase-exit');
-        setTimeout(() => {
-          if (!wrap.isConnected) return;
-          labelEl.textContent = THINK_PHASES[_thinkPhaseIdx].label;
-          labelEl.classList.remove('phase-exit');
-          labelEl.classList.add('phase-enter');
-          setTimeout(() => labelEl.classList.remove('phase-enter'), 350);
-        }, 180);
-      }
-    }
-    if (_thinkPhaseIdx < THINK_PHASES.length - 1) {
-      _thinkTimer = setTimeout(advance, 400);
-    }
-  }
-  _thinkTimer = setTimeout(advance, 400);
+function insertThinkingBubbleWithThoughts(model) {
+  const box = document.getElementById('messages');
+  showMessages();
+  const wrap = document.createElement('div');
+  wrap.className = 'msg bot';
+  wrap.innerHTML = '<div class="bot-body"><div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="bot-content"></div></div>';
+  box.appendChild(wrap);
+  scrollBottom();
+  return wrap;
 }
 
 function stopThinkAnimation() {
-  if (_thinkTimer) { clearTimeout(_thinkTimer); _thinkTimer = null; }
+  if(_thinkTimer){clearTimeout(_thinkTimer);_thinkTimer=null;}
 }
 
 function replaceThinkWithContent(thinkEl, rawText) {
   stopThinkAnimation();
+  // Transition thought UI → response
+  transitionToResponse(thinkEl);
+
   let bc = thinkEl.querySelector('.bot-content');
-  if (bc) {
+  if(bc) {
     bc.innerHTML = '';
     streamContent(bc, rawText, () => { setBusy(false); });
   }
@@ -505,10 +762,6 @@ let _pendingLink='';
 function interceptLink(e,href){e.preventDefault();e.stopPropagation();if(!href||href==='#')return;_pendingLink=href;document.getElementById('link-url-display').textContent=href;document.getElementById('link-go-btn').onclick=()=>{window.open(_pendingLink,'_blank','noopener,noreferrer');closeLinkModal();};document.getElementById('link-modal').style.display='flex';}
 function closeLinkModal(){document.getElementById('link-modal').style.display='none';_pendingLink='';}
 document.addEventListener('DOMContentLoaded',()=>{const lm=document.getElementById('link-modal');if(lm)lm.addEventListener('click',function(e){if(e.target===this)closeLinkModal();});});
-
-/* ── VALUES PAGE ── */
-function showValues(){window.location.href='values.html';}
-function hideValues(){window.location.href='index.html';}
 
 /* ── INIT ── */
 async function init(){
@@ -628,9 +881,6 @@ function closeMobileSidebar(){document.getElementById('sidebar').classList.add('
 /* ── SETTINGS ── */
 function openSettings(){
   if(guest){show('auth');return;}
-  const sysPrompt=document.getElementById('sys-prompt');if(sysPrompt)sysPrompt.value=extraPrompt;
-  const tempSlider=document.getElementById('temp-slider');if(tempSlider)tempSlider.value=Math.round(temp*10);
-  const tempVal=document.getElementById('temp-val');if(tempVal)tempVal.textContent=temp.toFixed(1);
   document.getElementById('s-name-inp').value=name;
   document.getElementById('mode-label').textContent=dark?'dark':'light';
   document.getElementById('modal-settings').style.display='flex';
@@ -639,12 +889,6 @@ function openSettings(){
 function closeModal(id){const el=document.getElementById(id);el.classList.add('hiding');setTimeout(()=>{el.style.display='none';el.classList.remove('hiding');},120);}
 function overlayClick(e,id){if(e.target===document.getElementById(id))closeModal(id);}
 function switchSettingsTab(t){atab=t;document.querySelectorAll('.snav-btn').forEach(el=>el.classList.toggle('on',el.id==='snav-'+t));document.querySelectorAll('.spane').forEach(el=>el.classList.remove('on'));const p=document.getElementById('spane-'+t);if(p)p.classList.add('on');if(t==='console'){updateStats();renderLogs();}}
-function saveModel(){
-  const sysPrompt=document.getElementById('sys-prompt');const tempSlider=document.getElementById('temp-slider');
-  if(sysPrompt)extraPrompt=sysPrompt.value.trim();if(tempSlider)temp=parseFloat(tempSlider.value)/10;
-  localStorage.setItem('cloak_extra_prompt',extraPrompt);localStorage.setItem('cloak_temp',String(temp));
-  const b=document.querySelector('#spane-model .cta');if(b){b.textContent='Saved';setTimeout(()=>b.textContent='Save model settings',1800);}
-}
 async function clearAllChats(){if(!confirm('Delete ALL conversations?'))return;const{error}=await sb.from('chats').delete().eq('user_id',uid);if(error)log('err','Clear failed: '+error.message);else{convs=[];newChat();log('inf','All chats deleted');}}
 
 /* ── 2FA ── */
@@ -661,13 +905,7 @@ function clearLogs(){logs=[];stats={req:0,res:0,err:0,lat:[]};renderLogs();updat
 /* ── STORAGE ── */
 async function loadConvs(){const{data,error}=await sb.from('chats').select('id,title,updated_at').eq('user_id',uid).order('updated_at',{ascending:false});if(error){log('err','Load convs: '+error.message);return;}convs=(data||[]).map(r=>({id:r.id,title:r.title}));renderConvs();log('inf','Loaded '+convs.length+' chat(s)');}
 async function loadConv(id){const{data,error}=await sb.from('chats').select('*').eq('id',id).single();if(error){log('err','Load chat: '+error.message);return;}chatId=id;hist=data.messages||[];document.getElementById('messages').innerHTML='';hist.forEach(m=>addMsg(m.role==='CHATBOT'?'bot':'user',m.message,true));showMessages();renderConvs();}
-function _makeTitle(first){
-  const clean=first.replace(/\n+/g,' ').replace(/\s+/g,' ').trim();
-  const sentenceEnd=clean.search(/[.!?](?:\s|$)/);
-  let candidate=sentenceEnd>4&&sentenceEnd<70?clean.slice(0,sentenceEnd+1):clean;
-  if(candidate.length>60)candidate=candidate.slice(0,58).replace(/\s+\S*$/,'')+'\u2026';
-  return candidate||'New chat';
-}
+function _makeTitle(first){const clean=first.replace(/\n+/g,' ').replace(/\s+/g,' ').trim();const sentenceEnd=clean.search(/[.!?](?:\s|$)/);let candidate=sentenceEnd>4&&sentenceEnd<70?clean.slice(0,sentenceEnd+1):clean;if(candidate.length>60)candidate=candidate.slice(0,58).replace(/\s+\S*$/,'')+'\u2026';return candidate||'New chat';}
 async function saveConv(first){if(!uid||guest)return;let currentUid=uid;try{const{data:{session}}=await sb.auth.getSession();if(!session?.user){log('err','Save aborted: no session');return;}currentUid=session.user.id;uid=currentUid;}catch(e){log('err','Save: session check failed');return;}const ex=convs.find(c=>c.id===chatId);const title=ex?ex.title:_makeTitle(first);if(!ex)convs.unshift({id:chatId,title});renderConvs();const{error}=await sb.from('chats').upsert({id:chatId,user_id:currentUid,title,messages:hist,updated_at:new Date().toISOString()},{onConflict:'user_id,id'});if(error){log('err','Save: '+error.message);}else{log('inf','Chat saved: '+title.slice(0,30));}}
 async function delConv(id){const{error}=await sb.from('chats').delete().eq('id',id).eq('user_id',uid);if(error){log('err','Delete: '+error.message);return;}convs=convs.filter(c=>c.id!==id);if(chatId===id)newChat();else renderConvs();}
 
@@ -677,17 +915,15 @@ let _mhShown=false;
 function checkMentalHealth(txt){
   if(_mhShown||!MH_PATTERNS.test(txt))return false;
   _mhShown=true;
-  const box=document.getElementById('messages');
-  showMessages();
-  const d=document.createElement('div');
-  d.className='mh-intercept';
+  const box=document.getElementById('messages');showMessages();
+  const d=document.createElement('div');d.className='mh-intercept';
   d.innerHTML='<div class="mh-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="mh-body"><strong>A note before you continue</strong><p>Cloak is not a mental health resource. If you\'re going through something hard, please reach out to a real person or a helpline — <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer">findahelpline.com</a> lists free crisis support in your country.</p></div><button class="mh-dismiss" onclick="this.parentElement.style.display=\'none\'">Got it</button>';
-  box.appendChild(d);
-  scrollBottom();
-  return false;
+  box.appendChild(d);scrollBottom();return false;
 }
 
-/* ── SEND ── */
+/* ════════════════════════════════════════════
+   SEND — the main entry point
+   ════════════════════════════════════════════ */
 async function send(){
   const inp=document.getElementById('chat-input');
   const txt=inp.value.trim();
@@ -696,124 +932,114 @@ async function send(){
   checkMentalHealth(txt);
   if(!chatId){chatId=Date.now().toString();hist=[];}
 
-  if(voiceMode){
-    voiceState='thinking';
-    if(recognition)recognition.stop();
-  }
+  if(voiceMode){voiceState='thinking';if(recognition)recognition.stop();}
 
-  // Snapshot and clear images
   const imgs=[...attachedImgs];
-  attachedImgs=[];
-  renderImgStrip();
+  attachedImgs=[];renderImgStrip();
 
-  inp.value='';
-  inp.style.height='auto';
+  inp.value='';inp.style.height='auto';
   setBusy(true);
-
-  // Show user bubble
   addMsg('user',txt,false,imgs);
 
   const t0=Date.now();
   const hasImages=imgs.length>0;
+  const model=window.cloakModel||'pneuma';
+  const useThoughts=_shouldThink(model);
 
-  // Build message text (with mode prefixes for history)
   let userMsg=txt;
   if(hwMode&&txt)userMsg='[HOMEWORK MODE]\n\n'+txt;
   if(!userMsg&&hasImages)userMsg='[Image]';
-
   hist.push({role:'USER',message:userMsg});
 
   stats.req++;
-  log('req',`"${(txt||'[image]').slice(0,60)}" model=${window.cloakModel||'pneuma'} guest=${guest} hwMode=${hwMode} thinkMode=${thinkModeActive} imgs=${imgs.length}`);
+  log('req',`"${(txt||'[image]').slice(0,60)}" model=${model} guest=${guest} hwMode=${hwMode} thinkMode=${thinkModeActive} imgs=${imgs.length} thoughts=${useThoughts}`);
 
-  const thinkEl=insertThinkingBubble();
+  // Create bot bubble
+  showMessages();
+  const botMsgEl = useThoughts ? insertThinkingBubbleWithThoughts(model) : insertThinkingBubble();
 
-  try{
-    // ── BUILD MESSAGES ARRAY for /v1/chat ──
-    // Convert stored history (role: USER/CHATBOT) → OpenAI-style (role: user/assistant)
-    // Include all prior turns so the model has context, then the current user message
-    const apiMessages = hist.slice(0, -1).map(m => ({
-      role: m.role === 'CHATBOT' ? 'assistant' : 'user',
-      content: m.message,
-    }));
+  // Build API request body
+  const apiMessages = hist.slice(0,-1).map(m=>({
+    role: m.role==='CHATBOT'?'assistant':'user',
+    content: m.message,
+  }));
+  apiMessages.push({role:'user', content:userMsg||'[Image]'});
 
-    // Current user message — attach image as base64 if present
-    // The worker's Gemini path accepts imageBase64 + mimeType at the top level,
-    // so we pull the first image out for that, and include the text normally.
-    const currentContent = userMsg || '[Image]';
-    apiMessages.push({ role: 'user', content: currentContent });
+  let imageBase64=null, mimeType=null;
+  if(hasImages && imgs[0]){
+    const match=imgs[0].data.match(/^data:([^;]+);base64,(.+)$/);
+    if(match){mimeType=match[1];imageBase64=match[2];}
+  }
 
-    // Pull first image for vision (worker only supports one image at a time via Gemini)
-    let imageBase64 = null;
-    let mimeType = null;
-    if(hasImages && imgs[0]){
-      // data URI format: "data:image/jpeg;base64,<data>"
-      const dataUri = imgs[0].data;
-      const match = dataUri.match(/^data:([^;]+);base64,(.+)$/);
-      if(match){ mimeType=match[1]; imageBase64=match[2]; }
+  const trimmedMessages=apiMessages.slice(-20);
+  const bodyObj={model,messages:trimmedMessages,imageBase64:imageBase64||undefined,mimeType:mimeType||undefined};
+
+  log('inf',`→ ${CLOAK_API}/v1/chat model=${model} turns=${trimmedMessages.length} thoughts=${useThoughts}`);
+
+  // Kick off fetch (not awaited yet — thought sequence runs in parallel)
+  _fetchController=new AbortController();
+  let _responseResolve, _responseReject;
+  const responsePromise=new Promise((res,rej)=>{_responseResolve=res;_responseReject=rej;});
+
+  const fetchAndResolve = async () => {
+    try {
+      const res=await fetch(CLOAK_API+'/v1/chat',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        signal:_fetchController.signal,
+        body:JSON.stringify(bodyObj),
+      });
+      _fetchController=null;
+      let d;
+      try{d=await res.json();}catch(_){throw new Error('Server returned an unreadable response.');}
+      if(!res.ok||d.error)throw new Error(d.error||'HTTP '+res.status);
+      const responseText=d.response||d.text||'';
+      if(!responseText)throw new Error('Empty response from server.');
+      _responseResolve({responseText, ms: Date.now()-t0, model: d.model||model});
+    } catch(ex) {
+      _responseReject(ex);
+    }
+  };
+
+  fetchAndResolve();
+
+  try {
+    // Run thought sequence in parallel with fetch (if applicable)
+    if(useThoughts) {
+      await runThoughtSequence(botMsgEl, model, responsePromise);
     }
 
-    // Keep context window manageable — last 20 turns max
-    const trimmedMessages = apiMessages.slice(-20);
-
-    const bodyObj = {
-      model:       window.cloakModel || 'pneuma',
-      messages:    trimmedMessages,
-      imageBase64: imageBase64 || undefined,
-      mimeType:    mimeType    || undefined,
-    };
-
-    log('inf', `→ ${CLOAK_API}/v1/chat model=${bodyObj.model} turns=${trimmedMessages.length}`);
-
-    _fetchController = new AbortController();
-    const res = await fetch(CLOAK_API + '/v1/chat', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal:  _fetchController.signal,
-      body:    JSON.stringify(bodyObj),
-    });
-    _fetchController = null;
-
-    let d;
-    try{ d = await res.json(); }
-    catch(_){ throw new Error('Server returned an unreadable response.'); }
-
-    const ms = Date.now() - t0;
-
-    if(!res.ok || d.error) throw new Error(d.error || 'HTTP ' + res.status);
-
-    const responseText = d.response || d.text || '';
-    if(!responseText) throw new Error('Empty response from server.');
+    // Now wait for the actual response
+    const {responseText, ms, model: respModel} = await responsePromise;
 
     stats.lat.push(ms);
     stats.res++;
-    log('res', `${ms}ms | model=${d.model||bodyObj.model} | len=${responseText.length}`);
+    log('res',`${ms}ms | model=${respModel} | len=${responseText.length}`);
 
-    hist.push({role:'CHATBOT', message:responseText});
-    if(hist.length > 20) hist = hist.slice(-20);
+    hist.push({role:'CHATBOT',message:responseText});
+    if(hist.length>20)hist=hist.slice(-20);
 
-    replaceThinkWithContent(thinkEl, responseText);
+    replaceThinkWithContent(botMsgEl, responseText);
 
-    if(voiceMode) playVoice(responseText);
-
-    if(guest){ guestN++; if(guestN>=GUEST_MAX) setTimeout(showLimit,500); }
+    if(voiceMode)playVoice(responseText);
+    if(guest){guestN++;if(guestN>=GUEST_MAX)setTimeout(showLimit,500);}
     else saveConv(txt||'[Image]').catch(e=>log('err','Save: '+e.message));
 
-  }catch(ex){
+  } catch(ex) {
     _fetchController=null;
     stopThinkAnimation();
     if(ex.name==='AbortError'){
-      thinkEl.remove();
+      botMsgEl.remove();
       if(hist.length&&hist[hist.length-1].role==='USER')hist.pop();
       setBusy(false);
-    }else{
+    } else {
       stats.err++;
-      log('err', ex.message);
-      const _errTxt = ex.message.match(/^(HTTP 5|Service|No response|Empty)/i)
-        ? 'Service temporarily unavailable — please try again in a moment.'
-        : hesc(ex.message);
-      replaceThinkWithContent(thinkEl, 'Error: ' + _errTxt);
-      if(voiceMode) playVoice('Sorry, I ran into an error.');
+      log('err',ex.message);
+      const errTxt=ex.message.match(/^(HTTP 5|Service|No response|Empty)/i)
+        ?'Service temporarily unavailable — please try again in a moment.'
+        :hesc(ex.message);
+      replaceThinkWithContent(botMsgEl,'Error: '+errTxt);
+      if(voiceMode)playVoice('Sorry, I ran into an error.');
     }
   }
 }
