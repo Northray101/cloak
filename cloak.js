@@ -3,6 +3,9 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const ADMIN='weston07052010@gmail.com';
 const GUEST_MAX=10;
 
+/* ── CLOAK API ── */
+const CLOAK_API='https://api.usecloak.org';
+
 let sb=null,busy=false,entering=false;
 let dark=localStorage.getItem('cloak_dark')!=='0';
 let currentTheme=localStorage.getItem('cloak_theme')||'default';
@@ -707,84 +710,93 @@ async function send(){
   inp.style.height='auto';
   setBusy(true);
 
-  // Show user bubble (images display as thumbnails inline)
+  // Show user bubble
   addMsg('user',txt,false,imgs);
 
   const t0=Date.now();
   const hasImages=imgs.length>0;
 
-  // Build the stored history message text
+  // Build message text (with mode prefixes for history)
   let userMsg=txt;
-  if(hwMode&&txt){
-    userMsg='[HOMEWORK MODE]\n\n'+txt;
-  }
+  if(hwMode&&txt)userMsg='[HOMEWORK MODE]\n\n'+txt;
   if(!userMsg&&hasImages)userMsg='[Image]';
 
   hist.push({role:'USER',message:userMsg});
 
   stats.req++;
-  log('req',`"${(txt||'[image]').slice(0,60)}" guest=${guest} hwMode=${hwMode} thinkMode=${thinkModeActive} imgs=${imgs.length}`);
+  log('req',`"${(txt||'[image]').slice(0,60)}" model=${window.cloakModel||'pneuma'} guest=${guest} hwMode=${hwMode} thinkMode=${thinkModeActive} imgs=${imgs.length}`);
 
   const thinkEl=insertThinkingBubble();
 
   try{
-    // Build headers
-    const hdrs={'Content-Type':'application/json'};
+    // ── BUILD MESSAGES ARRAY for /v1/chat ──
+    // Convert stored history (role: USER/CHATBOT) → OpenAI-style (role: user/assistant)
+    // Include all prior turns so the model has context, then the current user message
+    const apiMessages = hist.slice(0, -1).map(m => ({
+      role: m.role === 'CHATBOT' ? 'assistant' : 'user',
+      content: m.message,
+    }));
 
-    if(guest){
-      log('inf','send: guest mode');
-    }else{
-      try{
-        const{data:{session}}=await sb.auth.getSession();
-        if(session?.access_token){
-          hdrs['Authorization']='Bearer '+session.access_token;
-          log('inf',`send: authed uid=${session.user?.id?.slice(0,8)}`);
-        }else{
-          log('err','send: no access token');
-        }
-      }catch(ex){
-        log('err','send: getSession() threw — '+ex.message);
-      }
+    // Current user message — attach image as base64 if present
+    // The worker's Gemini path accepts imageBase64 + mimeType at the top level,
+    // so we pull the first image out for that, and include the text normally.
+    const currentContent = userMsg || '[Image]';
+    apiMessages.push({ role: 'user', content: currentContent });
+
+    // Pull first image for vision (worker only supports one image at a time via Gemini)
+    let imageBase64 = null;
+    let mimeType = null;
+    if(hasImages && imgs[0]){
+      // data URI format: "data:image/jpeg;base64,<data>"
+      const dataUri = imgs[0].data;
+      const match = dataUri.match(/^data:([^;]+);base64,(.+)$/);
+      if(match){ mimeType=match[1]; imageBase64=match[2]; }
     }
 
-    // Build body — images sent as base64 data-URIs, edge fn handles vision routing
-    const bodyObj={
-      message:           userMsg,
-      chat_history:      hist.slice(0,-1).map(m=>({role:m.role,message:m.message})),
-      temperature:       temp,
-      extended_thinking: thinkModeActive,
-      guest:             guest,
-      images:            hasImages ? imgs.map(img=>({data:img.data,name:img.name||'image'})) : [],
-    };
-    if(extraPrompt)bodyObj.system_prompt=extraPrompt;
+    // Keep context window manageable — last 20 turns max
+    const trimmedMessages = apiMessages.slice(-20);
 
-    _fetchController=new AbortController();
-    const res=await fetch(SB_URL+'/functions/v1/chat-message',{
-      method:'POST',
-      headers:hdrs,
-      signal:_fetchController.signal,
-      body:JSON.stringify(bodyObj),
+    const bodyObj = {
+      model:       window.cloakModel || 'pneuma',
+      messages:    trimmedMessages,
+      imageBase64: imageBase64 || undefined,
+      mimeType:    mimeType    || undefined,
+    };
+
+    log('inf', `→ ${CLOAK_API}/v1/chat model=${bodyObj.model} turns=${trimmedMessages.length}`);
+
+    _fetchController = new AbortController();
+    const res = await fetch(CLOAK_API + '/v1/chat', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal:  _fetchController.signal,
+      body:    JSON.stringify(bodyObj),
     });
-    _fetchController=null;
+    _fetchController = null;
 
     let d;
-    try{d=await res.json();}catch(_){throw new Error('Server returned an unreadable response.');}
+    try{ d = await res.json(); }
+    catch(_){ throw new Error('Server returned an unreadable response.'); }
 
-    const ms=Date.now()-t0;
-    if(!res.ok||d.error)throw new Error(d.error||'HTTP '+res.status);
+    const ms = Date.now() - t0;
+
+    if(!res.ok || d.error) throw new Error(d.error || 'HTTP ' + res.status);
+
+    const responseText = d.response || d.text || '';
+    if(!responseText) throw new Error('Empty response from server.');
 
     stats.lat.push(ms);
     stats.res++;
-    log('res',`${ms}ms | route=${d.route??'?'} | provider=${d.provider??'?'} | tools=[${(d.tools_used||[]).join(',')}] | len=${d.text?.length??0}`);
+    log('res', `${ms}ms | model=${d.model||bodyObj.model} | len=${responseText.length}`);
 
-    hist.push({role:'CHATBOT',message:d.text});
-    if(hist.length>20)hist=hist.slice(-20);
+    hist.push({role:'CHATBOT', message:responseText});
+    if(hist.length > 20) hist = hist.slice(-20);
 
-    replaceThinkWithContent(thinkEl,d.text);
+    replaceThinkWithContent(thinkEl, responseText);
 
-    if(voiceMode)playVoice(d.text);
+    if(voiceMode) playVoice(responseText);
 
-    if(guest){guestN++;if(guestN>=GUEST_MAX)setTimeout(showLimit,500);}
+    if(guest){ guestN++; if(guestN>=GUEST_MAX) setTimeout(showLimit,500); }
     else saveConv(txt||'[Image]').catch(e=>log('err','Save: '+e.message));
 
   }catch(ex){
@@ -796,12 +808,12 @@ async function send(){
       setBusy(false);
     }else{
       stats.err++;
-      log('err',`${ex.message} | guest=${guest}`);
-      const _errTxt=ex.message.match(/^(HTTP 5|Service|No response|Empty)/i)
-        ?'Service temporarily unavailable — please try again in a moment.'
-        :hesc(ex.message);
-      replaceThinkWithContent(thinkEl,'Error: '+_errTxt);
-      if(voiceMode)playVoice('Sorry, I ran into an error.');
+      log('err', ex.message);
+      const _errTxt = ex.message.match(/^(HTTP 5|Service|No response|Empty)/i)
+        ? 'Service temporarily unavailable — please try again in a moment.'
+        : hesc(ex.message);
+      replaceThinkWithContent(thinkEl, 'Error: ' + _errTxt);
+      if(voiceMode) playVoice('Sorry, I ran into an error.');
     }
   }
 }
