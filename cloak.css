@@ -928,3 +928,275 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
 }
 .think-anim-dots span:nth-child(2){animation-delay:.22s;}
 .think-anim-dots span:nth-child(3){animation-delay:.44s;}
+
+/* ═══════════════════════════════════════════
+   CLOAK — THOUGHT SYSTEM v3.0
+   Expandable thoughts, trace-box, word cursor
+═══════════════════════════════════════════ */
+
+/* ── THOUGHT CHAIN CONTAINER ── */
+.thought-chain {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+/* ── THOUGHT ITEM ── */
+.thought-item {
+  position: relative;
+  border: var(--bd);
+  background: var(--p2);
+  margin-bottom: 0;
+  transition: background 0.15s ease;
+  overflow: hidden;
+}
+
+/* connector line between thoughts */
+.thought-item + .thought-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 20px;
+  right: 20px;
+  height: 1px;
+  background: var(--ink);
+  opacity: 0.12;
+}
+
+.thought-item.thought-active {
+  background: var(--surf);
+}
+
+/* ── THOUGHT HEADER (collapsed) ── */
+.thought-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 13px;
+  cursor: pointer;
+  user-select: none;
+  min-height: 38px;
+  transition: background 0.12s;
+}
+
+.thought-header:hover {
+  background: var(--p3);
+}
+
+.thought-num {
+  font-family: var(--fd);
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--acc);
+  opacity: 0.7;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  width: 18px;
+}
+
+.thought-title {
+  flex: 1;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.75;
+}
+
+.thought-item.thought-active .thought-title {
+  opacity: 1;
+  color: var(--ink);
+}
+
+.thought-chevron {
+  flex-shrink: 0;
+  opacity: 0.3;
+  transition: transform 0.2s ease, opacity 0.15s;
+  display: flex;
+}
+
+.thought-item.thought-open .thought-chevron {
+  transform: rotate(180deg);
+  opacity: 0.6;
+}
+
+.thought-status-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--acc);
+  flex-shrink: 0;
+  animation: pdot 1.6s infinite;
+}
+
+.thought-item:not(.thought-active) .thought-status-dot {
+  background: var(--ink);
+  opacity: 0.25;
+  animation: none;
+}
+
+/* ── THOUGHT BODY (expanded) ── */
+.thought-body {
+  display: none;
+  padding: 0 13px 11px 41px;
+  font-size: 12.5px;
+  line-height: 1.72;
+  color: var(--ink);
+  opacity: 0.65;
+  border-top: 1px solid rgba(0,0,0,0.08);
+  animation: thoughtExpand 0.18s cubic-bezier(0.16,1,0.3,1);
+}
+
+.dark .thought-body {
+  border-top-color: rgba(255,255,255,0.07);
+}
+
+.thought-item.thought-open .thought-body {
+  display: block;
+}
+
+@keyframes thoughtExpand {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 0.65; transform: translateY(0); }
+}
+
+/* ── TRACE BOX ANIMATION ── */
+/* SVG overlay that draws a marching-ant rectangle around the active thought */
+.thought-trace-svg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  overflow: visible;
+}
+
+.thought-trace-rect {
+  fill: none;
+  stroke: var(--acc);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 4;
+  stroke-dashoffset: 0;
+  animation: traceMarch 0.9s linear infinite;
+  filter: drop-shadow(0 0 3px var(--acc));
+}
+
+@keyframes traceMarch {
+  to { stroke-dashoffset: -20; }
+}
+
+/* ── CLOAK STATUS BOX (pulsing square below thoughts) ── */
+.cloak-status-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 7px 11px;
+  background: var(--p2);
+  border: var(--bd);
+  width: fit-content;
+  position: relative;
+  overflow: hidden;
+}
+
+.cloak-status-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--acc);
+  opacity: 0;
+  animation: statusPulse 2s ease-in-out infinite;
+}
+
+@keyframes statusPulse {
+  0%, 100% { opacity: 0; }
+  50%       { opacity: 0.06; }
+}
+
+.cloak-status-square {
+  width: 8px;
+  height: 8px;
+  background: var(--acc);
+  flex-shrink: 0;
+  animation: squarePulse 1.1s ease-in-out infinite;
+}
+
+@keyframes squarePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.3; transform: scale(0.65); }
+}
+
+.cloak-status-label {
+  font-family: var(--fd);
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink);
+  opacity: 0.5;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── WORD CURSOR BOX ── */
+/* Wraps the latest streamed word with an animated border-trace */
+.word-cursor-box {
+  position: relative;
+  display: inline;
+}
+
+.word-cursor-box::after {
+  content: '';
+  position: absolute;
+  inset: -1px -2px;
+  border: 1.5px solid var(--acc);
+  pointer-events: none;
+  animation: wordCursorTrace 0.6s linear infinite;
+  box-shadow: 0 0 4px var(--acc);
+}
+
+@keyframes wordCursorTrace {
+  0%   { opacity: 1; }
+  50%  { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+/* The word itself while being "written" */
+.word-active {
+  color: var(--acc);
+  font-weight: 700;
+  transition: color 0.3s ease;
+}
+
+/* ── THOUGHT CHAIN ENTRANCE ── */
+.thought-chain {
+  animation: thoughtChainIn 0.28s cubic-bezier(0.16,1,0.3,1);
+}
+
+@keyframes thoughtChainIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.thought-item {
+  animation: thoughtItemIn 0.22s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+/* ── RESPONDING STATE — bot-dot goes to word cursor, status box leaves ── */
+.cloak-status-box.responding {
+  animation: statusBoxExit 0.3s ease forwards;
+}
+
+@keyframes statusBoxExit {
+  to { opacity: 0; transform: translateY(4px); pointer-events: none; }
+}
+
+/* ── FINAL STATE — no box ── */
+.bot-content-final .word-cursor-box::after {
+  display: none;
+}
