@@ -1,302 +1,957 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#131110">
-    <title>Cloak</title>
-    <link rel="stylesheet" href="cloak.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script>
-        if(localStorage.getItem('cloak_dark')!=='0') document.documentElement.classList.add('dark');
-        (function(){var t=localStorage.getItem('cloak_theme')||'default';document.documentElement.setAttribute('data-theme',t);})();
-    </script>
-    <style>
-        /* DROPDOWN NEOBRUTALIST */
-        .model-picker {
-            position: relative;
-            display: inline-block;
-        }
-        .model-btn {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 8px 16px;
-            background: var(--surf);
-            border: var(--bd);
-            box-shadow: var(--shsm);
-            cursor: pointer;
-            transition: all 0.2s var(--spring);
-            font-family: var(--fd);
-            text-transform: uppercase;
-            font-weight: 800;
-            font-size: 11px;
-            letter-spacing: 0.1em;
-        }
-        .model-btn:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: var(--sh);
-        }
-        .model-dropdown {
-            position: absolute;
-            top: calc(100% + 8px);
-            left: 0;
-            background: var(--paper);
-            border: var(--bd);
-            box-shadow: var(--shlg);
-            min-width: 240px;
-            z-index: 1000;
-            opacity: 0;
-            transform: translateY(10px) scale(0.95);
-            pointer-events: none;
-            transition: all 0.3s var(--spring);
-        }
-        .model-picker:hover .model-dropdown {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            pointer-events: auto;
-        }
-        .model-opt {
-            padding: 12px 16px;
-            border-bottom: var(--bdt);
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .model-opt:last-child { border-bottom: none; }
-        .model-opt:hover { background: var(--p2); }
-        .model-opt.active { background: var(--ink); color: var(--paper); }
-        .model-opt-name {
-            display: block;
-            font-family: var(--fd);
-            font-weight: 800;
-            font-size: 12px;
-            text-transform: uppercase;
-        }
-        .model-opt-desc {
-            display: block;
-            font-size: 10px;
-            opacity: 0.6;
-            margin-top: 2px;
-            text-transform: none;
-            letter-spacing: 0;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloak</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0A0A0A;--paper:#F2EEE5;--p2:#EAE5DB;--p3:#DDD8CC;--surf:#FAFAF7;
+  --acc:#D44D2A;--acc2:#B83B1D;--yel:#F5C842;--grn:#22c55e;--blu:#3B82F6;
+  --bd:2px solid #0A0A0A;--bdt:1px solid rgba(10,10,10,.12);
+  --sh:4px 4px 0 #0A0A0A;--shlg:6px 6px 0 #0A0A0A;--shsm:2px 2px 0 #0A0A0A;
+  --r:0px;--sw:260px;
+  --fu:'Space Grotesk',system-ui,sans-serif;
+  --fd:'Syne',system-ui,sans-serif;
+  --t:140ms ease;--spring:cubic-bezier(.34,1.56,.64,1);
+}
+.dark{
+  --ink:#EDE8DF;--paper:#131110;--p2:#1A1815;--p3:#22201C;--surf:#181512;
+  --acc:#E5603E;--acc2:#D44D2A;
+  --bd:2px solid rgba(237,232,223,.6);--bdt:1px solid rgba(237,232,223,.1);
+  --sh:4px 4px 0 rgba(237,232,223,.45);--shlg:6px 6px 0 rgba(237,232,223,.35);--shsm:2px 2px 0 rgba(237,232,223,.38);
+}
+html,body{height:100%;font-family:var(--fu);background:var(--paper);color:var(--ink);overflow:hidden;-webkit-font-smoothing:antialiased}
 
-        /* TASK LIST TOOL */
-        .task-list {
-            margin: 16px 0;
-            border: var(--bd);
-            background: var(--surf);
-            box-shadow: var(--shsm);
-        }
-        .task-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
-            border-bottom: var(--bdt);
-            transition: background 0.3s;
-        }
-        .task-item:last-child { border-bottom: none; }
-        .task-checkbox {
-            width: 18px;
-            height: 18px;
-            border: var(--bd);
-            background: var(--paper);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-        .task-checkbox.done { background: var(--acc); }
-        .task-checkbox.done::after {
-            content: '✓';
-            color: white;
-            font-size: 12px;
-            font-weight: 900;
-        }
-        .task-text {
-            font-size: 13px;
-            font-weight: 500;
-        }
-        .task-item.done .task-text {
-            text-decoration: line-through;
-            opacity: 0.5;
-        }
-        .task-item.active { background: var(--p2); border-left: 4px solid var(--acc); }
+/* KEYFRAMES */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{opacity:0;transform:scale(.93)}60%{transform:scale(1.02)}100%{opacity:1;transform:scale(1)}}
+@keyframes blink{0%,100%{opacity:.8}50%{opacity:0}}
+@keyframes tdot{0%,60%,100%{transform:translateY(0);opacity:.25}30%{transform:translateY(-6px);opacity:1}}
+@keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.2;transform:scale(.6)}}
+@keyframes taskSlide{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+@keyframes taskDone{0%{background:var(--paper)}50%{background:var(--yel)}100%{background:var(--p2)}}
+@keyframes stepEnter{from{opacity:0;transform:translateY(4px)}to{opacity:.8;transform:translateY(0)}}
+@keyframes dropMenu{0%{opacity:0;transform:translateY(-6px) scale(.97);transform-origin:top left}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes greetIn{0%{opacity:0;transform:translateY(18px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes chipIn{0%{opacity:0;transform:scale(.88)}60%{transform:scale(1.04)}100%{opacity:1;transform:scale(1)}}
+@keyframes errorShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+@keyframes progressPulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes shimmer{0%{left:-100%}100%{left:100%}}
 
-        /* PROGRESS PROGRESSION (CLAUDE STYLE) */
-        .progress-wrap {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 12px;
-            animation: fadeUp 0.4s ease;
-        }
-        .progress-step {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--ink);
-            opacity: 0.4;
-            transition: opacity 0.3s;
-        }
-        .progress-step.active { opacity: 1; }
-        .progress-step.done { opacity: 0.7; color: var(--grn); }
-        .progress-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: currentColor;
-        }
-        .progress-step.active .progress-dot { animation: pdot 1.5s infinite; }
+/* LAYOUT */
+#app{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--paper)}
+.shell{flex:1;display:flex;overflow:hidden;min-height:0}
 
-        /* ERROR MASKING */
-        .error-cloak {
-            background: var(--p2);
-            border: var(--bd);
-            padding: 16px;
-            color: var(--ink);
-            font-size: 13px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .error-cloak-icon { color: var(--acc); font-size: 18px; }
-    </style>
+/* SIDEBAR */
+.sidebar{width:var(--sw);flex-shrink:0;background:var(--p2);border-right:var(--bd);display:flex;flex-direction:column;padding:0 8px 12px;transition:width .24s ease,opacity .24s ease,padding .24s ease;overflow:hidden}
+.sidebar.collapsed{width:0;padding:0;opacity:0;pointer-events:none}
+.sb-logo{display:flex;align-items:center;gap:10px;padding:0 10px;border-bottom:var(--bd);margin:0 -8px 12px;height:52px;flex-shrink:0}
+.sb-logo-mark{width:28px;height:28px;background:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-logo-mark svg{fill:var(--paper)}
+.sb-logo-name{font-family:var(--fd);font-size:18px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap}
+.sb-new{display:flex;align-items:center;gap:8px;padding:9px 11px;background:var(--ink);border:var(--bd);box-shadow:var(--shsm);color:var(--paper);font-family:var(--fu);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;cursor:pointer;width:100%;margin-bottom:10px;transition:box-shadow var(--t),transform var(--t),background var(--t);white-space:nowrap}
+.sb-new:hover{box-shadow:var(--sh);transform:translate(-1px,-1px);background:var(--acc)}
+.sb-new:active{box-shadow:none;transform:translate(2px,2px)}
+.sb-label{font-size:9px;font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:.18em;padding:8px 10px 4px;opacity:.3;white-space:nowrap}
+.conv-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:1px}
+.conv-item{display:flex;align-items:center;border:1.5px solid transparent;cursor:pointer;transition:background var(--t),border-color var(--t)}
+.conv-item:hover{background:var(--p3);border-color:var(--ink)}
+.conv-item.active{background:var(--ink);border-color:var(--ink)}
+.conv-label{flex:1;padding:8px 10px;font-size:12px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conv-item.active .conv-label{color:var(--paper)}
+.conv-del{width:28px;height:28px;border:none;background:transparent;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity var(--t),background var(--t)}
+.conv-item.active .conv-del{color:var(--paper)}
+.conv-item:hover .conv-del{opacity:.4}
+.conv-del:hover{opacity:1!important;background:var(--acc);color:#fff}
+.sb-footer{border-top:var(--bd);padding-top:8px;margin-top:4px}
+.user-row{display:flex;align-items:center;gap:8px;padding:7px 10px}
+.user-av{width:28px;height:28px;background:var(--ink);color:var(--paper);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;font-family:var(--fd)}
+.user-name{font-size:12px;font-weight:700}
+.user-email{font-size:10px;opacity:.4}
+
+/* TOPBAR */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:52px;border-bottom:var(--bd);flex-shrink:0;background:var(--surf)}
+.topbar-left,.topbar-right{display:flex;align-items:center;gap:8px}
+.icon-btn{width:36px;height:36px;border:var(--bd);background:var(--surf);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shsm);transition:box-shadow var(--t),transform var(--t),background var(--t)}
+.icon-btn:hover{box-shadow:var(--sh);transform:translate(-1px,-1px)}
+.icon-btn:active{box-shadow:none;transform:translate(2px,2px)}
+
+/* MODEL PICKER — NEOBRUTALIST DROPDOWN */
+.model-picker{position:relative}
+.model-btn{display:flex;align-items:center;gap:10px;padding:7px 14px;background:var(--surf);border:var(--bd);box-shadow:var(--shsm);cursor:pointer;font-family:var(--fd);text-transform:uppercase;font-weight:800;font-size:11px;letter-spacing:.1em;color:var(--ink);transition:box-shadow var(--t),transform var(--t),background var(--t);white-space:nowrap}
+.model-btn:hover{box-shadow:var(--sh);transform:translate(-1px,-1px)}
+.model-btn.open{background:var(--ink);color:var(--paper);box-shadow:none;transform:translate(2px,2px)}
+.model-btn .chevron{transition:transform .2s ease;display:flex}
+.model-btn.open .chevron{transform:rotate(180deg)}
+.model-dropdown{position:absolute;top:calc(100% + 6px);left:0;min-width:260px;background:var(--surf);border:var(--bd);box-shadow:var(--shlg);z-index:500;display:none}
+.model-dropdown.open{display:block;animation:dropMenu .2s cubic-bezier(.16,1,.3,1)}
+.model-option{display:flex;flex-direction:column;padding:13px 16px;border-bottom:var(--bdt);cursor:pointer;transition:background .15s;position:relative;overflow:hidden}
+.model-option:last-child{border-bottom:none}
+.model-option:hover{background:var(--p2)}
+.model-option.active{background:var(--ink)}
+.model-option-name{font-family:var(--fd);font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--ink)}
+.model-option.active .model-option-name{color:var(--paper)}
+.model-option-desc{font-size:11px;color:var(--ink);opacity:.5;margin-top:3px;letter-spacing:0;text-transform:none;font-weight:500;font-family:var(--fu)}
+.model-option.active .model-option-desc{color:var(--paper);opacity:.55}
+.model-option-active-mark{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:6px;height:6px;background:var(--acc);display:none}
+.model-option.active .model-option-active-mark{display:block}
+
+/* CHAT AREA */
+.chat-area{flex:1;overflow-y:auto;scroll-behavior:smooth}
+.chat-area::-webkit-scrollbar{width:3px}
+.chat-area::-webkit-scrollbar-thumb{background:var(--ink);opacity:.2}
+.messages{display:flex;flex-direction:column;padding:0 0 40px;max-width:760px;margin:0 auto;width:100%}
+
+/* EMPTY STATE */
+.empty{display:flex;align-items:center;justify-content:center;height:100%;padding:32px 20px;position:relative;overflow:hidden}
+.empty::before{content:'';position:absolute;inset:0;background-image:linear-gradient(var(--bdt) 1px,transparent 1px),linear-gradient(90deg,var(--bdt) 1px,transparent 1px);background-size:52px 52px;pointer-events:none}
+.empty-inner{display:flex;flex-direction:column;align-items:center;gap:14px;position:relative;z-index:1;text-align:center}
+.empty-mark{width:52px;height:52px;background:var(--ink);display:flex;align-items:center;justify-content:center;margin-bottom:4px;animation:greetIn .5s cubic-bezier(.16,1,.3,1)}
+.empty-mark svg{fill:var(--paper)}
+.empty-greeting{font-family:var(--fd);font-size:clamp(28px,5vw,40px);font-weight:800;text-transform:uppercase;letter-spacing:-.5px;animation:greetIn .5s .05s cubic-bezier(.16,1,.3,1) both}
+.empty-slogan{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--acc);opacity:.75;animation:greetIn .5s .1s both}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px;max-width:520px}
+.chip{padding:8px 14px;border:var(--bd);background:var(--surf);box-shadow:var(--shsm);font-family:var(--fu);font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;transition:box-shadow var(--t),transform var(--t),background var(--t);white-space:nowrap;opacity:0}
+.chip:nth-child(1){animation:chipIn .4s .22s cubic-bezier(.34,1.56,.64,1) forwards}
+.chip:nth-child(2){animation:chipIn .4s .3s cubic-bezier(.34,1.56,.64,1) forwards}
+.chip:nth-child(3){animation:chipIn .4s .38s cubic-bezier(.34,1.56,.64,1) forwards}
+.chip:hover{box-shadow:var(--sh);transform:translate(-1px,-1px);background:var(--p2)}
+.chip:active{box-shadow:none;transform:translate(2px,2px)}
+
+/* MESSAGES */
+.msg{animation:msgIn .22s cubic-bezier(.16,1,.3,1);position:relative;width:100%}
+.msg.user{align-items:flex-end;display:flex;flex-direction:column;padding:18px 24px 0}
+.msg.bot{align-items:flex-start;display:flex;flex-direction:column;padding:22px 24px 0}
+.bubble{background:var(--p2);border:var(--bd);box-shadow:var(--shsm);padding:10px 14px;max-width:72%;font-size:14px;font-weight:500;line-height:1.68;color:var(--ink);word-break:break-word}
+.bot-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.bot-badge{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.15em;color:var(--acc);font-family:var(--fd)}
+.bot-dot{width:5px;height:5px;background:var(--acc);animation:pdot 2s infinite}
+.bot-content{font-size:14.5px;line-height:1.82;color:var(--ink);word-break:break-word;max-width:100%}
+.bot-content p{margin-bottom:.85em}
+.bot-content p:last-child{margin-bottom:0}
+.bot-content h1,.bot-content h2,.bot-content h3{font-family:var(--fd);font-weight:800;text-transform:uppercase;margin:1.1em 0 .4em}
+.bot-content h1{font-size:18px;border-bottom:var(--bdt);padding-bottom:.3em}
+.bot-content h2{font-size:15px}
+.bot-content h3{font-size:13px;opacity:.85}
+.bot-content ul,.bot-content ol{padding-left:20px;margin-bottom:.85em}
+.bot-content li{margin-bottom:.35em;line-height:1.72}
+.bot-content strong{font-weight:700}
+.bot-content code{font-family:'Courier New',monospace;font-size:12px;background:var(--p3);color:var(--acc);padding:1px 5px;border:1.5px solid var(--ink);font-weight:600}
+.bot-content pre{border:var(--bd);box-shadow:var(--shsm);margin-bottom:.85em;overflow:hidden}
+.bot-content pre code{display:block;padding:12px 14px;background:#141210;color:#E8E0D0;font-size:13px;line-height:1.7;overflow-x:auto;border:none}
+.bot-content blockquote{border-left:3px solid var(--acc);padding-left:13px;opacity:.75;font-style:italic;margin-bottom:.85em}
+.bot-content table{width:100%;border-collapse:collapse;margin-bottom:.85em;font-size:13px}
+.bot-content th{background:var(--p2);font-weight:700;text-align:left;padding:7px 10px;border:var(--bd)}
+.bot-content td{padding:6px 10px;border:var(--bdt)}
+
+/* TYPING */
+.typing{display:flex;align-items:center;gap:6px;height:28px}
+.dot{width:6px;height:6px;background:var(--ink);animation:tdot 1.3s infinite}
+.dot:nth-child(2){animation-delay:.16s}
+.dot:nth-child(3){background:var(--acc);animation-delay:.32s}
+
+/* STREAM CURSOR */
+.sc{display:inline-block;width:2px;height:.88em;background:var(--ink);margin-left:1px;vertical-align:text-bottom;animation:blink .7s step-start infinite}
+
+/* MSG ACTIONS */
+.msg-actions{display:flex;gap:4px;margin-top:8px;opacity:0;transition:opacity .15s}
+.msg:hover .msg-actions{opacity:1}
+.msg-action-btn{width:28px;height:28px;border:var(--bd);background:var(--surf);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shsm);transition:all var(--t);opacity:.5;font-size:12px}
+.msg-action-btn:hover{opacity:1;box-shadow:var(--sh);transform:translate(-1px,-1px)}
+.msg-action-btn.copied{background:var(--yel);opacity:1}
+
+/* ── TASK LIST TOOL ── */
+.task-list-container{margin:12px 0;border:var(--bd);box-shadow:var(--shsm);background:var(--surf);overflow:hidden}
+.task-list-header{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:var(--bd);background:var(--p2)}
+.task-list-icon{width:20px;height:20px;background:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.task-list-icon svg{fill:var(--paper)}
+.task-list-title{font-family:var(--fd);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em}
+.task-list-count{font-size:10px;font-weight:700;color:var(--ink);opacity:.4;margin-left:auto}
+.task-progress-bar{height:3px;background:var(--p3);position:relative;overflow:hidden}
+.task-progress-fill{height:100%;background:var(--acc);transition:width .5s cubic-bezier(.16,1,.3,1)}
+.task-items{display:flex;flex-direction:column}
+.task-item{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;border-bottom:var(--bdt);animation:taskSlide .3s ease;transition:background .3s}
+.task-item:last-child{border-bottom:none}
+.task-item.task-active{background:var(--p2);border-left:3px solid var(--acc)}
+.task-item.task-done{background:var(--surf)}
+.task-item.task-done .task-text{text-decoration:line-through;opacity:.45}
+.task-item.task-pending{opacity:.55}
+.task-checkbox{width:18px;height:18px;border:var(--bd);background:var(--paper);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background .25s}
+.task-item.task-done .task-checkbox{background:var(--ink)}
+.task-item.task-active .task-checkbox{border-color:var(--acc);animation:pdot 1.5s infinite}
+.task-checkbox-check{color:var(--paper);font-size:11px;font-weight:900;display:none}
+.task-item.task-done .task-checkbox-check{display:block}
+.task-text{font-size:13px;font-weight:500;line-height:1.5;flex:1;padding-top:1px}
+.task-status-badge{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:2px 7px;border:var(--bd);flex-shrink:0}
+.task-item.task-active .task-status-badge{background:var(--acc);color:#fff;border-color:var(--acc)}
+.task-item.task-done .task-status-badge{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.task-item.task-pending .task-status-badge{background:transparent;color:var(--ink);opacity:.3}
+
+/* ── PROGRESS STEPS (claude-style) ── */
+.progress-container{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.progress-step{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:600;color:var(--ink);animation:stepEnter .35s ease forwards;opacity:0}
+.progress-step.step-done{opacity:.6;color:var(--ink)}
+.progress-step.step-active{opacity:1}
+.progress-step.step-waiting{opacity:.25}
+.progress-dot{width:7px;height:7px;background:currentColor;flex-shrink:0}
+.progress-step.step-active .progress-dot{animation:pdot 1.4s infinite}
+.progress-step.step-done .progress-dot{background:var(--grn)}
+.progress-step-check{font-size:10px;color:var(--grn);margin-left:auto;opacity:0}
+.progress-step.step-done .progress-step-check{opacity:1}
+
+/* ── ERROR DISPLAY ── */
+.error-card{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:var(--surf);border:var(--bd);border-left:4px solid var(--acc);box-shadow:var(--shsm);animation:errorShake .3s ease,msgIn .25s ease}
+.error-icon{width:24px;height:24px;background:var(--acc);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:12px;font-weight:900}
+.error-body{flex:1}
+.error-title{font-family:var(--fd);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;color:var(--acc)}
+.error-msg{font-size:13px;color:var(--ink);opacity:.7;line-height:1.55}
+.error-retry{display:inline-flex;align-items:center;gap:6px;margin-top:9px;padding:5px 12px;border:var(--bd);background:transparent;font-family:var(--fu);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;cursor:pointer;color:var(--ink);transition:background var(--t),box-shadow var(--t)}
+.error-retry:hover{background:var(--p2);box-shadow:var(--shsm)}
+
+/* INPUT AREA */
+.input-area{padding:12px 16px 14px;flex-shrink:0;background:var(--surf);border-top:var(--bd)}
+.input-wrap{max-width:760px;margin:0 auto;position:relative}
+.input-box{display:flex;align-items:center;gap:8px;background:var(--paper);border:var(--bd);box-shadow:var(--shsm);padding:9px 12px;transition:box-shadow var(--t)}
+.input-box:focus-within{box-shadow:var(--sh)}
+.chat-input{flex:1;background:transparent;border:none;outline:none;resize:none;font-family:var(--fu);font-size:14px;font-weight:500;color:var(--ink);line-height:1.6;min-height:24px;max-height:152px;overflow-y:auto}
+.chat-input::placeholder{color:var(--ink);opacity:.3}
+.plus-btn{width:32px;height:32px;border:var(--bd);background:var(--p2);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;line-height:1;box-shadow:var(--shsm);transition:all var(--t)}
+.plus-btn:hover{box-shadow:var(--sh);transform:translate(-1px,-1px)}
+.plus-btn:active{box-shadow:none;transform:translate(2px,2px)}
+.send-btn{width:38px;height:38px;border:var(--bd);background:var(--acc);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--shsm);transition:all var(--t)}
+.send-btn:hover:not(:disabled){box-shadow:var(--sh);transform:translate(-1px,-1px);background:var(--acc2)}
+.send-btn:active:not(:disabled){box-shadow:none;transform:translate(2px,2px)}
+.send-btn:disabled{background:var(--p3);color:var(--ink);opacity:.38;cursor:not-allowed;box-shadow:none}
+.send-btn.stop{background:var(--acc)!important;opacity:1!important;cursor:pointer!important}
+.input-foot{display:flex;align-items:center;justify-content:space-between;margin-top:5px}
+.input-sub{font-size:10px;font-weight:600;color:var(--ink);opacity:.22;text-transform:uppercase;letter-spacing:.07em}
+
+/* PLUS MENU */
+.plus-menu{position:absolute;bottom:calc(100% + 8px);left:0;background:var(--surf);border:var(--bd);box-shadow:var(--sh);padding:4px;min-width:210px;display:none;flex-direction:column;gap:2px;z-index:100}
+.plus-menu.open{display:flex;animation:dropMenu .2s cubic-bezier(.16,1,.3,1)}
+.plus-item{display:flex;align-items:center;gap:10px;padding:10px 11px;border:1.5px solid transparent;cursor:pointer;background:transparent;width:100%;font-family:var(--fu);transition:background var(--t),border-color var(--t);color:var(--ink)}
+.plus-item:hover{background:var(--p2);border-color:var(--ink)}
+.plus-item.mode-on{background:var(--ink);color:var(--paper)}
+.plus-item-icon{font-size:15px;flex-shrink:0}
+.plus-item-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;display:block}
+.plus-item-desc{font-size:10px;opacity:.45;display:block;margin-top:1px;font-weight:400}
+
+/* SCROLLBAR */
+.conv-list::-webkit-scrollbar{width:3px}
+.conv-list::-webkit-scrollbar-thumb{background:var(--ink);opacity:.2}
+.chat-area::-webkit-scrollbar{width:3px}
+.chat-area::-webkit-scrollbar-thumb{background:var(--ink);opacity:.2}
+
+/* MISC */
+.dark-toggle .moon{display:block}.dark-toggle .sun{display:none}
+.dark .dark-toggle .moon{display:none}.dark .dark-toggle .sun{display:block}
+.sb-overlay{position:fixed;inset:0;background:rgba(10,10,10,.48);z-index:199;display:none}
+.sb-overlay.show{display:block}
+
+/* MOBILE */
+@media(max-width:640px){
+  :root{--sw:min(78vw,260px)}
+  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:200;width:var(--sw)!important;padding:12px 8px!important;opacity:1!important;transform:translateX(-100%);transition:transform .28s cubic-bezier(.16,1,.3,1);pointer-events:none}
+  .sidebar:not(.collapsed){transform:translateX(0);pointer-events:auto}
+  .sidebar.collapsed{transform:translateX(-100%);pointer-events:none}
+  .msg.user{padding:14px 16px 0}
+  .msg.bot{padding:18px 16px 0}
+  .bubble{max-width:88%}
+  .input-sub{display:none}
+}
+</style>
 </head>
 <body>
-    <div id="s-chat" class="active">
-        <div class="topbar">
-            <div class="topbar-left">
-                <button class="icon-btn" onclick="toggleSidebar()">☰</button>
-                <div class="model-picker">
-                    <div class="model-btn">
-                        <span id="current-model-name">Pneuma</span>
-                        <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </div>
-                    <div class="model-dropdown">
-                        <div class="model-opt active" onclick="selectModel('pneuma', 'Pneuma', 'Fast & responsive for daily tasks')">
-                            <span class="model-opt-name">Pneuma</span>
-                            <span class="model-opt-desc">Fast & responsive for daily tasks</span>
-                        </div>
-                        <div class="model-opt" onclick="selectModel('logos', 'Logos', 'Reasoning & complex problem solving')">
-                            <span class="model-opt-name">Logos</span>
-                            <span class="model-opt-desc">Reasoning & complex problem solving</span>
-                        </div>
-                        <div class="model-opt" onclick="selectModel('kairos', 'Kairos', 'Deep creative & long-context tasks')">
-                            <span class="model-opt-name">Kairos</span>
-                            <span class="model-opt-desc">Deep creative & long-context tasks</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="topbar-right">
-                <button class="icon-btn" onclick="toggleDark()">
-                    <span class="moon">🌙</span>
-                    <span class="sun">☀️</span>
-                </button>
-            </div>
+<div id="app">
+  <div class="shell">
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+      <div class="sb-logo">
+        <div class="sb-logo-mark">
+          <svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 1L15 8L8 15L1 8Z"/></svg>
         </div>
-        
-        <div class="chat-shell">
-            <div class="main">
-                <div id="chat-area" class="chat-area">
-                    <div id="empty-state" class="empty">
-                        <div class="empty-inner">
-                            <h1 class="empty-greeting" id="empty-greeting">Hey there!</h1>
-                            <p class="empty-slogan">A human resource, not a companion.</p>
-                            <div class="chip-row">
-                                <button class="chip" onclick="chipSend('Explain quantum physics simply')">Explain simply</button>
-                                <button class="chip" onclick="chipSend('Help me write a professional email')">Write & edit</button>
-                                <button class="chip" onclick="chipSend('Debug this Python function')">Debug code</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="messages" class="messages" style="display:none"></div>
-                </div>
-
-                <div class="input-area">
-                    <div class="input-wrap">
-                        <div id="hw-label" class="hw-label">
-                            <span>Homework mode</span>
-                            <button class="hw-label-x" onclick="toggleHwMode()">×</button>
-                        </div>
-                        <div class="input-box">
-                            <button class="plus-btn" onclick="togglePlusMenu(event)">+</button>
-                            <textarea id="chat-input" class="chat-input" placeholder="Say something..." rows="1" oninput="onInput(this)" onkeydown="onKey(event)"></textarea>
-                            <button id="send-btn" class="send-btn" disabled onclick="send()">➔</button>
-                        </div>
-                        <div class="input-foot">
-                            <span class="input-sub">Enter to send · Shift+Enter for new line</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <span class="sb-logo-name">Cloak</span>
+      </div>
+      <button class="sb-new" onclick="newChat()">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg>
+        New Chat
+      </button>
+      <div class="sb-label">Recents</div>
+      <div class="conv-list" id="conv-list"></div>
+      <div class="sb-footer">
+        <div class="user-row">
+          <div class="user-av" id="user-av">U</div>
+          <div>
+            <div class="user-name" id="user-name">Guest</div>
+            <div class="user-email">Cloak Session</div>
+          </div>
         </div>
+      </div>
     </div>
+    <div class="sb-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
 
-    <script src="cloak.js"></script>
-    <script>
-        // REDESIGN LOGIC
-        function selectModel(id, name, desc) {
-            cloakModel = id;
-            document.getElementById('current-model-name').textContent = name;
-            document.querySelectorAll('.model-opt').forEach(opt => {
-                opt.classList.toggle('active', opt.querySelector('.model-opt-name').textContent === name);
-            });
-        }
+    <!-- MAIN -->
+    <div class="main">
+      <!-- TOPBAR -->
+      <div class="topbar">
+        <div class="topbar-left">
+          <button class="icon-btn" onclick="toggleSidebar()" title="Toggle sidebar">
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="0" y1="1" x2="16" y2="1"/><line x1="0" y1="6" x2="16" y2="6"/><line x1="0" y1="11" x2="16" y2="11"/></svg>
+          </button>
 
-        // TASK LIST COMPONENT
-        function createTaskUI(tasks) {
-            const container = document.createElement('div');
-            container.className = 'task-list';
-            tasks.forEach((task, i) => {
-                const item = document.createElement('div');
-                item.className = 'task-item' + (i === 0 ? ' active' : '');
-                item.innerHTML = `
-                    <div class="task-checkbox"></div>
-                    <div class="task-text">${task}</div>
-                `;
-                container.appendChild(item);
-            });
-            return container;
-        }
+          <!-- MODEL PICKER -->
+          <div class="model-picker" id="model-picker">
+            <div class="model-btn" id="model-btn" onclick="toggleModelMenu()">
+              <span id="model-btn-name">Pneuma</span>
+              <span class="chevron">
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </span>
+            </div>
+            <div class="model-dropdown" id="model-dropdown">
+              <div class="model-option active" onclick="selectModel('pneuma','Pneuma','Fast & responsive for everyday tasks')">
+                <span class="model-option-name">Pneuma</span>
+                <span class="model-option-desc">Fast & responsive for everyday tasks</span>
+                <span class="model-option-active-mark"></span>
+              </div>
+              <div class="model-option" onclick="selectModel('logos','Logos','Deep reasoning & complex problem solving')">
+                <span class="model-option-name">Logos</span>
+                <span class="model-option-desc">Deep reasoning & complex problem solving</span>
+                <span class="model-option-active-mark"></span>
+              </div>
+              <div class="model-option" onclick="selectModel('kairos','Kairos','Creative & long-context tasks')">
+                <span class="model-option-name">Kairos</span>
+                <span class="model-option-desc">Creative & long-context tasks</span>
+                <span class="model-option-active-mark"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <button class="icon-btn dark-toggle" onclick="toggleDark()" title="Toggle dark mode">
+            <span class="moon">🌙</span>
+            <span class="sun">☀️</span>
+          </button>
+        </div>
+      </div>
 
-        // PROGRESS COMPONENT
-        function createProgressUI(steps) {
-            const wrap = document.createElement('div');
-            wrap.className = 'progress-wrap';
-            steps.forEach((step, i) => {
-                const div = document.createElement('div');
-                div.className = 'progress-step' + (i === 0 ? ' active' : '');
-                div.innerHTML = `<div class="progress-dot"></div><span>${step}</span>`;
-                wrap.appendChild(div);
-            });
-            return wrap;
-        }
+      <!-- CHAT -->
+      <div class="chat-area" id="chat-area">
+        <div id="empty-state" class="empty">
+          <div class="empty-inner">
+            <div class="empty-mark">
+              <svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 2L22 12L12 22L2 12Z"/></svg>
+            </div>
+            <h1 class="empty-greeting">Hey there.</h1>
+            <p class="empty-slogan">A human resource, not a companion.</p>
+            <div class="chip-row">
+              <button class="chip" onclick="chipSend('Explain quantum entanglement simply')">Explain simply</button>
+              <button class="chip" onclick="chipSend('Help me write a professional email')">Write & edit</button>
+              <button class="chip" onclick="chipSend('Debug this Python function for me')">Debug code</button>
+            </div>
+          </div>
+        </div>
+        <div id="messages" class="messages" style="display:none"></div>
+      </div>
 
-        // ERROR MASKING
-        const originalCallback = window.cloakSendMessage;
-        window.cloakSendMessage = async function(text, cb) {
-            const maskedCb = (res, err) => {
-                if (err && (err.includes('Groq direct') || err.includes('400'))) {
-                    const errorHtml = `
-                        <div class="error-cloak">
-                            <span class="error-cloak-icon">⚠</span>
-                            <span>Cloak ran into an issue and misgenerated a response. Please append your prompt and try again.</span>
-                        </div>
-                    `;
-                    cb(errorHtml, null);
-                } else {
-                    cb(res, err);
-                }
-            };
-            return originalCallback(text, maskedCb);
-        };
-    </script>
+      <!-- INPUT -->
+      <div class="input-area">
+        <div class="input-wrap">
+          <div class="input-box">
+            <button class="plus-btn" onclick="togglePlusMenu(event)" title="Options">+</button>
+            <textarea id="chat-input" class="chat-input" placeholder="Say something..." rows="1" oninput="onInput(this)" onkeydown="onKey(event)"></textarea>
+            <button id="send-btn" class="send-btn" disabled onclick="handleSendBtn()">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="1" x2="7" y2="13"/><polyline points="2,6 7,1 12,6"/></svg>
+            </button>
+          </div>
+          <div class="plus-menu" id="plus-menu">
+            <button class="plus-item" onclick="toggleMode('homework')">
+              <span class="plus-item-icon">📚</span>
+              <span>
+                <span class="plus-item-label">Homework Mode</span>
+                <span class="plus-item-desc">Hints only, no full answers</span>
+              </span>
+            </button>
+            <button class="plus-item" onclick="toggleMode('think')">
+              <span class="plus-item-icon">🧠</span>
+              <span>
+                <span class="plus-item-label">Extended Thinking</span>
+                <span class="plus-item-desc">Logos & Kairos only</span>
+              </span>
+            </button>
+            <button class="plus-item" onclick="toggleMode('concise')">
+              <span class="plus-item-icon">⚡</span>
+              <span>
+                <span class="plus-item-label">Concise Mode</span>
+                <span class="plus-item-desc">Short, direct responses</span>
+              </span>
+            </button>
+          </div>
+          <div class="input-foot">
+            <span class="input-sub">Enter to send · Shift+Enter for newline</span>
+            <span class="input-sub" id="model-indicator" style="color:var(--acc);opacity:.6">Pneuma</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script>
+// ── STATE ──
+let currentModel = 'pneuma';
+let currentConvId = null;
+let conversations = JSON.parse(localStorage.getItem('cloak_convs') || '{}');
+let isStreaming = false;
+let streamAbort = null;
+let activeMode = null;
+
+// ── DARK MODE ──
+(function(){
+  if(localStorage.getItem('cloak_dark') !== '0') document.body.classList.add('dark');
+})();
+function toggleDark(){
+  document.body.classList.toggle('dark');
+  localStorage.setItem('cloak_dark', document.body.classList.contains('dark') ? '1' : '0');
+}
+
+// ── SIDEBAR ──
+function toggleSidebar(){
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sb-overlay');
+  if(window.innerWidth < 640){
+    sb.classList.toggle('collapsed');
+    ov.classList.toggle('show', !sb.classList.contains('collapsed'));
+  } else {
+    sb.classList.toggle('collapsed');
+  }
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.add('collapsed');
+  document.getElementById('sb-overlay').classList.remove('show');
+}
+
+// ── MODEL PICKER ──
+function toggleModelMenu(){
+  const btn = document.getElementById('model-btn');
+  const dd = document.getElementById('model-dropdown');
+  const isOpen = dd.classList.contains('open');
+  dd.classList.toggle('open', !isOpen);
+  btn.classList.toggle('open', !isOpen);
+}
+function selectModel(id, name, desc){
+  currentModel = id;
+  document.getElementById('model-btn-name').textContent = name;
+  document.getElementById('model-indicator').textContent = name;
+  document.querySelectorAll('.model-option').forEach(opt => {
+    const n = opt.querySelector('.model-option-name').textContent;
+    opt.classList.toggle('active', n === name);
+  });
+  document.getElementById('model-dropdown').classList.remove('open');
+  document.getElementById('model-btn').classList.remove('open');
+}
+document.addEventListener('click', e => {
+  if(!document.getElementById('model-picker').contains(e.target)){
+    document.getElementById('model-dropdown').classList.remove('open');
+    document.getElementById('model-btn').classList.remove('open');
+  }
+  if(!document.getElementById('plus-menu').contains(e.target) && !e.target.closest('.plus-btn')){
+    document.getElementById('plus-menu').classList.remove('open');
+  }
+});
+
+// ── PLUS MENU ──
+function togglePlusMenu(e){
+  e.stopPropagation();
+  document.getElementById('plus-menu').classList.toggle('open');
+}
+function toggleMode(mode){
+  const items = document.querySelectorAll('.plus-item');
+  if(activeMode === mode){
+    activeMode = null;
+    items.forEach(i => i.classList.remove('mode-on'));
+  } else {
+    activeMode = mode;
+    items.forEach((i, idx) => {
+      const modes = ['homework','think','concise'];
+      i.classList.toggle('mode-on', modes[idx] === mode);
+    });
+  }
+  document.getElementById('plus-menu').classList.remove('open');
+}
+
+// ── INPUT ──
+function onInput(el){
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 152) + 'px';
+  document.getElementById('send-btn').disabled = !el.value.trim() && !isStreaming;
+}
+function onKey(e){
+  if(e.key === 'Enter' && !e.shiftKey){
+    e.preventDefault();
+    if(!document.getElementById('send-btn').disabled) handleSendBtn();
+  }
+}
+function chipSend(text){
+  document.getElementById('chat-input').value = text;
+  onInput(document.getElementById('chat-input'));
+  send();
+}
+function handleSendBtn(){
+  if(isStreaming){ stopStream(); return; }
+  send();
+}
+function stopStream(){
+  if(streamAbort) streamAbort.abort();
+  isStreaming = false;
+  updateSendBtn();
+}
+function updateSendBtn(){
+  const btn = document.getElementById('send-btn');
+  const inp = document.getElementById('chat-input');
+  if(isStreaming){
+    btn.disabled = false;
+    btn.classList.add('stop');
+    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="white"><rect x="1" y="1" width="10" height="10" rx="1"/></svg>`;
+  } else {
+    btn.classList.remove('stop');
+    btn.disabled = !inp.value.trim();
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="1" x2="7" y2="13"/><polyline points="2,6 7,1 12,6"/></svg>`;
+  }
+}
+
+// ── CONVERSATIONS ──
+function newChat(){
+  currentConvId = null;
+  document.getElementById('messages').innerHTML = '';
+  document.getElementById('messages').style.display = 'none';
+  document.getElementById('empty-state').style.display = 'flex';
+  document.querySelectorAll('.conv-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('chat-input').value = '';
+  onInput(document.getElementById('chat-input'));
+}
+function loadConversations(){
+  const list = document.getElementById('conv-list');
+  list.innerHTML = '';
+  const entries = Object.entries(conversations).sort((a,b) => b[1].ts - a[1].ts).slice(0, 30);
+  entries.forEach(([id, conv]) => {
+    const item = document.createElement('div');
+    item.className = 'conv-item' + (id === currentConvId ? ' active' : '');
+    item.dataset.id = id;
+    item.innerHTML = `<div class="conv-label" onclick="loadConv('${id}')">${conv.title || 'Chat'}</div><button class="conv-del" onclick="deleteConv('${id}',event)" title="Delete">✕</button>`;
+    list.appendChild(item);
+  });
+}
+function saveConv(id, messages, title){
+  conversations[id] = { messages, title: title || 'Chat', ts: Date.now() };
+  localStorage.setItem('cloak_convs', JSON.stringify(conversations));
+  loadConversations();
+}
+function loadConv(id){
+  currentConvId = id;
+  const conv = conversations[id];
+  if(!conv) return;
+  document.getElementById('empty-state').style.display = 'none';
+  const msgs = document.getElementById('messages');
+  msgs.style.display = 'flex';
+  msgs.innerHTML = '';
+  conv.messages.forEach(m => {
+    if(m.role === 'user') appendUserMsg(m.content, false);
+    else if(m.role === 'assistant') appendBotMsg(m.content, false);
+  });
+  document.querySelectorAll('.conv-item').forEach(i => {
+    i.classList.toggle('active', i.dataset.id === id);
+  });
+  scrollBottom();
+}
+function deleteConv(id, e){
+  e.stopPropagation();
+  delete conversations[id];
+  localStorage.setItem('cloak_convs', JSON.stringify(conversations));
+  if(currentConvId === id) newChat();
+  loadConversations();
+}
+
+// ── MESSAGES ──
+function appendUserMsg(text, animate=true){
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('messages').style.display = 'flex';
+  const msg = document.createElement('div');
+  msg.className = 'msg user';
+  if(!animate) msg.style.animation = 'none';
+  msg.innerHTML = `
+    <div class="bubble">${escHtml(text)}</div>
+    <div class="msg-actions">
+      <button class="msg-action-btn" title="Copy" onclick="copyText(this,'${escHtml(text).replace(/'/g,"\\'")}')">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="7" height="7" rx="0.5"/><path d="M2 8V1.5A.5.5 0 012.5 1H9"/></svg>
+      </button>
+    </div>`;
+  document.getElementById('messages').appendChild(msg);
+  scrollBottom();
+  return msg;
+}
+
+function appendBotMsg(content, animate=true){
+  const msg = document.createElement('div');
+  msg.className = 'msg bot';
+  if(!animate) msg.style.animation = 'none';
+  const modelNames = {pneuma:'Pneuma',logos:'Logos',kairos:'Kairos'};
+  msg.innerHTML = `
+    <div class="bot-meta">
+      <div class="bot-dot"></div>
+      <span class="bot-badge">${modelNames[currentModel] || 'Cloak'}</span>
+    </div>
+    <div class="bot-content">${marked.parse(content)}</div>
+    <div class="msg-actions">
+      <button class="msg-action-btn" title="Copy" onclick="copyMd(this,${JSON.stringify(content)})">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="7" height="7" rx="0.5"/><path d="M2 8V1.5A.5.5 0 012.5 1H9"/></svg>
+      </button>
+    </div>`;
+  document.getElementById('messages').appendChild(msg);
+  scrollBottom();
+  return msg;
+}
+
+function appendTyping(){
+  const msg = document.createElement('div');
+  msg.className = 'msg bot';
+  msg.id = 'typing-msg';
+  const modelNames = {pneuma:'Pneuma',logos:'Logos',kairos:'Kairos'};
+  msg.innerHTML = `
+    <div class="bot-meta">
+      <div class="bot-dot"></div>
+      <span class="bot-badge">${modelNames[currentModel] || 'Cloak'}</span>
+    </div>
+    <div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  document.getElementById('messages').appendChild(msg);
+  scrollBottom();
+  return msg;
+}
+
+function appendErrorMsg(rawError){
+  // Mask ugly API errors
+  let friendly = 'Cloak ran into an issue and misgenerated a response. Please append your prompt and try again.';
+  const msg = document.createElement('div');
+  msg.className = 'msg bot';
+  msg.innerHTML = `
+    <div class="bot-meta"><div class="bot-dot" style="background:var(--acc)"></div><span class="bot-badge" style="color:var(--ink);opacity:.5">System</span></div>
+    <div class="error-card">
+      <div class="error-icon">!</div>
+      <div class="error-body">
+        <div class="error-title">Generation Failed</div>
+        <div class="error-msg">${friendly}</div>
+        <button class="error-retry" onclick="retryLast()">↩ Try again</button>
+      </div>
+    </div>`;
+  document.getElementById('messages').appendChild(msg);
+  scrollBottom();
+}
+
+// ── TASK LIST UI ──
+function createTaskListUI(tasks){
+  const container = document.createElement('div');
+  container.className = 'task-list-container';
+  container.innerHTML = `
+    <div class="task-list-header">
+      <div class="task-list-icon">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="white"><polyline points="1,6 4,9 11,2" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      </div>
+      <span class="task-list-title">Task Plan</span>
+      <span class="task-list-count" id="task-count-${Date.now()}">0 / ${tasks.length}</span>
+    </div>
+    <div class="task-progress-bar"><div class="task-progress-fill" style="width:0%" id="task-prog-${Date.now()}"></div></div>
+    <div class="task-items" id="task-items-${Date.now()}"></div>`;
+  const countEl = container.querySelector('[id^="task-count-"]');
+  const progEl = container.querySelector('[id^="task-prog-"]');
+  const itemsEl = container.querySelector('[id^="task-items-"]');
+  let completed = 0;
+
+  tasks.forEach((task, i) => {
+    const item = document.createElement('div');
+    item.className = 'task-item task-pending';
+    item.innerHTML = `
+      <div class="task-checkbox"><span class="task-checkbox-check">✓</span></div>
+      <div class="task-text">${task}</div>
+      <span class="task-status-badge">${i === 0 ? 'Next' : 'Pending'}</span>`;
+    itemsEl.appendChild(item);
+  });
+
+  // Expose methods
+  container.activateTask = (idx) => {
+    const items = itemsEl.querySelectorAll('.task-item');
+    items.forEach((item, i) => {
+      item.classList.remove('task-active','task-pending','task-done');
+      if(i < idx) item.classList.add('task-done');
+      else if(i === idx) item.classList.add('task-active');
+      else item.classList.add('task-pending');
+      const badge = item.querySelector('.task-status-badge');
+      if(i < idx) badge.textContent = 'Done';
+      else if(i === idx) badge.textContent = 'Working';
+      else badge.textContent = 'Pending';
+    });
+    completed = idx;
+    const pct = tasks.length > 0 ? Math.round((idx / tasks.length) * 100) : 0;
+    progEl.style.width = pct + '%';
+    countEl.textContent = `${idx} / ${tasks.length}`;
+  };
+  container.completeAll = () => {
+    const items = itemsEl.querySelectorAll('.task-item');
+    items.forEach(item => {
+      item.classList.remove('task-active','task-pending');
+      item.classList.add('task-done');
+      item.querySelector('.task-status-badge').textContent = 'Done';
+    });
+    progEl.style.width = '100%';
+    countEl.textContent = `${tasks.length} / ${tasks.length}`;
+  };
+  container.addTask = (taskText) => {
+    const item = document.createElement('div');
+    item.className = 'task-item task-pending';
+    item.innerHTML = `
+      <div class="task-checkbox"><span class="task-checkbox-check">✓</span></div>
+      <div class="task-text">${taskText}</div>
+      <span class="task-status-badge">Added</span>`;
+    item.style.borderLeft = '3px solid var(--yel)';
+    itemsEl.appendChild(item);
+    tasks.push(taskText);
+    countEl.textContent = `${completed} / ${tasks.length}`;
+  };
+
+  return container;
+}
+
+// ── PROGRESS STEPS ──
+function createProgressSteps(steps){
+  const container = document.createElement('div');
+  container.className = 'progress-container';
+  steps.forEach((step, i) => {
+    const div = document.createElement('div');
+    div.className = 'progress-step step-waiting';
+    div.style.animationDelay = (i * 0.08) + 's';
+    div.innerHTML = `
+      <div class="progress-dot"></div>
+      <span>${step}</span>
+      <span class="progress-step-check">✓</span>`;
+    container.appendChild(div);
+  });
+  container.activateStep = (idx) => {
+    const steps = container.querySelectorAll('.progress-step');
+    steps.forEach((s, i) => {
+      s.classList.remove('step-active','step-done','step-waiting');
+      if(i < idx) s.classList.add('step-done');
+      else if(i === idx) s.classList.add('step-active');
+      else s.classList.add('step-waiting');
+    });
+  };
+  container.completeAll = () => {
+    container.querySelectorAll('.progress-step').forEach(s => {
+      s.classList.remove('step-active','step-waiting');
+      s.classList.add('step-done');
+    });
+  };
+  return container;
+}
+
+// ── ERROR DETECTION ──
+function isApiError(text){
+  return text && (
+    text.includes('Groq direct') ||
+    text.includes('400:') ||
+    text.includes('tool_use_failed') ||
+    text.includes('failed_generation') ||
+    text.includes('invalid_request_error') ||
+    text.includes('"error":{') ||
+    (text.includes('Error:') && text.includes('{'))
+  );
+}
+
+// ── SEND ──
+let lastUserMsg = '';
+let chatHistory = [];
+
+async function send(){
+  const inp = document.getElementById('chat-input');
+  const text = inp.value.trim();
+  if(!text) return;
+  lastUserMsg = text;
+  inp.value = '';
+  inp.style.height = 'auto';
+
+  if(!currentConvId){
+    currentConvId = Date.now().toString();
+    const title = text.slice(0,40) + (text.length > 40 ? '…' : '');
+    chatHistory = [];
+    saveConv(currentConvId, [], title);
+  }
+
+  appendUserMsg(text);
+  chatHistory.push({role:'user', content: text});
+
+  isStreaming = true;
+  updateSendBtn();
+
+  // Detect if Logos/Kairos — show progress steps
+  const isAdvanced = (currentModel === 'logos' || currentModel === 'kairos') && activeMode === 'think';
+  let taskListEl = null;
+  let progressEl = null;
+
+  const typingMsg = appendTyping();
+
+  // For advanced models, show thinking steps
+  if(isAdvanced){
+    const stepsData = ['Understanding the question','Planning approach','Analyzing details','Structuring response'];
+    progressEl = createProgressSteps(stepsData);
+    typingMsg.querySelector('.typing').replaceWith(progressEl);
+    
+    // Simulate step progression
+    let stepIdx = 0;
+    progressEl.activateStep(0);
+    const stepInterval = setInterval(() => {
+      stepIdx++;
+      if(stepIdx < stepsData.length) progressEl.activateStep(stepIdx);
+      else { clearInterval(stepInterval); progressEl.completeAll(); }
+    }, 900);
+  }
+
+  try {
+    // Try the real API (window.cloakSendMessage if it exists, else mock)
+    let responseText = '';
+    
+    if(typeof window.cloakSendMessage === 'function'){
+      responseText = await new Promise((res, rej) => {
+        window.cloakSendMessage(text, (result, err) => {
+          if(err) rej(new Error(err));
+          else res(result);
+        });
+      });
+    } else {
+      // Demo fallback
+      responseText = await mockResponse(text);
+    }
+
+    typingMsg.remove();
+
+    if(isApiError(responseText)) throw new Error(responseText);
+
+    // Check if response wants a task list (heuristic: contains numbered list or multi-step)
+    const wantsTaskList = (currentModel === 'logos' || currentModel === 'kairos') && 
+      (text.toLowerCase().includes('plan') || text.toLowerCase().includes('steps') || 
+       text.toLowerCase().includes('how to') || text.toLowerCase().includes('help me'));
+
+    if(wantsTaskList){
+      const tasks = extractTasks(responseText);
+      if(tasks.length >= 2){
+        const botMsg = document.createElement('div');
+        botMsg.className = 'msg bot';
+        const modelNames = {pneuma:'Pneuma',logos:'Logos',kairos:'Kairos'};
+        botMsg.innerHTML = `<div class="bot-meta"><div class="bot-dot"></div><span class="bot-badge">${modelNames[currentModel]}</span></div>`;
+        taskListEl = createTaskListUI(tasks);
+        botMsg.appendChild(taskListEl);
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'bot-content';
+        contentDiv.innerHTML = marked.parse(responseText);
+        botMsg.appendChild(contentDiv);
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'msg-actions';
+        actionsDiv.innerHTML = `<button class="msg-action-btn" onclick="copyMd(this,${JSON.stringify(responseText)})"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="7" height="7" rx="0.5"/><path d="M2 8V1.5A.5.5 0 012.5 1H9"/></svg></button>`;
+        botMsg.appendChild(actionsDiv);
+        document.getElementById('messages').appendChild(botMsg);
+        
+        // Animate through tasks
+        animateTasks(taskListEl, tasks.length);
+      } else {
+        appendBotMsg(responseText);
+      }
+    } else {
+      appendBotMsg(responseText);
+    }
+
+    chatHistory.push({role:'assistant', content: responseText});
+    saveConv(currentConvId, chatHistory, conversations[currentConvId]?.title);
+
+  } catch(err){
+    typingMsg.remove();
+    appendErrorMsg(err.message || String(err));
+  }
+
+  isStreaming = false;
+  updateSendBtn();
+  scrollBottom();
+}
+
+function animateTasks(taskListEl, count){
+  let i = 0;
+  const go = () => {
+    if(i < count){
+      taskListEl.activateTask(i);
+      i++;
+      setTimeout(go, 800 + Math.random() * 400);
+    } else {
+      taskListEl.completeAll();
+    }
+  };
+  setTimeout(go, 400);
+}
+
+function extractTasks(text){
+  const lines = text.split('\n');
+  const tasks = [];
+  lines.forEach(line => {
+    const match = line.match(/^[\d]+[.)]\s+(.+)/) || line.match(/^[-*•]\s+(.+)/);
+    if(match && match[1].length > 5 && match[1].length < 120){
+      tasks.push(match[1].trim());
+    }
+  });
+  return tasks.slice(0, 8);
+}
+
+function retryLast(){
+  if(lastUserMsg){
+    document.getElementById('chat-input').value = lastUserMsg;
+    onInput(document.getElementById('chat-input'));
+  }
+}
+
+// ── MOCK RESPONSE (demo) ──
+async function mockResponse(text){
+  await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
+  const lower = text.toLowerCase();
+  if(lower.includes('plan') || lower.includes('how to') || lower.includes('steps')){
+    return `Here's a plan for you:\n\n1. Start by defining your goals clearly\n2. Break down the problem into smaller pieces\n3. Research existing solutions and approaches\n4. Build an initial prototype or draft\n5. Test and iterate based on feedback\n6. Refine until it meets your standards\n\nEach step builds on the previous one. Want me to go deeper on any of these?`;
+  }
+  if(lower.includes('quantum')){
+    return `**Quantum entanglement** is one of the strangest phenomena in physics.\n\nWhen two particles become *entangled*, their quantum states become linked — measuring one instantly determines the state of the other, no matter how far apart they are.\n\nEinstein famously called this "spooky action at a distance" because it seemed to violate his intuitions about locality.\n\nThe key insight: this doesn't transmit information faster than light — the correlation only becomes apparent when you compare measurements through classical communication.`;
+  }
+  if(lower.includes('email')){
+    return `Here's a professional email template:\n\n**Subject:** [Your subject here]\n\nDear [Recipient],\n\nI hope this message finds you well. I'm writing to [state your purpose concisely].\n\n[Body paragraph — keep it focused and brief.]\n\n[Call to action or next steps.]\n\nBest regards,\n[Your name]`;
+  }
+  if(lower.includes('debug') || lower.includes('python')){
+    return `To debug a Python function effectively:\n\n\`\`\`python\nimport logging\nlogging.basicConfig(level=logging.DEBUG)\n\ndef debug_function(data):\n    logging.debug(f"Input: {data}")\n    result = process(data)\n    logging.debug(f"Output: {result}")\n    return result\n\`\`\`\n\nCommon issues to check:\n- **Type errors** — use \`type()\` to inspect variables\n- **Off-by-one errors** — print slice indices\n- **None returns** — add explicit \`return\` statements\n\nShare your code and I'll pinpoint the problem.`;
+  }
+  return `I understand your question about "${text.slice(0,40)}". Let me give you a thoughtful response.\n\nBased on what you've shared, the key considerations are:\n\n- **Context matters** — the right answer depends on your specific situation\n- **Multiple approaches** exist, each with trade-offs\n- **Iteration** is usually better than seeking perfection upfront\n\nWhat specific aspect would you like me to explore further?`;
+}
+
+// ── UTILS ──
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
+function scrollBottom(){ const ca = document.getElementById('chat-area'); ca.scrollTop = ca.scrollHeight }
+async function copyText(btn, text){
+  await navigator.clipboard.writeText(text).catch(()=>{});
+  btn.classList.add('copied'); btn.textContent = '✓';
+  setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="7" height="7" rx="0.5"/><path d="M2 8V1.5A.5.5 0 012.5 1H9"/></svg>`; }, 1800);
+}
+async function copyMd(btn, text){
+  await navigator.clipboard.writeText(text).catch(()=>{});
+  btn.classList.add('copied'); btn.textContent = '✓';
+  setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="7" height="7" rx="0.5"/><path d="M2 8V1.5A.5.5 0 012.5 1H9"/></svg>`; }, 1800);
+}
+
+// ── INIT ──
+loadConversations();
+</script>
 </body>
 </html>
