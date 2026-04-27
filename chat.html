@@ -1,992 +1,727 @@
+
+html
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#131110">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cloak">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<meta name="description" content="Cloak — A human resource, not a companion. Ethical AI that serves you.">
 <title>Cloak</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2L19.5 12.5L30 16L19.5 19.5L16 30L12.5 19.5L2 16L12.5 12.5Z' fill='%23D44D2A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="cloak.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+  if(localStorage.getItem('cloak_dark')!=='0') document.documentElement.classList.add('dark');
+  (function(){var t=localStorage.getItem('cloak_theme')||'default';document.documentElement.setAttribute('data-theme',t);})();
+</script>
+
+<!-- MODEL PICKER STYLES — neobrutalist dropdown, same design language as cloak.css -->
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --ink:#0A0A0A;--paper:#F2EEE5;--p2:#EAE5DB;--p3:#DDD8CC;--surf:#FAFAF7;
-  --acc:#D44D2A;--acc2:#B83B1D;--yel:#F5C842;--grn:#22c55e;--blu:#3B82F6;
-  --bd:2px solid #0A0A0A;--bdt:1px solid rgba(10,10,10,.12);
-  --sh:4px 4px 0 #0A0A0A;--shlg:6px 6px 0 #0A0A0A;--shsm:2px 2px 0 #0A0A0A;
-  --r:0px;--sw:260px;
-  --fu:'Space Grotesk',system-ui,sans-serif;
-  --fd:'Syne',system-ui,sans-serif;
-  --t:140ms ease;--spring:cubic-bezier(.34,1.56,.64,1);
+/* ── MODEL PICKER ── */
+.model-picker{position:relative;display:inline-block}
+.model-btn{
+  display:flex;align-items:center;gap:10px;padding:7px 14px;
+  background:var(--surf);border:var(--bd);box-shadow:var(--shsm);
+  cursor:pointer;font-family:var(--fd);text-transform:uppercase;font-weight:800;
+  font-size:11px;letter-spacing:.1em;color:var(--ink);white-space:nowrap;
+  transition:box-shadow 140ms ease,transform 140ms ease,background 140ms ease;
 }
-.dark{
-  --ink:#EDE8DF;--paper:#131110;--p2:#1A1815;--p3:#22201C;--surf:#181512;
-  --acc:#E5603E;--acc2:#D44D2A;
-  --bd:2px solid rgba(237,232,223,.6);--bdt:1px solid rgba(237,232,223,.1);
-  --sh:4px 4px 0 rgba(237,232,223,.45);--shlg:6px 6px 0 rgba(237,232,223,.35);--shsm:2px 2px 0 rgba(237,232,223,.38);
-}
-html,body{height:100%;font-family:var(--fu);background:var(--paper);color:var(--ink);overflow:hidden;-webkit-font-smoothing:antialiased}
-
-/* KEYFRAMES */
-@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-@keyframes pop{0%{opacity:0;transform:scale(.93)}60%{transform:scale(1.02)}100%{opacity:1;transform:scale(1)}}
-@keyframes blink{0%,100%{opacity:.8}50%{opacity:0}}
-@keyframes tdot{0%,60%,100%{transform:translateY(0);opacity:.25}30%{transform:translateY(-6px);opacity:1}}
-@keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.2;transform:scale(.6)}}
-@keyframes taskSlide{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
-@keyframes taskDone{0%{background:var(--paper)}50%{background:var(--yel)}100%{background:var(--p2)}}
-@keyframes stepEnter{from{opacity:0;transform:translateY(4px)}to{opacity:.8;transform:translateY(0)}}
-@keyframes dropMenu{0%{opacity:0;transform:translateY(-6px) scale(.97);transform-origin:top left}100%{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes greetIn{0%{opacity:0;transform:translateY(18px)}100%{opacity:1;transform:translateY(0)}}
-@keyframes chipIn{0%{opacity:0;transform:scale(.88)}60%{transform:scale(1.04)}100%{opacity:1;transform:scale(1)}}
-@keyframes errorShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
-@keyframes progressPulse{0%,100%{opacity:1}50%{opacity:.35}}
-@keyframes shimmer{0%{left:-100%}100%{left:100%}}
-
-/* LAYOUT */
-#app{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--paper)}
-.shell{flex:1;display:flex;overflow:hidden;min-height:0}
-
-/* SIDEBAR */
-.sidebar{width:var(--sw);flex-shrink:0;background:var(--p2);border-right:var(--bd);display:flex;flex-direction:column;padding:0 8px 12px;transition:width .24s ease,opacity .24s ease,padding .24s ease;overflow:hidden}
-.sidebar.collapsed{width:0;padding:0;opacity:0;pointer-events:none}
-.sb-logo{display:flex;align-items:center;gap:10px;padding:0 10px;border-bottom:var(--bd);margin:0 -8px 12px;height:52px;flex-shrink:0}
-.sb-logo-mark{width:28px;height:28px;background:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.sb-logo-mark svg{fill:var(--paper)}
-.sb-logo-name{font-family:var(--fd);font-size:18px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap}
-.sb-new{display:flex;align-items:center;gap:8px;padding:9px 11px;background:var(--ink);border:var(--bd);box-shadow:var(--shsm);color:var(--paper);font-family:var(--fu);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;cursor:pointer;width:100%;margin-bottom:10px;transition:box-shadow var(--t),transform var(--t),background var(--t);white-space:nowrap}
-.sb-new:hover{box-shadow:var(--sh);transform:translate(-1px,-1px);background:var(--acc)}
-.sb-new:active{box-shadow:none;transform:translate(2px,2px)}
-.sb-label{font-size:9px;font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:.18em;padding:8px 10px 4px;opacity:.3;white-space:nowrap}
-.conv-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:1px}
-.conv-item{display:flex;align-items:center;border:1.5px solid transparent;cursor:pointer;transition:background var(--t),border-color var(--t)}
-.conv-item:hover{background:var(--p3);border-color:var(--ink)}
-.conv-item.active{background:var(--ink);border-color:var(--ink)}
-.conv-label{flex:1;padding:8px 10px;font-size:12px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.conv-item.active .conv-label{color:var(--paper)}
-.conv-del{width:28px;height:28px;border:none;background:transparent;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity var(--t),background var(--t)}
-.conv-item.active .conv-del{color:var(--paper)}
-.conv-item:hover .conv-del{opacity:.4}
-.conv-del:hover{opacity:1!important;background:var(--acc);color:#fff}
-.sb-footer{border-top:var(--bd);padding-top:8px;margin-top:4px}
-.user-row{display:flex;align-items:center;gap:8px;padding:7px 10px}
-.user-av{width:28px;height:28px;background:var(--ink);color:var(--paper);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;font-family:var(--fd)}
-.user-name{font-size:12px;font-weight:700}
-.user-email{font-size:10px;opacity:.4}
-
-/* TOPBAR */
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:52px;border-bottom:var(--bd);flex-shrink:0;background:var(--surf)}
-.topbar-left,.topbar-right{display:flex;align-items:center;gap:8px}
-.icon-btn{width:36px;height:36px;border:var(--bd);background:var(--surf);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shsm);transition:box-shadow var(--t),transform var(--t),background var(--t)}
-.icon-btn:hover{box-shadow:var(--sh);transform:translate(-1px,-1px)}
-.icon-btn:active{box-shadow:none;transform:translate(2px,2px)}
-
-/* MODEL PICKER — NEOBRUTALIST DROPDOWN */
-.model-picker{position:relative}
-.model-btn{display:flex;align-items:center;gap:10px;padding:7px 14px;background:var(--surf);border:var(--bd);box-shadow:var(--shsm);cursor:pointer;font-family:var(--fd);text-transform:uppercase;font-weight:800;font-size:11px;letter-spacing:.1em;color:var(--ink);transition:box-shadow var(--t),transform var(--t),background var(--t);white-space:nowrap}
 .model-btn:hover{box-shadow:var(--sh);transform:translate(-1px,-1px)}
 .model-btn.open{background:var(--ink);color:var(--paper);box-shadow:none;transform:translate(2px,2px)}
-.model-btn .chevron{transition:transform .2s ease;display:flex}
-.model-btn.open .chevron{transform:rotate(180deg)}
-.model-dropdown{position:absolute;top:calc(100% + 6px);left:0;min-width:260px;background:var(--surf);border:var(--bd);box-shadow:var(--shlg);z-index:500;display:none}
-.model-dropdown.open{display:block;animation:dropMenu .2s cubic-bezier(.16,1,.3,1)}
-.model-option{display:flex;flex-direction:column;padding:13px 16px;border-bottom:var(--bdt);cursor:pointer;transition:background .15s;position:relative;overflow:hidden}
+.model-btn .mdl-chevron{display:flex;transition:transform .2s ease}
+.model-btn.open .mdl-chevron{transform:rotate(180deg)}
+
+.model-dropdown{
+  position:absolute;top:calc(100% + 6px);left:0;min-width:264px;
+  background:var(--surf);border:var(--bd);box-shadow:var(--shlg);
+  z-index:600;display:none;
+}
+.model-dropdown.open{display:block;animation:mdlDrop .2s cubic-bezier(.16,1,.3,1)}
+@keyframes mdlDrop{
+  0%{opacity:0;transform:translateY(-6px) scale(.97);transform-origin:top left}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+
+.model-option{
+  display:flex;flex-direction:column;padding:13px 16px;
+  border-bottom:var(--bdt);cursor:pointer;
+  transition:background .15s;position:relative;
+}
 .model-option:last-child{border-bottom:none}
 .model-option:hover{background:var(--p2)}
 .model-option.active{background:var(--ink)}
-.model-option-name{font-family:var(--fd);font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--ink)}
-.model-option.active .model-option-name{color:var(--paper)}
-.model-option-desc{font-size:11px;color:var(--ink);opacity:.5;margin-top:3px;letter-spacing:0;text-transform:none;font-weight:500;font-family:var(--fu)}
-.model-option.active .model-option-desc{color:var(--paper);opacity:.55}
-.model-option-active-mark{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:6px;height:6px;background:var(--acc);display:none}
-.model-option.active .model-option-active-mark{display:block}
 
-/* CHAT AREA */
-.chat-area{flex:1;overflow-y:auto;scroll-behavior:smooth}
-.chat-area::-webkit-scrollbar{width:3px}
-.chat-area::-webkit-scrollbar-thumb{background:var(--ink);opacity:.2}
-.messages{display:flex;flex-direction:column;padding:0 0 40px;max-width:760px;margin:0 auto;width:100%}
-
-/* EMPTY STATE */
-.empty{display:flex;align-items:center;justify-content:center;height:100%;padding:32px 20px;position:relative;overflow:hidden}
-.empty::before{content:'';position:absolute;inset:0;background-image:linear-gradient(var(--bdt) 1px,transparent 1px),linear-gradient(90deg,var(--bdt) 1px,transparent 1px);background-size:52px 52px;pointer-events:none}
-.empty-inner{display:flex;flex-direction:column;align-items:center;gap:14px;position:relative;z-index:1;text-align:center}
-.empty-mark{width:52px;height:52px;background:var(--ink);display:flex;align-items:center;justify-content:center;margin-bottom:4px;animation:greetIn .5s cubic-bezier(.16,1,.3,1)}
-.empty-mark svg{fill:var(--paper)}
-.empty-greeting{font-family:var(--fd);font-size:clamp(28px,5vw,40px);font-weight:800;text-transform:uppercase;letter-spacing:-.5px;animation:greetIn .5s .05s cubic-bezier(.16,1,.3,1) both}
-.empty-slogan{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--acc);opacity:.75;animation:greetIn .5s .1s both}
-.chip-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px;max-width:520px}
-.chip{padding:8px 14px;border:var(--bd);background:var(--surf);box-shadow:var(--shsm);font-family:var(--fu);font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;transition:box-shadow var(--t),transform var(--t),background var(--t);white-space:nowrap;opacity:0}
-.chip:nth-child(1){animation:chipIn .4s .22s cubic-bezier(.34,1.56,.64,1) forwards}
-.chip:nth-child(2){animation:chipIn .4s .3s cubic-bezier(.34,1.56,.64,1) forwards}
-.chip:nth-child(3){animation:chipIn .4s .38s cubic-bezier(.34,1.56,.64,1) forwards}
-.chip:hover{box-shadow:var(--sh);transform:translate(-1px,-1px);background:var(--p2)}
-.chip:active{box-shadow:none;transform:translate(2px,2px)}
-
-/* MESSAGES */
-.msg{animation:msgIn .22s cubic-bezier(.16,1,.3,1);position:relative;width:100%}
-.msg.user{align-items:flex-end;display:flex;flex-direction:column;padding:18px 24px 0}
-.msg.bot{align-items:flex-start;display:flex;flex-direction:column;padding:22px 24px 0}
-.bubble{background:var(--p2);border:var(--bd);box-shadow:var(--shsm);padding:10px 14px;max-width:72%;font-size:14px;font-weight:500;line-height:1.68;color:var(--ink);word-break:break-word}
-.bot-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.bot-badge{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.15em;color:var(--acc);font-family:var(--fd)}
-.bot-dot{width:5px;height:5px;background:var(--acc);animation:pdot 2s infinite}
-.bot-content{font-size:14.5px;line-height:1.82;color:var(--ink);word-break:break-word;max-width:100%}
-.bot-content p{margin-bottom:.85em}
-.bot-content p:last-child{margin-bottom:0}
-.bot-content h1,.bot-content h2,.bot-content h3{font-family:var(--fd);font-weight:800;text-transform:uppercase;margin:1.1em 0 .4em}
-.bot-content h1{font-size:18px;border-bottom:var(--bdt);padding-bottom:.3em}
-.bot-content h2{font-size:15px}
-.bot-content h3{font-size:13px;opacity:.85}
-.bot-content ul,.bot-content ol{padding-left:20px;margin-bottom:.85em}
-.bot-content li{margin-bottom:.35em;line-height:1.72}
-.bot-content strong{font-weight:700}
-.bot-content code{font-family:'Courier New',monospace;font-size:12px;background:var(--p3);color:var(--acc);padding:1px 5px;border:1.5px solid var(--ink);font-weight:600}
-.bot-content pre{border:var(--bd);box-shadow:var(--shsm);margin-bottom:.85em;overflow:hidden}
-.bot-content pre code{display:block;padding:12px 14px;background:#141210;color:#E8E0D0;font-size:13px;line-height:1.7;overflow-x:auto;border:none}
-.bot-content blockquote{border-left:3px solid var(--acc);padding-left:13px;opacity:.75;font-style:italic;margin-bottom:.85em}
-.bot-content table{width:100%;border-collapse:collapse;margin-bottom:.85em;font-size:13px}
-.bot-content th{background:var(--p2);font-weight:700;text-align:left;padding:7px 10px;border:var(--bd)}
-.bot-content td{padding:6px 10px;border:var(--bdt)}
-
-/* TYPING */
-.typing{display:flex;align-items:center;gap:6px;height:28px}
-.dot{width:6px;height:6px;background:var(--ink);animation:tdot 1.3s infinite}
-.dot:nth-child(2){animation-delay:.16s}
-.dot:nth-child(3){background:var(--acc);animation-delay:.32s}
-
-/* STREAM CURSOR */
-.sc{display:inline-block;width:2px;height:.88em;background:var(--ink);margin-left:1px;vertical-align:text-bottom;animation:blink .7s step-start infinite}
-
-/* MSG ACTIONS */
-.msg-actions{display:flex;gap:4px;margin-top:8px;opacity:0;transition:opacity .15s}
-.msg:hover .msg-actions{opacity:1}
-.msg-action-btn{width:28px;height:28px;border:var(--bd);background:var(--surf);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shsm);transition:all var(--t);opacity:.5;font-size:12px}
-.msg-action-btn:hover{opacity:1;box-shadow:var(--sh);transform:translate(-1px,-1px)}
-.msg-action-btn.copied{background:var(--yel);opacity:1}
-
-/* ── TASK LIST TOOL ── */
-.task-list-container{margin:12px 0;border:var(--bd);box-shadow:var(--shsm);background:var(--surf);overflow:hidden}
-.task-list-header{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:var(--bd);background:var(--p2)}
-.task-list-icon{width:20px;height:20px;background:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.task-list-icon svg{fill:var(--paper)}
-.task-list-title{font-family:var(--fd);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em}
-.task-list-count{font-size:10px;font-weight:700;color:var(--ink);opacity:.4;margin-left:auto}
-.task-progress-bar{height:3px;background:var(--p3);position:relative;overflow:hidden}
-.task-progress-fill{height:100%;background:var(--acc);transition:width .5s cubic-bezier(.16,1,.3,1)}
-.task-items{display:flex;flex-direction:column}
-.task-item{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;border-bottom:var(--bdt);animation:taskSlide .3s ease;transition:background .3s}
-.task-item:last-child{border-bottom:none}
-.task-item.task-active{background:var(--p2);border-left:3px solid var(--acc)}
-.task-item.task-done{background:var(--surf)}
-.task-item.task-done .task-text{text-decoration:line-through;opacity:.45}
-.task-item.task-pending{opacity:.55}
-.task-checkbox{width:18px;height:18px;border:var(--bd);background:var(--paper);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background .25s}
-.task-item.task-done .task-checkbox{background:var(--ink)}
-.task-item.task-active .task-checkbox{border-color:var(--acc);animation:pdot 1.5s infinite}
-.task-checkbox-check{color:var(--paper);font-size:11px;font-weight:900;display:none}
-.task-item.task-done .task-checkbox-check{display:block}
-.task-text{font-size:13px;font-weight:500;line-height:1.5;flex:1;padding-top:1px}
-.task-status-badge{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:2px 7px;border:var(--bd);flex-shrink:0}
-.task-item.task-active .task-status-badge{background:var(--acc);color:#fff;border-color:var(--acc)}
-.task-item.task-done .task-status-badge{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-.task-item.task-pending .task-status-badge{background:transparent;color:var(--ink);opacity:.3}
-
-/* ── PROGRESS STEPS (claude-style) ── */
-.progress-container{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
-.progress-step{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:600;color:var(--ink);animation:stepEnter .35s ease forwards;opacity:0}
-.progress-step.step-done{opacity:.6;color:var(--ink)}
-.progress-step.step-active{opacity:1}
-.progress-step.step-waiting{opacity:.25}
-.progress-dot{width:7px;height:7px;background:currentColor;flex-shrink:0}
-.progress-step.step-active .progress-dot{animation:pdot 1.4s infinite}
-.progress-step.step-done .progress-dot{background:var(--grn)}
-.progress-step-check{font-size:10px;color:var(--grn);margin-left:auto;opacity:0}
-.progress-step.step-done .progress-step-check{opacity:1}
-
-/* ── ERROR DISPLAY ── */
-.error-card{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:var(--surf);border:var(--bd);border-left:4px solid var(--acc);box-shadow:var(--shsm);animation:errorShake .3s ease,msgIn .25s ease}
-.error-icon{width:24px;height:24px;background:var(--acc);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:12px;font-weight:900}
-.error-body{flex:1}
-.error-title{font-family:var(--fd);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;color:var(--acc)}
-.error-msg{font-size:13px;color:var(--ink);opacity:.7;line-height:1.55}
-.error-retry{display:inline-flex;align-items:center;gap:6px;margin-top:9px;padding:5px 12px;border:var(--bd);background:transparent;font-family:var(--fu);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;cursor:pointer;color:var(--ink);transition:background var(--t),box-shadow var(--t)}
-.error-retry:hover{background:var(--p2);box-shadow:var(--shsm)}
-
-/* INPUT AREA */
-.input-area{padding:12px 16px 14px;flex-shrink:0;background:var(--surf);border-top:var(--bd)}
-.input-wrap{max-width:760px;margin:0 auto;position:relative}
-.input-box{display:flex;align-items:center;gap:8px;background:var(--paper);border:var(--bd);box-shadow:var(--shsm);padding:9px 12px;transition:box-shadow var(--t)}
-.input-box:focus-within{box-shadow:var(--sh)}
-.chat-input{flex:1;background:transparent;border:none;outline:none;resize:none;font-family:var(--fu);font-size:14px;font-weight:500;color:var(--ink);line-height:1.6;min-height:24px;max-height:152px;overflow-y:auto}
-.chat-input::placeholder{color:var(--ink);opacity:.3}
-.plus-btn{width:32px;height:32px;border:var(--bd);background:var(--p2);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;line-height:1;box-shadow:var(--shsm);transition:all var(--t)}
-.plus-btn:hover{box-shadow:var(--sh);transform:translate(-1px,-1px)}
-.plus-btn:active{box-shadow:none;transform:translate(2px,2px)}
-.send-btn{width:38px;height:38px;border:var(--bd);background:var(--acc);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--shsm);transition:all var(--t)}
-.send-btn:hover:not(:disabled){box-shadow:var(--sh);transform:translate(-1px,-1px);background:var(--acc2)}
-.send-btn:active:not(:disabled){box-shadow:none;transform:translate(2px,2px)}
-.send-btn:disabled{background:var(--p3);color:var(--ink);opacity:.38;cursor:not-allowed;box-shadow:none}
-.send-btn.stop{background:var(--acc)!important;opacity:1!important;cursor:pointer!important}
-.input-foot{display:flex;align-items:center;justify-content:space-between;margin-top:5px}
-.input-sub{font-size:10px;font-weight:600;color:var(--ink);opacity:.22;text-transform:uppercase;letter-spacing:.07em}
-
-/* PLUS MENU */
-.plus-menu{position:absolute;bottom:calc(100% + 8px);left:0;background:var(--surf);border:var(--bd);box-shadow:var(--sh);padding:4px;min-width:210px;display:none;flex-direction:column;gap:2px;z-index:100}
-.plus-menu.open{display:flex;animation:dropMenu .2s cubic-bezier(.16,1,.3,1)}
-.plus-item{display:flex;align-items:center;gap:10px;padding:10px 11px;border:1.5px solid transparent;cursor:pointer;background:transparent;width:100%;font-family:var(--fu);transition:background var(--t),border-color var(--t);color:var(--ink)}
-.plus-item:hover{background:var(--p2);border-color:var(--ink)}
-.plus-item.mode-on{background:var(--ink);color:var(--paper)}
-.plus-item-icon{font-size:15px;flex-shrink:0}
-.plus-item-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;display:block}
-.plus-item-desc{font-size:10px;opacity:.45;display:block;margin-top:1px;font-weight:400}
-
-/* SCROLLBAR */
-.conv-list::-webkit-scrollbar{width:3px}
-.conv-list::-webkit-scrollbar-thumb{background:var(--ink);opacity:.2}
-.chat-area::-webkit-scrollbar{width:3px}
-.chat-area::-webkit-scrollbar-thumb{background:var(--ink);opacity:.2}
-
-/* MISC */
-.dark-toggle .moon{display:block}.dark-toggle .sun{display:none}
-.dark .dark-toggle .moon{display:none}.dark .dark-toggle .sun{display:block}
-.sb-overlay{position:fixed;inset:0;background:rgba(10,10,10,.48);z-index:199;display:none}
-.sb-overlay.show{display:block}
-
-/* MOBILE */
-@media(max-width:640px){
-  :root{--sw:min(78vw,260px)}
-  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:200;width:var(--sw)!important;padding:12px 8px!important;opacity:1!important;transform:translateX(-100%);transition:transform .28s cubic-bezier(.16,1,.3,1);pointer-events:none}
-  .sidebar:not(.collapsed){transform:translateX(0);pointer-events:auto}
-  .sidebar.collapsed{transform:translateX(-100%);pointer-events:none}
-  .msg.user{padding:14px 16px 0}
-  .msg.bot{padding:18px 16px 0}
-  .bubble{max-width:88%}
-  .input-sub{display:none}
+.model-option-name{
+  font-family:var(--fd);font-size:13px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.06em;color:var(--ink);
 }
+.model-option.active .model-option-name{color:var(--paper)}
+
+.model-option-desc{
+  font-size:11px;color:var(--ink);opacity:.5;margin-top:3px;
+  letter-spacing:0;text-transform:none;font-weight:500;font-family:var(--fd);
+}
+.model-option.active .model-option-desc{color:var(--paper);opacity:.55}
+
+.model-option-dot{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  width:6px;height:6px;background:var(--acc);display:none;
+}
+.model-option.active .model-option-dot{display:block}
 </style>
 </head>
 <body>
-<div id="app">
-  <div class="shell">
-    <!-- SIDEBAR -->
-    <div class="sidebar" id="sidebar">
-      <div class="sb-logo">
-        <div class="sb-logo-mark">
-          <svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 1L15 8L8 15L1 8Z"/></svg>
-        </div>
-        <span class="sb-logo-name">Cloak</span>
-      </div>
-      <button class="sb-new" onclick="newChat()">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg>
-        New Chat
-      </button>
-      <div class="sb-label">Recents</div>
-      <div class="conv-list" id="conv-list"></div>
-      <div class="sb-footer">
-        <div class="user-row">
-          <div class="user-av" id="user-av">U</div>
-          <div>
-            <div class="user-name" id="user-name">Guest</div>
-            <div class="user-email">Cloak Session</div>
-          </div>
-        </div>
-      </div>
+
+<!-- ── LOADING ── -->
+<div id="s-loading"></div>
+
+<!-- ── AUTH ── -->
+<div id="s-auth" class="screen">
+  <div class="auth-card">
+    <div class="brand">
+      <div class="brand-name">Cloak</div>
+      <div class="brand-tag">A human resource, not a companion.</div>
     </div>
-    <div class="sb-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
-
-    <!-- MAIN -->
-    <div class="main">
-      <!-- TOPBAR -->
-      <div class="topbar">
-        <div class="topbar-left">
-          <button class="icon-btn" onclick="toggleSidebar()" title="Toggle sidebar">
-            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="0" y1="1" x2="16" y2="1"/><line x1="0" y1="6" x2="16" y2="6"/><line x1="0" y1="11" x2="16" y2="11"/></svg>
-          </button>
-
-          <!-- MODEL PICKER -->
-          <div class="model-picker" id="model-picker">
-            <div class="model-btn" id="model-btn" onclick="toggleModelMenu()">
-              <span id="model-btn-name">Pneuma</span>
-              <span class="chevron">
-                <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-              </span>
-            </div>
-            <div class="model-dropdown" id="model-dropdown">
-              <div class="model-option active" onclick="selectModel('pneuma','Pneuma','Fast & responsive for everyday tasks')">
-                <span class="model-option-name">Pneuma</span>
-                <span class="model-option-desc">Fast & responsive for everyday tasks</span>
-                <span class="model-option-active-mark"></span>
-              </div>
-              <div class="model-option" onclick="selectModel('logos','Logos','Deep reasoning & complex problem solving')">
-                <span class="model-option-name">Logos</span>
-                <span class="model-option-desc">Deep reasoning & complex problem solving</span>
-                <span class="model-option-active-mark"></span>
-              </div>
-              <div class="model-option" onclick="selectModel('kairos','Kairos','Creative & long-context tasks')">
-                <span class="model-option-name">Kairos</span>
-                <span class="model-option-desc">Creative & long-context tasks</span>
-                <span class="model-option-active-mark"></span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="topbar-right">
-          <button class="icon-btn dark-toggle" onclick="toggleDark()" title="Toggle dark mode">
-            <span class="moon">🌙</span>
-            <span class="sun">☀️</span>
-          </button>
-        </div>
+    <div class="seg">
+      <button class="seg-btn active" id="tab-in" onclick="authMode('in')">Sign in</button>
+      <button class="seg-btn" id="tab-up" onclick="authMode('up')">Create account</button>
+    </div>
+    <div class="form">
+      <div id="field-name" style="display:none">
+        <label class="field-label">Your name</label>
+        <input class="input" id="inp-name" type="text" placeholder="Weston" autocomplete="name" onkeydown="authKey(event,'inp-email')">
       </div>
-
-      <!-- CHAT -->
-      <div class="chat-area" id="chat-area">
-        <div id="empty-state" class="empty">
-          <div class="empty-inner">
-            <div class="empty-mark">
-              <svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 2L22 12L12 22L2 12Z"/></svg>
-            </div>
-            <h1 class="empty-greeting">Hey there.</h1>
-            <p class="empty-slogan">A human resource, not a companion.</p>
-            <div class="chip-row">
-              <button class="chip" onclick="chipSend('Explain quantum entanglement simply')">Explain simply</button>
-              <button class="chip" onclick="chipSend('Help me write a professional email')">Write & edit</button>
-              <button class="chip" onclick="chipSend('Debug this Python function for me')">Debug code</button>
-            </div>
-          </div>
-        </div>
-        <div id="messages" class="messages" style="display:none"></div>
+      <div>
+        <label class="field-label">Email</label>
+        <input class="input" id="inp-email" type="email" placeholder="you@example.com" autocomplete="email" onkeydown="authKey(event,'inp-pass')">
       </div>
+      <div>
+        <label class="field-label">Password</label>
+        <input class="input" id="inp-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="authKey(event,'inp-confirm',true)">
+      </div>
+      <div id="field-confirm" style="display:none">
+        <label class="field-label">Confirm password</label>
+        <input class="input" id="inp-confirm" type="password" placeholder="••••••••" onkeydown="authKey(event,null)">
+      </div>
+      <div class="err-msg" id="auth-err"></div>
+      <button class="btn-primary" id="btn-submit" onclick="handleAuth()">Sign in</button>
+      <div class="auth-divider">
+        <div class="auth-divider-line"></div>
+        <div class="auth-divider-text">or</div>
+        <div class="auth-divider-line"></div>
+      </div>
+      <button class="btn-ghost" onclick="startGuest()">Continue as guest</button>
+    </div>
+    <div class="auth-note">
+      <a href="landing.html">What is Cloak?</a> &middot; <a href="values.html">Our values &rarr;</a>
+    </div>
+  </div>
+</div>
 
-      <!-- INPUT -->
-      <div class="input-area">
-        <div class="input-wrap">
-          <div class="input-box">
-            <button class="plus-btn" onclick="togglePlusMenu(event)" title="Options">+</button>
-            <textarea id="chat-input" class="chat-input" placeholder="Say something..." rows="1" oninput="onInput(this)" onkeydown="onKey(event)"></textarea>
-            <button id="send-btn" class="send-btn" disabled onclick="handleSendBtn()">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="1" x2="7" y2="13"/><polyline points="2,6 7,1 12,6"/></svg>
-            </button>
+<!-- ── VERIFY ── -->
+<div id="s-verify" class="screen">
+  <div class="auth-card">
+    <div class="brand">
+      <div class="brand-name">Check your email</div>
+    </div>
+    <p class="hint-text">We sent a link to <strong id="verify-addr"></strong>. Click it to confirm, then come back and sign in.</p>
+    <div class="form">
+      <div class="ok-msg">Verification email sent</div>
+      <button class="btn-primary" onclick="show('auth')">Back to sign in</button>
+      <div class="link-row"><a onclick="resendVerify()">Resend email</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MFA ── -->
+<div id="s-mfa" class="screen">
+  <div class="auth-card">
+    <div class="brand">
+      <div class="brand-name">Two-factor auth</div>
+    </div>
+    <p class="hint-text">Enter the 6-digit code from your authenticator app.</p>
+    <div class="form">
+      <input class="input mono-input" id="mfa-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" onkeydown="if(event.key==='Enter')handleMfa()">
+      <div class="err-msg" id="mfa-err"></div>
+      <button class="btn-primary" onclick="handleMfa()">Verify</button>
+      <div class="link-row"><a onclick="show('auth')">Back to sign in</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CHAT ── -->
+<div id="s-chat">
+  <div id="ios-inset"></div>
+
+  <!-- Announcement bar -->
+  <div class="ann" id="ann-bar">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M22 8.93V3l-8 5H6a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h1l2 5h3l-1-5h3l8 5V8.93z"/></svg>
+    <span class="ann-text" id="ann-msg"></span>
+    <button class="ann-x" onclick="dismissAnn()">&times;</button>
+  </div>
+
+  <!-- ── SETTINGS MODAL ── -->
+  <div class="overlay" id="modal-settings" style="display:none" onclick="overlayClick(event,'modal-settings')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-head">
+        <div class="modal-title">Settings</div>
+        <button class="modal-x" onclick="closeModal('modal-settings')">&times;</button>
+      </div>
+      <div class="settings-layout">
+        <nav class="settings-nav">
+          <button class="snav-btn on" id="snav-general" onclick="switchSettingsTab('general')">
+            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+            Account
+          </button>
+          <button class="snav-btn" id="snav-appearance" onclick="switchSettingsTab('appearance')">
+            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
+            Appearance
+          </button>
+          <button class="snav-btn" id="snav-security" onclick="switchSettingsTab('security')">
+            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+            Security
+          </button>
+          <button class="snav-btn" id="snav-console" onclick="switchSettingsTab('console')">
+            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></span>
+            Console
+          </button>
+          <button class="snav-btn" id="snav-admin" style="display:none" onclick="switchSettingsTab('admin')">
+            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg></span>
+            Admin
+          </button>
+        </nav>
+        <div class="settings-body">
+          <!-- Account -->
+          <div class="spane on" id="spane-general">
+            <div class="srow">
+              <div class="srow-name">Account</div>
+              <div class="info-box" style="display:flex;align-items:center;gap:10px;margin-top:8px">
+                <div class="user-av" id="s-av" style="width:36px;height:36px;font-size:14px">?</div>
+                <div><div style="font-size:14px;font-weight:500" id="s-name">—</div><div style="font-size:12px;opacity:.5" id="s-email">—</div></div>
+              </div>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Display name</div>
+              <div class="srow-desc">Shown in conversations and the greeting.</div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <input class="inp-field" id="s-name-inp" placeholder="Your name" style="flex:1">
+                <button class="cta" onclick="saveName()">Save</button>
+              </div>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Clear all chats</div>
+              <button class="danger" style="margin-top:8px" onclick="clearAllChats()">Delete all conversations</button>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Sign out</div>
+              <button class="danger" style="margin-top:8px" onclick="doLogout()">Sign out of Cloak</button>
+            </div>
           </div>
-          <div class="plus-menu" id="plus-menu">
-            <button class="plus-item" onclick="toggleMode('homework')">
-              <span class="plus-item-icon">📚</span>
-              <span>
-                <span class="plus-item-label">Homework Mode</span>
-                <span class="plus-item-desc">Hints only, no full answers</span>
-              </span>
-            </button>
-            <button class="plus-item" onclick="toggleMode('think')">
-              <span class="plus-item-icon">🧠</span>
-              <span>
-                <span class="plus-item-label">Extended Thinking</span>
-                <span class="plus-item-desc">Logos & Kairos only</span>
-              </span>
-            </button>
-            <button class="plus-item" onclick="toggleMode('concise')">
-              <span class="plus-item-icon">⚡</span>
-              <span>
-                <span class="plus-item-label">Concise Mode</span>
-                <span class="plus-item-desc">Short, direct responses</span>
-              </span>
-            </button>
+
+          <!-- Appearance -->
+          <div class="spane" id="spane-appearance">
+            <div class="srow">
+              <div class="srow-head"><div class="srow-name">Light / Dark mode</div></div>
+              <div class="srow-desc">Currently <span id="mode-label">dark</span> mode.</div>
+              <button class="cta" style="margin-top:8px" onclick="toggleDark()">Toggle light / dark</button>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Theme</div>
+              <div class="srow-desc">Choose a color palette. All themes support light and dark mode.</div>
+              <div class="theme-grid" style="margin-top:10px">
+                <div class="theme-card" id="theme-default" onclick="setTheme('default')">
+                  <div class="theme-swatch">
+                    <div class="theme-dot" style="background:#F2EEE5;border-color:#0A0A0A"></div>
+                    <div class="theme-dot" style="background:#D44D2A"></div>
+                    <div class="theme-dot" style="background:#0A0A0A"></div>
+                  </div>
+                  <div class="theme-name">Default</div>
+                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                </div>
+                <div class="theme-card" id="theme-eco" onclick="setTheme('eco')">
+                  <div class="theme-swatch">
+                    <div class="theme-dot" style="background:#F0F7EC;border-color:#1A2E10"></div>
+                    <div class="theme-dot" style="background:#3A7D2C"></div>
+                    <div class="theme-dot" style="background:#8BC34A"></div>
+                  </div>
+                  <div class="theme-name">Eco</div>
+                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                </div>
+                <div class="theme-card" id="theme-aqua" onclick="setTheme('aqua')">
+                  <div class="theme-swatch">
+                    <div class="theme-dot" style="background:#EAF4F8;border-color:#0A1E2E"></div>
+                    <div class="theme-dot" style="background:#0B7EA8"></div>
+                    <div class="theme-dot" style="background:#00B4D8"></div>
+                  </div>
+                  <div class="theme-name">Aqua</div>
+                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="input-foot">
-            <span class="input-sub">Enter to send · Shift+Enter for newline</span>
-            <span class="input-sub" id="model-indicator" style="color:var(--acc);opacity:.6">Pneuma</span>
+
+          <!-- Security -->
+          <div class="spane" id="spane-security">
+            <div class="srow">
+              <div class="srow-head"><div class="srow-name">Two-factor authentication</div></div>
+              <div class="srow-desc">Add an authenticator app as a second step on sign-in.</div>
+              <button class="cta" style="margin-top:10px" onclick="start2FA()">Set up 2FA</button>
+              <div id="totp-section" style="display:none;margin-top:14px">
+                <div id="totp-qr" style="text-align:center;margin-bottom:10px"></div>
+                <div class="secret-box" id="totp-secret" style="margin-bottom:12px"></div>
+                <div style="font-size:12px;opacity:.5;margin-bottom:10px">Enter the 6-digit code to confirm:</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <input class="input mono-input" id="totp-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" style="max-width:160px;font-size:18px">
+                  <button class="cta" onclick="confirmTOTP()">Enable</button>
+                </div>
+                <div class="err-msg" id="totp-err" style="margin-top:8px"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Console -->
+          <div class="spane" id="spane-console">
+            <div class="srow" style="padding-top:0">
+              <div class="stats-row">
+                <div class="stat s-req"><div class="stat-n" id="st-req">0</div><div class="stat-l">Requests</div></div>
+                <div class="stat s-res"><div class="stat-n" id="st-res">0</div><div class="stat-l">Responses</div></div>
+                <div class="stat s-err"><div class="stat-n" id="st-err">0</div><div class="stat-l">Errors</div></div>
+                <div class="stat s-lat"><div class="stat-n" id="st-lat">—</div><div class="stat-l">Avg ms</div></div>
+              </div>
+              <div class="filter-row">
+                <div class="filter-pills">
+                  <button class="filter-pill on" onclick="setFilter('all',this)">All</button>
+                  <button class="filter-pill" onclick="setFilter('req',this)">Req</button>
+                  <button class="filter-pill" onclick="setFilter('res',this)">Res</button>
+                  <button class="filter-pill" onclick="setFilter('err',this)">Err</button>
+                  <button class="filter-pill" onclick="setFilter('inf',this)">Info</button>
+                </div>
+                <button class="clear-log" onclick="clearLogs()">Clear</button>
+              </div>
+              <div class="console-log" id="console-log"><div class="log-empty">No logs yet</div></div>
+            </div>
+          </div>
+
+          <!-- Admin -->
+          <div class="spane" id="spane-admin">
+            <div class="srow">
+              <div class="srow-head"><div class="srow-name">Admin panel</div><span class="srow-badge">Owner</span></div>
+              <div class="srow-desc">Announcements appear as a banner to all signed-in users.</div>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Post announcement</div>
+              <textarea class="inp-field" id="ann-compose" placeholder="Write an announcement…" style="margin-top:8px;min-height:76px;resize:vertical;font-family:inherit;font-size:13px;line-height:1.6"></textarea>
+              <button class="cta" style="margin-top:8px" onclick="postAnn()">Post</button>
+            </div>
+            <div class="srow">
+              <div class="srow-name">Active announcements</div>
+              <div class="ann-list" id="admin-ann-list" style="margin-top:8px"><div style="font-size:13px;opacity:.5">None active.</div></div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <div class="chat-shell">
+    <div class="sb-overlay" id="sb-overlay" onclick="closeMobileSidebar()"></div>
+
+    <!-- ── SIDEBAR ── -->
+    <div class="sidebar collapsed" id="sidebar">
+      <div class="sb-logo">
+        <span class="sb-logo-name">Cloak</span>
+      </div>
+      <button class="sb-btn sb-new" onclick="newChat()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        New chat
+      </button>
+      <div class="sb-label">Recent</div>
+      <div class="conv-list" id="conv-list"></div>
+      <div id="guest-note" style="display:none" class="guest-note">Guest &mdash; <a onclick="show('auth');closeMobileSidebar()">Sign up</a> to save chats.</div>
+
+      <div class="sb-footer">
+        <div id="sb-ann-bar">
+          <div style="display:flex;align-items:flex-start;gap:6px">
+            <div id="sb-ann-msg" style="flex:1"></div>
+            <button onclick="dismissAnn()" style="background:var(--ink);border:none;color:var(--paper);width:18px;height:18px;font-size:10px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">&times;</button>
+          </div>
+        </div>
+        <div class="sb-label" style="margin-bottom:2px">Account</div>
+        <div class="user-row">
+          <div class="user-av" id="sb-av">?</div>
+          <div class="user-info">
+            <div class="user-name" id="sb-name">—</div>
+            <div class="user-email" id="sb-email">—</div>
+          </div>
+        </div>
+        <button class="sb-btn" onclick="openSettings()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+          Settings
+        </button>
+        <button class="sb-btn" onclick="window.location.href='values.html'">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+          Our Values
+        </button>
+      </div>
+    </div>
+
+    <!-- ── MAIN AREA ── -->
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-left">
+          <button class="icon-btn" onclick="toggleSidebar()" title="Toggle sidebar">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+          </button>
+
+          <!-- ── MODEL PICKER (replaces status pill) ── -->
+          <div class="model-picker" id="model-picker">
+            <div class="model-btn" id="model-btn" onclick="toggleModelMenu(event)">
+              <span id="model-btn-label">Pneuma</span>
+              <span class="mdl-chevron">
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </span>
+            </div>
+            <div class="model-dropdown" id="model-dropdown">
+              <div class="model-option active" data-model="pneuma" onclick="selectModel(this)">
+                <span class="model-option-name">Pneuma</span>
+                <span class="model-option-desc">Fast &amp; responsive for everyday tasks</span>
+                <span class="model-option-dot"></span>
+              </div>
+              <div class="model-option" data-model="logos" onclick="selectModel(this)">
+                <span class="model-option-name">Logos</span>
+                <span class="model-option-desc">Deep reasoning &amp; complex problem solving</span>
+                <span class="model-option-dot"></span>
+              </div>
+              <div class="model-option" data-model="kairos" onclick="selectModel(this)">
+                <span class="model-option-name">Kairos</span>
+                <span class="model-option-desc">Creative &amp; long-context tasks</span>
+                <span class="model-option-dot"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <button class="icon-btn" onclick="toggleDark()" title="Toggle theme">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24">
+              <path class="moon" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              <g class="sun"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></g>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Chat area -->
+      <div class="chat-area" id="chat-area">
+        <div class="empty" id="empty-state">
+          <div class="empty-inner">
+            <div class="empty-greeting" id="empty-greeting">Hey there!</div>
+            <div class="empty-slogan">A human resource, not a companion.</div>
+            <div class="chip-row" id="chip-row">
+              <button class="chip" onclick="chipSend('Explain something complex simply')">Explain simply</button>
+              <button class="chip" onclick="chipSend('Help me write or edit something')">Write &amp; edit</button>
+              <button class="chip" onclick="chipSend('Debug or review my code')">Debug code</button>
+              <button class="chip" onclick="chipSend('Research and summarize a topic')">Research</button>
+            </div>
+          </div>
+        </div>
+        <div class="messages" id="messages" style="display:none"></div>
+      </div>
+
+      <!-- Input area -->
+      <div class="input-area">
+        <div class="input-wrap">
+          <div class="input-area-wrap">
+            <!-- Plus menu -->
+            <div class="plus-menu" id="plus-menu">
+              <button class="plus-item" id="menu-think" onclick="toggleThinkMode()">
+                <span class="plus-item-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg></span>
+                <span class="plus-item-text">
+                  <span class="plus-item-label">Think mode</span>
+                  <span class="plus-item-desc">Deep reasoning and outlines</span>
+                </span>
+                <span class="plus-item-check"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
+              </button>
+              <button class="plus-item" id="menu-homework" onclick="toggleHwMode()">
+                <span class="plus-item-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
+                <span class="plus-item-text">
+                  <span class="plus-item-label">Homework mode</span>
+                  <span class="plus-item-desc">Guided learning, not just answers</span>
+                </span>
+                <span class="plus-item-check"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
+              </button>
+            </div>
+
+            <!-- Mode labels -->
+            <div style="display:flex;gap:6px;">
+              <div class="hw-label" id="think-label">
+                Think mode
+                <button class="hw-label-x" onclick="toggleThinkMode()">&times;</button>
+              </div>
+              <div class="hw-label" id="hw-label">
+                Homework mode
+                <button class="hw-label-x" onclick="toggleHwMode()">&times;</button>
+              </div>
+            </div>
+
+            <!-- Image strip -->
+            <div class="img-strip" id="img-strip"></div>
+
+            <!-- Input box -->
+            <div class="input-box" id="input-box">
+              <input type="file" id="img-upload" accept="image/*" multiple style="display:none" onchange="onImgPick(this)">
+              <button class="plus-btn" id="plus-btn" onclick="togglePlusMenu(event)" title="Modes">+</button>
+              <textarea class="chat-input" id="chat-input" placeholder="Message Cloak…" rows="1"
+                oninput="onInput(this)" onkeydown="onKey(event)" onpaste="onPaste(event)"></textarea>
+              <button class="send-btn" id="mic-btn" style="background:var(--surf);color:var(--ink);border:var(--bd);" onclick="startVoiceMode()" title="Voice mode">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
+              </button>
+              <button class="send-btn" id="send-btn" onclick="send()" disabled>
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="input-foot">
+            <span class="input-sub">Cloak can make mistakes. Verify important information.</span>
+            <span class="input-sub">Enter to send &middot; Shift+Enter for new line</span>
+          </div>
+          <div class="input-disc">Not a mental health resource &mdash; if you're struggling, please contact a real person or <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer" class="disc-link">a helpline</a>.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VOICE OVERLAY -->
+  <div class="voice-overlay" id="voice-overlay">
+    <button class="voice-close" onclick="stopVoiceMode()" title="Exit voice mode">&times;</button>
+    <div class="voice-ascii" id="voice-ascii">[ - - - - - ]</div>
+    <div class="voice-status" id="voice-status">Idle</div>
+    <div class="voice-transcript" id="voice-transcript">Say something...</div>
+  </div>
+
+  <!-- ONBOARDING -->
+  <div class="onboard-overlay" id="onboard-modal" style="display:none">
+    <div class="onboard-card">
+      <div class="onboard-head">
+        <div class="onboard-title">Before you begin</div>
+        <div class="onboard-sub">A human resource, not a companion.</div>
+      </div>
+      <div class="onboard-body">
+        <div class="onboard-item">
+          <div class="onboard-num">I</div>
+          <div class="onboard-text"><strong>AI is a tool &mdash; not a companion.</strong> Cloak exists to serve you, not replace human connection or judgment.</div>
+        </div>
+        <div class="onboard-item">
+          <div class="onboard-num">II</div>
+          <div class="onboard-text"><strong>Not a mental health resource.</strong> If you're struggling, please reach out to a trusted person or professional &mdash; not a chatbot.</div>
+        </div>
+        <div class="onboard-item">
+          <div class="onboard-num">III</div>
+          <div class="onboard-text"><strong>No mass harm, ever.</strong> Cloak will not assist with anything that could harm or endanger groups of people.</div>
+        </div>
+      </div>
+      <div class="onboard-foot">
+        <div class="onboard-check" onclick="toggleOnboardCheck()">
+          <div class="onboard-checkbox" id="onboard-checkbox"></div>
+          <div class="onboard-check-label">I understand and agree</div>
+        </div>
+        <button class="btn-primary" id="onboard-btn" onclick="confirmOnboarding()" disabled style="cursor:not-allowed;opacity:.32">Continue to Cloak</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AD CONSENT -->
+  <div class="ad-overlay" id="ad-modal" style="display:none">
+    <div class="ad-card">
+      <div class="ad-title">Allow ads?</div>
+      <div class="ad-text">Ads allow Cloak to offset carbon emissions and improve services for everyone.</div>
+      <div class="ad-actions">
+        <button class="btn-agree" onclick="handleAdAgree()">Agree</button>
+        <button class="btn-disagree" id="ad-disagree-btn" onclick="handleAdDisagree()">Disagree</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LINK INTERCEPT -->
+  <div class="link-overlay" id="link-modal" style="display:none">
+    <div class="link-card">
+      <div class="link-title">Leaving Cloak</div>
+      <div class="link-url" id="link-url-display"></div>
+      <div class="link-actions">
+        <button class="link-cancel" onclick="closeLinkModal()">Cancel</button>
+        <button class="link-go" id="link-go-btn">Open link &#x2197;</button>
+      </div>
+    </div>
+  </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<!-- ── MODEL PICKER LOGIC ── -->
 <script>
-// ── STATE ──
-let currentModel = 'pneuma';
-let currentConvId = null;
-let conversations = JSON.parse(localStorage.getItem('cloak_convs') || '{}');
-let isStreaming = false;
-let streamAbort = null;
-let activeMode = null;
+// Current selected model — exposed as window.cloakModel so cloak.js can read it
+window.cloakModel = 'pneuma';
 
-// ── DARK MODE ──
-(function(){
-  if(localStorage.getItem('cloak_dark') !== '0') document.body.classList.add('dark');
-})();
-function toggleDark(){
-  document.body.classList.toggle('dark');
-  localStorage.setItem('cloak_dark', document.body.classList.contains('dark') ? '1' : '0');
-}
+// Model → API model string mapping for api.usecloak.org
+window.cloakModelMap = {
+  pneuma: 'pneuma',   // fast daily model
+  logos:  'logos',    // reasoning model
+  kairos: 'kairos'    // creative/long-context model
+};
 
-// ── SIDEBAR ──
-function toggleSidebar(){
-  const sb = document.getElementById('sidebar');
-  const ov = document.getElementById('sb-overlay');
-  if(window.innerWidth < 640){
-    sb.classList.toggle('collapsed');
-    ov.classList.toggle('show', !sb.classList.contains('collapsed'));
-  } else {
-    sb.classList.toggle('collapsed');
-  }
-}
-function closeSidebar(){
-  document.getElementById('sidebar').classList.add('collapsed');
-  document.getElementById('sb-overlay').classList.remove('show');
-}
-
-// ── MODEL PICKER ──
-function toggleModelMenu(){
+function toggleModelMenu(e) {
+  e && e.stopPropagation();
   const btn = document.getElementById('model-btn');
-  const dd = document.getElementById('model-dropdown');
-  const isOpen = dd.classList.contains('open');
-  dd.classList.toggle('open', !isOpen);
-  btn.classList.toggle('open', !isOpen);
+  const dd  = document.getElementById('model-dropdown');
+  const opening = !dd.classList.contains('open');
+  dd.classList.toggle('open', opening);
+  btn.classList.toggle('open', opening);
 }
-function selectModel(id, name, desc){
-  currentModel = id;
-  document.getElementById('model-btn-name').textContent = name;
-  document.getElementById('model-indicator').textContent = name;
-  document.querySelectorAll('.model-option').forEach(opt => {
-    const n = opt.querySelector('.model-option-name').textContent;
-    opt.classList.toggle('active', n === name);
-  });
+
+function selectModel(optEl) {
+  const modelId = optEl.dataset.model;
+  window.cloakModel = modelId;
+
+  // Update button label
+  const name = optEl.querySelector('.model-option-name').textContent;
+  document.getElementById('model-btn-label').textContent = name;
+
+  // Update active state
+  document.querySelectorAll('.model-option').forEach(o => o.classList.remove('active'));
+  optEl.classList.add('active');
+
+  // Close dropdown
   document.getElementById('model-dropdown').classList.remove('open');
   document.getElementById('model-btn').classList.remove('open');
+
+  // Persist selection
+  localStorage.setItem('cloak_model', modelId);
 }
-document.addEventListener('click', e => {
-  if(!document.getElementById('model-picker').contains(e.target)){
+
+// Restore persisted model on load
+(function() {
+  const saved = localStorage.getItem('cloak_model');
+  if (saved && document.querySelector(`.model-option[data-model="${saved}"]`)) {
+    const opt = document.querySelector(`.model-option[data-model="${saved}"]`);
+    document.querySelectorAll('.model-option').forEach(o => o.classList.remove('active'));
+    opt.classList.add('active');
+    document.getElementById('model-btn-label').textContent =
+      opt.querySelector('.model-option-name').textContent;
+    window.cloakModel = saved;
+  }
+})();
+
+// Close dropdown on outside click
+document.addEventListener('click', function(e) {
+  if (!document.getElementById('model-picker').contains(e.target)) {
     document.getElementById('model-dropdown').classList.remove('open');
     document.getElementById('model-btn').classList.remove('open');
   }
-  if(!document.getElementById('plus-menu').contains(e.target) && !e.target.closest('.plus-btn')){
-    document.getElementById('plus-menu').classList.remove('open');
-  }
 });
 
-// ── PLUS MENU ──
-function togglePlusMenu(e){
-  e.stopPropagation();
-  document.getElementById('plus-menu').classList.toggle('open');
-}
-function toggleMode(mode){
-  const items = document.querySelectorAll('.plus-item');
-  if(activeMode === mode){
-    activeMode = null;
-    items.forEach(i => i.classList.remove('mode-on'));
-  } else {
-    activeMode = mode;
-    items.forEach((i, idx) => {
-      const modes = ['homework','think','concise'];
-      i.classList.toggle('mode-on', modes[idx] === mode);
-    });
-  }
-  document.getElementById('plus-menu').classList.remove('open');
-}
+// ── API OVERRIDE: patch cloakSendMessage to use api.usecloak.org ──
+// This runs after cloak.js loads (cloak.js is deferred), so we use a MutationObserver
+// to patch after DOMContentLoaded, then again after cloak.js initialises.
+// The key hook: override window.cloakSendMessage and window.cloakApiCall
+// so all requests go through api.usecloak.org with the selected model.
 
-// ── INPUT ──
-function onInput(el){
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 152) + 'px';
-  document.getElementById('send-btn').disabled = !el.value.trim() && !isStreaming;
-}
-function onKey(e){
-  if(e.key === 'Enter' && !e.shiftKey){
-    e.preventDefault();
-    if(!document.getElementById('send-btn').disabled) handleSendBtn();
-  }
-}
-function chipSend(text){
-  document.getElementById('chat-input').value = text;
-  onInput(document.getElementById('chat-input'));
-  send();
-}
-function handleSendBtn(){
-  if(isStreaming){ stopStream(); return; }
-  send();
-}
-function stopStream(){
-  if(streamAbort) streamAbort.abort();
-  isStreaming = false;
-  updateSendBtn();
-}
-function updateSendBtn(){
-  const btn = document.getElementById('send-btn');
-  const inp = document.getElementById('chat-input');
-  if(isStreaming){
-    btn.disabled = false;
-    btn.classList.add('stop');
-    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="white"><rect x="1" y="1" width="10" height="10" rx="1"/></svg>`;
-  } else {
-    btn.classList.remove('stop');
-    btn.disabled = !inp.value.trim();
-    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="1" x2="7" y2="13"/><polyline points="2,6 7,1 12,6"/></svg>`;
-  }
-}
+const CLOAK_API_BASE = 'https://api.usecloak.org';
 
-// ── CONVERSATIONS ──
-function newChat(){
-  currentConvId = null;
-  document.getElementById('messages').innerHTML = '';
-  document.getElementById('messages').style.display = 'none';
-  document.getElementById('empty-state').style.display = 'flex';
-  document.querySelectorAll('.conv-item').forEach(i => i.classList.remove('active'));
-  document.getElementById('chat-input').value = '';
-  onInput(document.getElementById('chat-input'));
-}
-function loadConversations(){
-  const list = document.getElementById('conv-list');
-  list.innerHTML = '';
-  const entries = Object.entries(conversations).sort((a,b) => b[1].ts - a[1].ts).slice(0, 30);
-  entries.forEach(([id, conv]) => {
-    const item = document.createElement('div');
-    item.className = 'conv-item' + (id === currentConvId ? ' active' : '');
-    item.dataset.id = id;
-    item.innerHTML = `<div class="conv-label" onclick="loadConv('${id}')">${conv.title || 'Chat'}</div><button class="conv-del" onclick="deleteConv('${id}',event)" title="Delete">✕</button>`;
-    list.appendChild(item);
-  });
-}
-function saveConv(id, messages, title){
-  conversations[id] = { messages, title: title || 'Chat', ts: Date.now() };
-  localStorage.setItem('cloak_convs', JSON.stringify(conversations));
-  loadConversations();
-}
-function loadConv(id){
-  currentConvId = id;
-  const conv = conversations[id];
-  if(!conv) return;
-  document.getElementById('empty-state').style.display = 'none';
-  const msgs = document.getElementById('messages');
-  msgs.style.display = 'flex';
-  msgs.innerHTML = '';
-  conv.messages.forEach(m => {
-    if(m.role === 'user') appendUserMsg(m.content, false);
-    else if(m.role === 'assistant') appendBotMsg(m.content, false);
-  });
-  document.querySelectorAll('.conv-item').forEach(i => {
-    i.classList.toggle('active', i.dataset.id === id);
-  });
-  scrollBottom();
-}
-function deleteConv(id, e){
-  e.stopPropagation();
-  delete conversations[id];
-  localStorage.setItem('cloak_convs', JSON.stringify(conversations));
-  if(currentConvId === id) newChat();
-  loadConversations();
-}
-
-// ── MESSAGES ──
-function appendUserMsg(text, animate=true){
-  document.getElementById('empty-state').style.display = 'none';
-  document.getElementById('messages').style.display = 'flex';
-  const msg = document.createElement('div');
-  msg.className = 'msg user';
-  if(!animate) msg.style.animation = 'none';
-  msg.innerHTML = `
-    <div class="bubble">${escHtml(text)}</div>
-    <div class="msg-actions">
-      <button class="msg-action-btn" title="Copy" onclick="copyText(this,'${escHtml(text).replace(/'/g,"\\'")}')">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="7" height="7" rx="0.5"/><path d="M2 8V1.5A.5.5 0 012.5 1H9"/></svg>
-      </button>
-    </div>`;
-  document.getElementById('messages').appendChild(msg);
-  scrollBottom();
-  return msg;
-}
-
-function appendBotMsg(content, animate=true){
-  const msg = document.createElement('div');
-  msg.className = 'msg bot';
-  if(!animate) msg.style.animation = 'none';
-  const modelNames = {pneuma:'Pneuma',logos:'Logos',kairos:'Kairos'};
-  msg.innerHTML = `
-    <div class="bot-meta">
-      <div class="bot-dot"></div>
-      <span class="bot-badge">${modelNames[currentModel] || 'Cloak'}</span>
-    </div>
-    <div class="bot-content">${marked.parse(content)}</div>
-    <div class="msg-actions">
-      <button class="msg-action-btn" title="Copy" onclick="copyMd(this,${JSON.stringify(content)})">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="7" height="7" rx="0.5"/><path d="M2 8V1.5A.5.5 0 012.5 1H9"/></svg>
-      </button>
-    </div>`;
-  document.getElementById('messages').appendChild(msg);
-  scrollBottom();
-  return msg;
-}
-
-function appendTyping(){
-  const msg = document.createElement('div');
-  msg.className = 'msg bot';
-  msg.id = 'typing-msg';
-  const modelNames = {pneuma:'Pneuma',logos:'Logos',kairos:'Kairos'};
-  msg.innerHTML = `
-    <div class="bot-meta">
-      <div class="bot-dot"></div>
-      <span class="bot-badge">${modelNames[currentModel] || 'Cloak'}</span>
-    </div>
-    <div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
-  document.getElementById('messages').appendChild(msg);
-  scrollBottom();
-  return msg;
-}
-
-function appendErrorMsg(rawError){
-  // Mask ugly API errors
-  let friendly = 'Cloak ran into an issue and misgenerated a response. Please append your prompt and try again.';
-  const msg = document.createElement('div');
-  msg.className = 'msg bot';
-  msg.innerHTML = `
-    <div class="bot-meta"><div class="bot-dot" style="background:var(--acc)"></div><span class="bot-badge" style="color:var(--ink);opacity:.5">System</span></div>
-    <div class="error-card">
-      <div class="error-icon">!</div>
-      <div class="error-body">
-        <div class="error-title">Generation Failed</div>
-        <div class="error-msg">${friendly}</div>
-        <button class="error-retry" onclick="retryLast()">↩ Try again</button>
-      </div>
-    </div>`;
-  document.getElementById('messages').appendChild(msg);
-  scrollBottom();
-}
-
-// ── TASK LIST UI ──
-function createTaskListUI(tasks){
-  const container = document.createElement('div');
-  container.className = 'task-list-container';
-  container.innerHTML = `
-    <div class="task-list-header">
-      <div class="task-list-icon">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="white"><polyline points="1,6 4,9 11,2" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-      </div>
-      <span class="task-list-title">Task Plan</span>
-      <span class="task-list-count" id="task-count-${Date.now()}">0 / ${tasks.length}</span>
-    </div>
-    <div class="task-progress-bar"><div class="task-progress-fill" style="width:0%" id="task-prog-${Date.now()}"></div></div>
-    <div class="task-items" id="task-items-${Date.now()}"></div>`;
-  const countEl = container.querySelector('[id^="task-count-"]');
-  const progEl = container.querySelector('[id^="task-prog-"]');
-  const itemsEl = container.querySelector('[id^="task-items-"]');
-  let completed = 0;
-
-  tasks.forEach((task, i) => {
-    const item = document.createElement('div');
-    item.className = 'task-item task-pending';
-    item.innerHTML = `
-      <div class="task-checkbox"><span class="task-checkbox-check">✓</span></div>
-      <div class="task-text">${task}</div>
-      <span class="task-status-badge">${i === 0 ? 'Next' : 'Pending'}</span>`;
-    itemsEl.appendChild(item);
-  });
-
-  // Expose methods
-  container.activateTask = (idx) => {
-    const items = itemsEl.querySelectorAll('.task-item');
-    items.forEach((item, i) => {
-      item.classList.remove('task-active','task-pending','task-done');
-      if(i < idx) item.classList.add('task-done');
-      else if(i === idx) item.classList.add('task-active');
-      else item.classList.add('task-pending');
-      const badge = item.querySelector('.task-status-badge');
-      if(i < idx) badge.textContent = 'Done';
-      else if(i === idx) badge.textContent = 'Working';
-      else badge.textContent = 'Pending';
-    });
-    completed = idx;
-    const pct = tasks.length > 0 ? Math.round((idx / tasks.length) * 100) : 0;
-    progEl.style.width = pct + '%';
-    countEl.textContent = `${idx} / ${tasks.length}`;
-  };
-  container.completeAll = () => {
-    const items = itemsEl.querySelectorAll('.task-item');
-    items.forEach(item => {
-      item.classList.remove('task-active','task-pending');
-      item.classList.add('task-done');
-      item.querySelector('.task-status-badge').textContent = 'Done';
-    });
-    progEl.style.width = '100%';
-    countEl.textContent = `${tasks.length} / ${tasks.length}`;
-  };
-  container.addTask = (taskText) => {
-    const item = document.createElement('div');
-    item.className = 'task-item task-pending';
-    item.innerHTML = `
-      <div class="task-checkbox"><span class="task-checkbox-check">✓</span></div>
-      <div class="task-text">${taskText}</div>
-      <span class="task-status-badge">Added</span>`;
-    item.style.borderLeft = '3px solid var(--yel)';
-    itemsEl.appendChild(item);
-    tasks.push(taskText);
-    countEl.textContent = `${completed} / ${tasks.length}`;
-  };
-
-  return container;
-}
-
-// ── PROGRESS STEPS ──
-function createProgressSteps(steps){
-  const container = document.createElement('div');
-  container.className = 'progress-container';
-  steps.forEach((step, i) => {
-    const div = document.createElement('div');
-    div.className = 'progress-step step-waiting';
-    div.style.animationDelay = (i * 0.08) + 's';
-    div.innerHTML = `
-      <div class="progress-dot"></div>
-      <span>${step}</span>
-      <span class="progress-step-check">✓</span>`;
-    container.appendChild(div);
-  });
-  container.activateStep = (idx) => {
-    const steps = container.querySelectorAll('.progress-step');
-    steps.forEach((s, i) => {
-      s.classList.remove('step-active','step-done','step-waiting');
-      if(i < idx) s.classList.add('step-done');
-      else if(i === idx) s.classList.add('step-active');
-      else s.classList.add('step-waiting');
-    });
-  };
-  container.completeAll = () => {
-    container.querySelectorAll('.progress-step').forEach(s => {
-      s.classList.remove('step-active','step-waiting');
-      s.classList.add('step-done');
-    });
-  };
-  return container;
-}
-
-// ── ERROR DETECTION ──
-function isApiError(text){
-  return text && (
-    text.includes('Groq direct') ||
-    text.includes('400:') ||
-    text.includes('tool_use_failed') ||
-    text.includes('failed_generation') ||
-    text.includes('invalid_request_error') ||
-    text.includes('"error":{') ||
-    (text.includes('Error:') && text.includes('{'))
-  );
-}
-
-// ── MODEL CONFIG ──
-const MODEL_ID = 'claude-sonnet-4-20250514';
-const MODEL_SYSTEMS = {
-  pneuma: 'You are Pneuma, a fast and direct AI assistant inside Cloak. Be clear and efficient. Answer questions fully and accurately without unnecessary preamble or filler phrases.',
-  logos:  'You are Logos, a reasoning-focused AI assistant inside Cloak. Think carefully through complex problems. Be thorough, precise, and structured in your responses.',
-  kairos: 'You are Kairos, a creative and deep AI assistant inside Cloak. You excel at long-form content, essays, creative writing, and nuanced topics. Be expressive, comprehensive, and thoughtful.'
-};
-const MODE_ADDONS = {
-  homework: ' The user is in Homework Mode: give hints and guide their thinking — do not provide direct answers.',
-  think:    ' Think through the problem carefully step by step before giving your final answer.',
-  concise:  ' Keep your response short and direct. No unnecessary elaboration.'
-};
-
-// ── SEND ──
-let lastUserMsg = '';
-let chatHistory = [];
-
-async function send(){
-  const inp = document.getElementById('chat-input');
-  const text = inp.value.trim();
-  if(!text) return;
-  lastUserMsg = text;
-  inp.value = '';
-  inp.style.height = 'auto';
-
-  if(!currentConvId){
-    currentConvId = Date.now().toString();
-    const title = text.slice(0, 44) + (text.length > 44 ? '…' : '');
-    chatHistory = [];
-    saveConv(currentConvId, [], title);
-  }
-
-  appendUserMsg(text);
-  chatHistory.push({ role: 'user', content: text });
-
-  isStreaming = true;
-  updateSendBtn();
-
-  const isAdvanced = currentModel === 'logos' || currentModel === 'kairos';
-  let progressEl = null;
-  let stepIntervalId = null;
-  const typingMsg = appendTyping();
-
-  // Show progress steps for advanced models in think mode
-  if(isAdvanced && activeMode === 'think'){
-    const stepsData = ['Reading your request', 'Reasoning through it', 'Structuring response', 'Polishing output'];
-    progressEl = createProgressSteps(stepsData);
-    typingMsg.querySelector('.typing').replaceWith(progressEl);
-    let stepIdx = 0;
-    progressEl.activateStep(0);
-    stepIntervalId = setInterval(() => {
-      stepIdx++;
-      if(stepIdx < stepsData.length) progressEl.activateStep(stepIdx);
-      else clearInterval(stepIntervalId);
-    }, 1100);
-  }
-
-  // Build system prompt
-  let system = MODEL_SYSTEMS[currentModel] || MODEL_SYSTEMS.pneuma;
-  if(activeMode && MODE_ADDONS[activeMode]) system += MODE_ADDONS[activeMode];
-
-  try {
-    const responseText = await callClaudeAPI(system, chatHistory.slice(-20));
-
-    if(stepIntervalId) clearInterval(stepIntervalId);
-    if(progressEl) progressEl.completeAll();
-    typingMsg.remove();
-
-    if(isApiError(responseText)) throw new Error(responseText);
-
-    // Show task list if advanced model returned a numbered/bulleted list with 3+ items
-    const tasks = extractTasks(responseText);
-    if(isAdvanced && tasks.length >= 3){
-      renderBotMsgWithTasks(responseText, tasks);
-    } else {
-      appendBotMsg(responseText);
+// Patch function — called after cloak.js is ready
+function patchCloakApi() {
+  // Override the send function if cloak.js exposes one
+  // Strategy: wrap fetch globally to intercept any calls to other AI APIs
+  // and redirect them to api.usecloak.org
+  const _fetch = window.fetch;
+  window.fetch = function(url, opts) {
+    if (typeof url === 'string') {
+      // Redirect Anthropic direct calls → usecloak.org
+      if (url.includes('api.anthropic.com') ||
+          url.includes('groq.com') ||
+          url.includes('openai.com')) {
+        const newUrl = CLOAK_API_BASE + '/v1/chat';
+        const body = opts && opts.body ? JSON.parse(opts.body) : {};
+        // Inject selected model
+        body.model = window.cloakModelMap[window.cloakModel] || window.cloakModel;
+        return _fetch(newUrl, {
+          ...opts,
+          body: JSON.stringify(body),
+          headers: {
+            'Content-Type': 'application/json',
+            ...(opts && opts.headers ? opts.headers : {})
+          }
+        });
+      }
+      // Redirect any /api/ calls that aren't Supabase
+      if (url.startsWith('/api/') && !url.includes('supabase')) {
+        const newUrl = CLOAK_API_BASE + url;
+        const body = opts && opts.body ? safeParseBody(opts.body) : {};
+        if (body && typeof body === 'object') {
+          body.model = window.cloakModelMap[window.cloakModel] || window.cloakModel;
+        }
+        return _fetch(newUrl, {
+          ...opts,
+          body: body ? JSON.stringify(body) : opts.body
+        });
+      }
     }
+    return _fetch(url, opts);
+  };
 
-    chatHistory.push({ role: 'assistant', content: responseText });
-    saveConv(currentConvId, chatHistory, conversations[currentConvId]?.title);
-
-  } catch(err){
-    if(stepIntervalId) clearInterval(stepIntervalId);
-    typingMsg.remove();
-    appendErrorMsg(err?.message || String(err));
-  }
-
-  isStreaming = false;
-  updateSendBtn();
-  scrollBottom();
+  // Also patch XMLHttpRequest for older code paths
+  const _XHROpen = XMLHttpRequest.prototype.open;
+  const _XHRSend = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+    if (typeof url === 'string' &&
+        (url.includes('api.anthropic.com') || url.includes('groq.com') || url.includes('openai.com'))) {
+      url = CLOAK_API_BASE + '/v1/chat';
+    }
+    this._cloakUrl = url;
+    return _XHROpen.call(this, method, url, ...rest);
+  };
 }
 
-// ── ANTHROPIC API (streaming SSE) ──
-async function callClaudeAPI(system, messages){
-  const controller = new AbortController();
-  streamAbort = controller;
+function safeParseBody(body) {
+  if (!body) return null;
+  if (typeof body === 'string') {
+    try { return JSON.parse(body); } catch(e) { return null; }
+  }
+  return body;
+}
 
-  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+// Patch immediately (covers any inline scripts)
+patchCloakApi();
+
+// Also expose a clean send helper that cloak.js can call directly
+// This is the primary integration point if cloak.js uses window.cloakSendMessage
+window.cloakSendMessage = async function(messages, opts = {}) {
+  const resp = await fetch(CLOAK_API_BASE + '/v1/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: MODEL_ID,
-      max_tokens: 1500,
-      system,
-      messages,
-      stream: true
-    }),
-    signal: controller.signal
+      model: window.cloakModelMap[window.cloakModel] || window.cloakModel,
+      messages: Array.isArray(messages) ? messages : [{ role: 'user', content: messages }],
+      stream: opts.stream !== false,
+      ...opts
+    })
   });
 
-  if(!resp.ok){
-    const errData = await resp.json().catch(() => ({}));
-    throw new Error(errData?.error?.message || `HTTP ${resp.status}`);
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `HTTP ${resp.status}`);
   }
-
-  const reader = resp.body.getReader();
-  const decoder = new TextDecoder();
-  let fullText = '';
-  let buffer = '';
-
-  while(true){
-    const { done, value } = await reader.read();
-    if(done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split('\n');
-    buffer = lines.pop();
-    for(const line of lines){
-      if(!line.startsWith('data: ')) continue;
-      const raw = line.slice(6).trim();
-      if(raw === '[DONE]') continue;
-      try {
-        const evt = JSON.parse(raw);
-        if(evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta'){
-          fullText += evt.delta.text;
-        }
-      } catch(e){ /* skip */ }
-    }
-  }
-
-  return fullText || '(No response)';
-}
-
-// ── RENDER WITH TASK LIST ──
-function renderBotMsgWithTasks(responseText, tasks){
-  const modelNames = { pneuma:'Pneuma', logos:'Logos', kairos:'Kairos' };
-  const botMsg = document.createElement('div');
-  botMsg.className = 'msg bot';
-  botMsg.innerHTML = `<div class="bot-meta"><div class="bot-dot"></div><span class="bot-badge">${modelNames[currentModel] || 'Cloak'}</span></div>`;
-
-  const taskListEl = createTaskListUI(tasks);
-  botMsg.appendChild(taskListEl);
-
-  const contentDiv = document.createElement('div');
-  contentDiv.className = 'bot-content';
-  contentDiv.innerHTML = marked.parse(responseText);
-  botMsg.appendChild(contentDiv);
-
-  const actionsDiv = document.createElement('div');
-  actionsDiv.className = 'msg-actions';
-  const safeJson = JSON.stringify(responseText).replace(/</g,'\\u003c');
-  actionsDiv.innerHTML = `<button class="msg-action-btn" title="Copy" onclick="copyMd(this,${safeJson})"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="7" height="7" rx="0.5"/><path d="M2 8V1.5A.5.5 0 012.5 1H9"/></svg></button>`;
-  botMsg.appendChild(actionsDiv);
-
-  document.getElementById('messages').appendChild(botMsg);
-  animateTasks(taskListEl, tasks.length);
-  scrollBottom();
-}
-
-function animateTasks(taskListEl, count){
-  let i = 0;
-  const go = () => {
-    if(i < count){
-      taskListEl.activateTask(i);
-      i++;
-      setTimeout(go, 700 + Math.random() * 350);
-    } else {
-      setTimeout(() => taskListEl.completeAll(), 300);
-    }
-  };
-  setTimeout(go, 300);
-}
-
-function extractTasks(text){
-  const tasks = [];
-  for(const line of text.split('\n')){
-    const m = line.match(/^(?:\d+[.)]\s+|[-*•]\s+)(.{6,100})$/);
-    if(m){
-      const clean = m[1].replace(/\*\*/g,'').replace(/\*/g,'').replace(/`/g,'').trim();
-      if(clean.length > 5) tasks.push(clean);
-    }
-  }
-  return tasks.slice(0, 8);
-}
-
-function retryLast(){
-  if(lastUserMsg){
-    document.getElementById('chat-input').value = lastUserMsg;
-    onInput(document.getElementById('chat-input'));
-  }
-}
-
-// ── UTILS ──
-function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
-function scrollBottom(){ const ca = document.getElementById('chat-area'); ca.scrollTop = ca.scrollHeight }
-async function copyText(btn, text){
-  await navigator.clipboard.writeText(text).catch(()=>{});
-  btn.classList.add('copied'); btn.textContent = '✓';
-  setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="7" height="7" rx="0.5"/><path d="M2 8V1.5A.5.5 0 012.5 1H9"/></svg>`; }, 1800);
-}
-async function copyMd(btn, text){
-  await navigator.clipboard.writeText(text).catch(()=>{});
-  btn.classList.add('copied'); btn.textContent = '✓';
-  setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="7" height="7" rx="0.5"/><path d="M2 8V1.5A.5.5 0 012.5 1H9"/></svg>`; }, 1800);
-}
-
-// ── INIT ──
-loadConversations();
+  return resp;
+};
 </script>
+
+<script src="cloak.js" defer></script>
 </body>
 </html>
