@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,6 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="cloak.css">
+<link rel="stylesheet" href="search.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
@@ -23,7 +23,6 @@
   (function(){var t=localStorage.getItem('cloak_theme')||'default';document.documentElement.setAttribute('data-theme',t);})();
 </script>
 
-<!-- MODEL PICKER STYLES — neobrutalist dropdown, same design language as cloak.css -->
 <style>
 /* ── MODEL PICKER ── */
 .model-picker{position:relative;display:inline-block}
@@ -381,7 +380,6 @@
             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
           </button>
 
-          <!-- ── MODEL PICKER (replaces status pill) ── -->
           <div class="model-picker" id="model-picker">
             <div class="model-btn" id="model-btn" onclick="toggleModelMenu(event)">
               <span id="model-btn-label">Pneuma</span>
@@ -565,14 +563,11 @@
 
 <!-- ── MODEL PICKER LOGIC ── -->
 <script>
-// Current selected model — exposed as window.cloakModel so cloak.js can read it
 window.cloakModel = 'pneuma';
-
-// Model → API model string mapping for api.usecloak.org
 window.cloakModelMap = {
-  pneuma: 'pneuma',   // fast daily model
-  logos:  'logos',    // reasoning model
-  kairos: 'kairos'    // creative/long-context model
+  pneuma: 'pneuma',
+  logos:  'logos',
+  kairos: 'kairos'
 };
 
 function toggleModelMenu(e) {
@@ -587,24 +582,15 @@ function toggleModelMenu(e) {
 function selectModel(optEl) {
   const modelId = optEl.dataset.model;
   window.cloakModel = modelId;
-
-  // Update button label
   const name = optEl.querySelector('.model-option-name').textContent;
   document.getElementById('model-btn-label').textContent = name;
-
-  // Update active state
   document.querySelectorAll('.model-option').forEach(o => o.classList.remove('active'));
   optEl.classList.add('active');
-
-  // Close dropdown
   document.getElementById('model-dropdown').classList.remove('open');
   document.getElementById('model-btn').classList.remove('open');
-
-  // Persist selection
   localStorage.setItem('cloak_model', modelId);
 }
 
-// Restore persisted model on load
 (function() {
   const saved = localStorage.getItem('cloak_model');
   if (saved && document.querySelector(`.model-option[data-model="${saved}"]`)) {
@@ -617,7 +603,6 @@ function selectModel(optEl) {
   }
 })();
 
-// Close dropdown on outside click
 document.addEventListener('click', function(e) {
   if (!document.getElementById('model-picker').contains(e.target)) {
     document.getElementById('model-dropdown').classList.remove('open');
@@ -625,58 +610,35 @@ document.addEventListener('click', function(e) {
   }
 });
 
-// ── API OVERRIDE: patch cloakSendMessage to use api.usecloak.org ──
-// This runs after cloak.js loads (cloak.js is deferred), so we use a MutationObserver
-// to patch after DOMContentLoaded, then again after cloak.js initialises.
-// The key hook: override window.cloakSendMessage and window.cloakApiCall
-// so all requests go through api.usecloak.org with the selected model.
-
 const CLOAK_API_BASE = 'https://api.usecloak.org';
 
-// Patch function — called after cloak.js is ready
 function patchCloakApi() {
-  // Override the send function if cloak.js exposes one
-  // Strategy: wrap fetch globally to intercept any calls to other AI APIs
-  // and redirect them to api.usecloak.org
   const _fetch = window.fetch;
   window.fetch = function(url, opts) {
     if (typeof url === 'string') {
-      // Redirect Anthropic direct calls → usecloak.org
       if (url.includes('api.anthropic.com') ||
           url.includes('groq.com') ||
           url.includes('openai.com')) {
         const newUrl = CLOAK_API_BASE + '/v1/chat';
         const body = opts && opts.body ? JSON.parse(opts.body) : {};
-        // Inject selected model
         body.model = window.cloakModelMap[window.cloakModel] || window.cloakModel;
         return _fetch(newUrl, {
           ...opts,
           body: JSON.stringify(body),
-          headers: {
-            'Content-Type': 'application/json',
-            ...(opts && opts.headers ? opts.headers : {})
-          }
+          headers: { 'Content-Type': 'application/json', ...(opts && opts.headers ? opts.headers : {}) }
         });
       }
-      // Redirect any /api/ calls that aren't Supabase
       if (url.startsWith('/api/') && !url.includes('supabase')) {
         const newUrl = CLOAK_API_BASE + url;
         const body = opts && opts.body ? safeParseBody(opts.body) : {};
-        if (body && typeof body === 'object') {
-          body.model = window.cloakModelMap[window.cloakModel] || window.cloakModel;
-        }
-        return _fetch(newUrl, {
-          ...opts,
-          body: body ? JSON.stringify(body) : opts.body
-        });
+        if (body && typeof body === 'object') body.model = window.cloakModelMap[window.cloakModel] || window.cloakModel;
+        return _fetch(newUrl, { ...opts, body: body ? JSON.stringify(body) : opts.body });
       }
     }
     return _fetch(url, opts);
   };
 
-  // Also patch XMLHttpRequest for older code paths
   const _XHROpen = XMLHttpRequest.prototype.open;
-  const _XHRSend = XMLHttpRequest.prototype.send;
   XMLHttpRequest.prototype.open = function(method, url, ...rest) {
     if (typeof url === 'string' &&
         (url.includes('api.anthropic.com') || url.includes('groq.com') || url.includes('openai.com'))) {
@@ -689,17 +651,12 @@ function patchCloakApi() {
 
 function safeParseBody(body) {
   if (!body) return null;
-  if (typeof body === 'string') {
-    try { return JSON.parse(body); } catch(e) { return null; }
-  }
+  if (typeof body === 'string') { try { return JSON.parse(body); } catch(e) { return null; } }
   return body;
 }
 
-// Patch immediately (covers any inline scripts)
 patchCloakApi();
 
-// Also expose a clean send helper that cloak.js can call directly
-// This is the primary integration point if cloak.js uses window.cloakSendMessage
 window.cloakSendMessage = async function(messages, opts = {}) {
   const resp = await fetch(CLOAK_API_BASE + '/v1/chat', {
     method: 'POST',
@@ -711,7 +668,6 @@ window.cloakSendMessage = async function(messages, opts = {}) {
       ...opts
     })
   });
-
   if (!resp.ok) {
     const err = await resp.json().catch(() => ({}));
     throw new Error(err?.error?.message || `HTTP ${resp.status}`);
@@ -720,6 +676,10 @@ window.cloakSendMessage = async function(messages, opts = {}) {
 };
 </script>
 
+<!-- search.js must load before cloak.js so CLOAK_SEARCH is available -->
+<script src="search.js"></script>
 <script src="cloak.js" defer></script>
+<!-- search-patch.js overrides send() — must load after cloak.js -->
+<script src="search-patch.js" defer></script>
 </body>
 </html>
