@@ -4,14 +4,30 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="description" content="Cloak — AI that serves people. Not the other way around.">
-<title>Cloak</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230A0A0A'/%3E%3Cpath d='M22 10C19.8 7.8 17 6.5 14 6.5C8.2 6.5 4 10.7 4 16.5C4 22.3 8.2 26.5 14 26.5C17 26.5 19.8 25.2 22 23' stroke='%23D44D2A' stroke-width='2.5' stroke-linecap='square'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#0A0A0A">
+<title>Cloak — What is Cloak?</title>
+<link rel="canonical" href="https://usecloak.org/landing.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cloak — What is Cloak?">
+<meta property="og:description" content="A human-centric AI platform. AI that serves people, not the other way around.">
+<meta property="og:url" content="https://usecloak.org/landing.html">
+<meta property="og:site_name" content="Cloak">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Cloak — What is Cloak?">
+<meta name="twitter:description" content="A human-centric AI platform. AI that serves people, not the other way around.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230A0A0A'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='Syne%2C sans-serif' font-weight='800' font-size='22' fill='%23D44D2A'%3EC%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="cloak.css">
 <style>
 /* ── CURSOR ── */
 html, body, *, *::before, *::after { cursor: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  html, body, *, *::before, *::after { cursor: auto !important; }
+  .cursor { display: none !important; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+:focus-visible { outline: 2px solid var(--acc); outline-offset: 3px; }
 .cursor{
   position:fixed;width:11px;height:11px;
   background:var(--acc);border:2px solid var(--ink);
@@ -317,7 +333,7 @@ body.landing-page{overflow:auto;background:var(--paper);color:var(--ink);}
   <div class="lp-nav-links">
     <a href="#models" class="lp-nav-link">Models</a>
     <a href="#values" class="lp-nav-link">Values</a>
-    <a href="index.html" class="lp-nav-link lp-nav-cta">Launch App →</a>
+    <a href="https://chat.usecloak.org" class="lp-nav-link lp-nav-cta">Launch App →</a>
   </div>
 </nav>
 
@@ -328,7 +344,7 @@ body.landing-page{overflow:auto;background:var(--paper);color:var(--ink);}
     <h1 class="lp-hero-title">AI THAT<br>SERVES<br><span class="acc">PEOPLE.</span></h1>
     <p class="lp-hero-desc" id="hero-desc">Not the other way around. Cloak is built on one premise — you are in control. The AI is the tool. That never changes.</p>
     <div class="lp-hero-actions">
-      <a href="index.html" class="lp-btn-primary">
+      <a href="https://chat.usecloak.org" class="lp-btn-primary">
         <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>
         Start Using Cloak
       </a>
@@ -469,7 +485,7 @@ body.landing-page{overflow:auto;background:var(--paper);color:var(--ink);}
 <section class="lp-cta">
   <h2 class="lp-cta-title reveal">Ready To<br>Use <span class="acc">Cloak?</span></h2>
   <div class="lp-cta-right reveal">
-    <a href="index.html" class="lp-btn-primary">Open Cloak →</a>
+    <a href="https://chat.usecloak.org" class="lp-btn-primary">Open Cloak →</a>
     <span class="lp-cta-note">Free to start · No setup required</span>
   </div>
 </section>
@@ -481,7 +497,7 @@ body.landing-page{overflow:auto;background:var(--paper);color:var(--ink);}
     <span class="lp-footer-name">Cloak</span>
   </div>
   <div class="lp-footer-links">
-    <a href="index.html">Chat</a>
+    <a href="https://chat.usecloak.org">Chat</a>
     <a href="#models">Models</a>
     <a href="#values">Values</a>
     <a href="values.html">Full Values</a>
