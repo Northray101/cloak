@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /admin-management.html
+
+Sitemap: https://usecloak.org/sitemap.xml

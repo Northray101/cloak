@@ -4,49 +4,62 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="description" content="Cloak — AI that serves people. Not the other way around.">
-<title>Cloak</title>
+<meta name="theme-color" content="#0A0A0A">
+<title>Cloak — AI that serves people</title>
+
+<link rel="canonical" href="https://usecloak.org/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cloak — AI that serves people">
+<meta property="og:description" content="A human-centric AI platform. AI that serves people, not the other way around.">
+<meta property="og:url" content="https://usecloak.org/">
+<meta property="og:site_name" content="Cloak">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Cloak — AI that serves people">
+<meta name="twitter:description" content="A human-centric AI platform. AI that serves people, not the other way around.">
 
 <!-- Favicon: Bold "C" in Syne font rendered as SVG -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230A0A0A'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='Syne%2C sans-serif' font-weight='800' font-size='22' fill='%23D44D2A'%3EC%3C/text%3E%3C/svg%3E">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
 /* ── CSS VARIABLES ── */
 :root {
   --acc: #D44D2A;
-  --acc2: #B83D1C;
-  --yel: #C9972A;
-  --blu: #2A6DD4;
+  --acc2: #B83B1D;
+  --yel: #F5C842;
+  --blu: #3B82F6;
   --ink: #0A0A0A;
-  --paper: #F5F3EE;
-  --surf: #FAFAF8;
-  --p2: #EEECE7;
-  --p3: #E4E2DC;
-  --bdt: rgba(10,10,10,0.06);
-  --bd: 1.5px solid rgba(10,10,10,0.12);
-  --t: 120ms ease;
-  --sh: 3px 3px 0 rgba(10,10,10,0.18);
-  --shsm: 2px 2px 0 rgba(10,10,10,0.12);
-  --shlg: 5px 5px 0 rgba(10,10,10,0.22);
-  --fd: 'Syne', sans-serif;
-  --fu: 'DM Sans', sans-serif;
+  --paper: #F2EEE5;
+  --surf: #FAFAF7;
+  --p2: #EAE5DB;
+  --p3: #DDD8CC;
+  --bdt: 1px solid rgba(10,10,10,0.12);
+  --bd: 2px solid #0A0A0A;
+  --t: 140ms ease;
+  --sh: 4px 4px 0 #0A0A0A;
+  --shsm: 2px 2px 0 #0A0A0A;
+  --shlg: 6px 6px 0 #0A0A0A;
+  --fd: 'Syne', system-ui, sans-serif;
+  --fu: 'Space Grotesk', system-ui, sans-serif;
 }
 
 /* Dark mode */
 @media (prefers-color-scheme: dark) {
   :root {
-    --ink: #F0EDE8;
-    --paper: #111110;
-    --surf: #161614;
-    --p2: #1C1B19;
-    --p3: #222120;
-    --bdt: rgba(240,237,232,0.05);
-    --bd: 1.5px solid rgba(240,237,232,0.1);
-    --sh: 3px 3px 0 rgba(0,0,0,0.5);
-    --shsm: 2px 2px 0 rgba(0,0,0,0.35);
-    --shlg: 5px 5px 0 rgba(0,0,0,0.6);
+    --ink: #EDE8DF;
+    --paper: #131110;
+    --surf: #181512;
+    --p2: #1A1815;
+    --p3: #22201C;
+    --acc: #E5603E;
+    --acc2: #D44D2A;
+    --bdt: 1px solid rgba(237,232,223,0.1);
+    --bd: 2px solid rgba(237,232,223,0.6);
+    --sh: 4px 4px 0 rgba(237,232,223,0.45);
+    --shsm: 2px 2px 0 rgba(237,232,223,0.38);
+    --shlg: 6px 6px 0 rgba(237,232,223,0.35);
   }
 }
 
@@ -278,7 +291,7 @@ body {
   padding: 0 24px;
   background: var(--acc);
   color: #fff;
-  border: 1.5px solid var(--acc);
+  border: 2px solid var(--acc);
   box-shadow: var(--sh);
   font-family: var(--fu);
   font-size: 11px;
@@ -301,7 +314,7 @@ body {
   padding: 0 24px;
   background: transparent;
   color: var(--ink);
-  border: 1.5px dashed rgba(10,10,10,0.3);
+  border: 2px dashed rgba(10,10,10,0.3);
   font-family: var(--fu);
   font-size: 11px;
   font-weight: 600;
@@ -818,6 +831,36 @@ body {
   .nav-link:not(.nav-cta) { display: none; }
 }
 
+/* ── A11Y: skip link, focus-visible, reduced motion ── */
+.skip-link {
+  position: absolute; left: -9999px; top: 0;
+  background: var(--ink); color: var(--paper);
+  padding: 10px 14px; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em;
+  text-decoration: none; z-index: 10000;
+}
+.skip-link:focus { left: 8px; top: 8px; }
+
+:focus-visible { outline: 2px solid var(--acc); outline-offset: 3px; }
+.btn-primary:focus-visible, .btn-ghost:focus-visible,
+.nav-link:focus-visible, .nav-logo:focus-visible,
+.model-pill:focus-visible, .model-card:focus-visible,
+.law:focus-visible, .principle:focus-visible {
+  outline: 2px solid var(--acc); outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    cursor: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .cursor, .cursor-ring { display: none !important; }
+  .reveal { opacity: 1 !important; transform: none !important; }
+}
+
 @media (max-width: 480px) {
   .hero-title { font-size: clamp(2.8rem, 16vw, 4rem); }
   .hero-left { padding: 44px 22px; padding-bottom: 44px; }
@@ -832,6 +875,8 @@ body {
 <body>
 
 <!-- CUSTOM CURSOR — desktop only, injected via JS -->
+<a class="skip-link" href="#main">Skip to content</a>
+
 <div class="cursor" id="cursor" aria-hidden="true"></div>
 <div class="cursor-ring" id="cursor-ring" aria-hidden="true"></div>
 
@@ -846,6 +891,8 @@ body {
     <a href="https://chat.usecloak.org" class="nav-link nav-cta">Launch App →</a>
   </div>
 </nav>
+
+<main id="main">
 
 <!-- HERO -->
 <section class="hero">
@@ -1001,6 +1048,8 @@ body {
 </section>
 
 <!-- FOOTER -->
+</main>
+
 <footer class="footer">
   <div class="footer-logo">
     <span class="footer-c">C</span>
@@ -1009,7 +1058,8 @@ body {
   <div class="footer-links">
     <a href="https://chat.usecloak.org">Chat</a>
     <a href="#models">Models</a>
-    <a href="#values">Values</a>
+    <a href="values.html">Values</a>
+    <a href="landing.html">What is Cloak?</a>
   </div>
   <span class="footer-disc">A human resource, not a companion · AI can make mistakes · Low-energy models by default</span>
 </footer>
@@ -1018,10 +1068,11 @@ body {
 // ── CUSTOM CURSOR (desktop only) ──
 (function() {
   const isTouchOnly = !window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const cursor = document.getElementById('cursor');
   const ring   = document.getElementById('cursor-ring');
 
-  if (isTouchOnly) {
+  if (isTouchOnly || reduceMotion) {
     cursor.style.display = 'none';
     ring.style.display   = 'none';
     return;
@@ -1083,6 +1134,11 @@ body {
 // ── SCROLL REVEAL ──
 (function() {
   const els = document.querySelectorAll('.reveal');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduceMotion) {
+    els.forEach(el => el.classList.add('vis'));
+    return;
+  }
   const obs = new IntersectionObserver(entries => {
     entries.forEach((entry, i) => {
       if (entry.isIntersecting) {
