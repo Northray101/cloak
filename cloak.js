@@ -243,6 +243,8 @@ let _thoughtChainEl = null;
 let _thoughtCurrentEl = null;
 let _thoughtHistoryEl = null;
 let _thoughtExpandBtn = null;
+let _thoughtStartTime = 0;
+let _thoughtTickInterval = null;
 
 /**
  * Build the step-list UI inside the bot message.
@@ -292,6 +294,16 @@ function createThoughtChain(botMsgEl) {
 
   _thoughtChainEl = wrap;
   _thoughtCurrentEl = inner;
+  _thoughtStartTime = Date.now();
+
+  // Live elapsed-time tick (Perplexity-style)
+  if (_thoughtTickInterval) clearInterval(_thoughtTickInterval);
+  const labelEl = wrap.querySelector('.step-header-label');
+  _thoughtTickInterval = setInterval(() => {
+    if (!labelEl || !_thoughtStartTime) return;
+    const s = Math.floor((Date.now() - _thoughtStartTime) / 1000);
+    labelEl.textContent = s > 0 ? `Thinking · ${s}s` : 'Thinking';
+  }, 500);
 
   // Activate the bot-dot reactive animation
   const botDot = botMsgEl.querySelector('.bot-dot');
@@ -364,16 +376,25 @@ function completeThoughtStep(idx) {
  * Completes any remaining active steps, stops animations.
  */
 function finaliseThoughts(botMsgEl) {
+  // Stop the live tick
+  if (_thoughtTickInterval) { clearInterval(_thoughtTickInterval); _thoughtTickInterval = null; }
+
   // Complete all unchecked steps
   _thoughtLog.forEach((_, i) => completeThoughtStep(i));
 
   // Stop the pulsing dot in the header
   const pulseDot = document.getElementById('thought-pulse-dot');
   if (pulseDot) pulseDot.classList.add('step-header-dot-done');
+  const header = _thoughtChainEl?.querySelector('.step-list-header');
+  if (header) header.classList.add('done');
 
-  // Update header label
+  // Update header label with elapsed time
   const label = _thoughtChainEl?.querySelector('.step-header-label');
-  if (label) label.textContent = 'Thought for a moment';
+  if (label) {
+    const elapsed = _thoughtStartTime ? Math.max(1, Math.round((Date.now() - _thoughtStartTime) / 1000)) : 0;
+    label.textContent = elapsed ? `Thought for ${elapsed}s` : 'Thought for a moment';
+  }
+  _thoughtStartTime = 0;
 
   // Stop the bot-dot reactive animation
   const botDot = botMsgEl?.querySelector('.bot-dot');
@@ -387,7 +408,7 @@ function finaliseThoughts(botMsgEl) {
       inner.classList.add('collapsed');
       if (btn) btn.classList.remove('rotated');
     }
-  }, 800);
+  }, 900);
 }
 
 /* ════════════════════════════════════════════════════════
@@ -413,9 +434,10 @@ async function runThoughtSequence(botMsgEl, model, userMessage, responsePromise)
     steps = _fallbackSteps(userMessage, model);
   }
 
-  // Remove placeholder, inject real steps
+  // Smoothly fade out the placeholder, then inject real steps
   if (placeholderRow) {
-    completeThoughtStep(0); // check off placeholder
+    placeholderRow.classList.add('step-row-exiting');
+    await sleep(180);
     _thoughtLog = []; // reset so real steps index from 0
     const inner = document.getElementById('thought-step-list');
     if (inner) inner.innerHTML = '';
@@ -582,7 +604,7 @@ function addMsg(role,content,noAnim=false,imgs=[]){
       postProcessBotEl(d,content);
     }
   }
-  box.appendChild(d);scrollBottom();return d;
+  box.appendChild(d);scrollBottom(role==='user');return d;
 }
 
 function editMessage(msgEl){
@@ -602,7 +624,28 @@ function editMessage(msgEl){
 }
 
 function showMessages(){document.getElementById('empty-state').style.display='none';document.getElementById('messages').style.display='flex';}
-function scrollBottom(){const ca=document.getElementById('chat-area');if(ca)ca.scrollTop=ca.scrollHeight;}
+
+/* Scroll-aware bottom snap — don't fight the user when they scroll up */
+let _userScrolledUp=false;
+let _scrollListenerInit=false;
+function _initScrollListener(){
+  if(_scrollListenerInit)return;
+  const ca=document.getElementById('chat-area');
+  if(!ca)return;
+  _scrollListenerInit=true;
+  ca.addEventListener('scroll',()=>{
+    const dist=ca.scrollHeight-ca.scrollTop-ca.clientHeight;
+    _userScrolledUp=dist>140;
+  },{passive:true});
+}
+function scrollBottom(force){
+  const ca=document.getElementById('chat-area');
+  if(!ca)return;
+  _initScrollListener();
+  if(force){_userScrolledUp=false;}
+  if(_userScrolledUp)return;
+  ca.scrollTop=ca.scrollHeight;
+}
 function onInput(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,160)+'px';if(!busy)document.getElementById('send-btn').disabled=!el.value.trim();}
 function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(!document.getElementById('send-btn').disabled&&!busy)send();else if(busy){stopStream();}}}
 function showE(el,msg){el.textContent=msg;el.classList.add('show');}
@@ -746,7 +789,7 @@ function insertBotBubble() {
   showMessages();
   const wrap = document.createElement('div');
   wrap.className = 'msg bot';
-  wrap.innerHTML = '<div class="bot-body"><div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="bot-content"><div style="display:flex;align-items:center;gap:7px;height:32px"><div class="dot"></div><div class="dot" style="animation-delay:.16s"></div><div class="dot" style="background:var(--acc);animation-delay:.32s"></div></div></div></div>';
+  wrap.innerHTML = '<div class="bot-body"><div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="bot-content"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>';
   box.appendChild(wrap);
   scrollBottom();
   return wrap;
@@ -768,9 +811,19 @@ function replaceThinkWithContent(botMsgEl, rawText) {
   finaliseThoughts(botMsgEl);
 
   const bc = botMsgEl.querySelector('.bot-content');
-  if (bc) {
+  if (!bc) return;
+
+  const typing = bc.querySelector('.typing');
+  const start = () => {
     bc.innerHTML = '';
     streamContent(bc, rawText, () => { setBusy(false); });
+  };
+
+  if (typing) {
+    typing.classList.add('fade-out');
+    setTimeout(start, 160);
+  } else {
+    start();
   }
   scrollBottom();
 }
