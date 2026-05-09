@@ -806,6 +806,43 @@ function insertBotBubbleForThoughts() {
   return wrap;
 }
 
+/* ── TODO LIST RENDERING (model's working memory) ── */
+function renderTodoList(botMsgEl, todos) {
+  const botBody = botMsgEl?.querySelector('.bot-body');
+  if (!botBody || !todos?.length) return;
+  botBody.querySelectorAll('.todo-list-wrap').forEach(el => el.remove());
+
+  const wrap = document.createElement('div');
+  wrap.className = 'todo-list-wrap';
+  const doneCount = todos.filter(t => t.done).length;
+
+  const header = document.createElement('div');
+  header.className = 'todo-list-header';
+  header.innerHTML = `
+    <span class="todo-list-label">Tasks <span class="todo-list-count">${doneCount}/${todos.length}</span></span>`;
+  wrap.appendChild(header);
+
+  const list = document.createElement('ul');
+  list.className = 'todo-list';
+  todos.forEach((t, i) => {
+    const li = document.createElement('li');
+    li.className = 'todo-item' + (t.done ? ' done' : '');
+    li.style.animationDelay = (i * 40) + 'ms';
+    li.innerHTML = `
+      <span class="todo-check" aria-hidden="true">
+        ${t.done
+          ? '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M2 6.5l2.5 2.5L10 3"/></svg>'
+          : ''}
+      </span>
+      <span class="todo-text">${hesc(t.text)}</span>`;
+    list.appendChild(li);
+  });
+  wrap.appendChild(list);
+
+  // Insert before .bot-content so it sits above the response
+  botBody.insertBefore(wrap, botBody.querySelector('.bot-content'));
+}
+
 function replaceThinkWithContent(botMsgEl, rawText) {
   stopThinkAnimation();
   finaliseThoughts(botMsgEl);
@@ -1117,7 +1154,7 @@ async function send(){
       if(!res.ok||d.error)throw new Error(d.error||'HTTP '+res.status);
       const responseText=d.response||d.text||'';
       if(!responseText)throw new Error('Empty response from server.');
-      _responseResolve({responseText, ms: Date.now()-t0, model: d.model||model});
+      _responseResolve({responseText, todos: Array.isArray(d.todos)?d.todos:[], ms: Date.now()-t0, model: d.model||model});
     } catch(ex) {
       _responseReject(ex);
     }
@@ -1132,15 +1169,16 @@ async function send(){
     }
 
     // Wait for the actual response
-    const {responseText, ms, model: respModel} = await responsePromise;
+    const {responseText, todos, ms, model: respModel} = await responsePromise;
 
     stats.lat.push(ms);
     stats.res++;
-    log('res',`${ms}ms | model=${respModel} | len=${responseText.length}`);
+    log('res',`${ms}ms | model=${respModel} | len=${responseText.length} | todos=${todos?.length||0}`);
 
     hist.push({role:'CHATBOT',message:responseText});
     if(hist.length>20)hist=hist.slice(-20);
 
+    if (todos && todos.length) renderTodoList(botMsgEl, todos);
     replaceThinkWithContent(botMsgEl, responseText);
 
     if(voiceMode)playVoice(responseText);

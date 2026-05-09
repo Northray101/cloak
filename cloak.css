@@ -310,7 +310,7 @@ a.sb-btn:hover{background:var(--p3);border-color:var(--ink);}
 /* ── MESSAGES — CLAUDE-STYLE ── */
 /* Each message is a full-width row. Bot = no bubble, full width. User = right-aligned compact bubble. */
 .messages{display:flex;flex-direction:column;gap:0;padding:0 0 40px;max-width:760px;margin:0 auto;width:100%;}
-.msg{display:flex;flex-direction:column;animation:msgIn .32s cubic-bezier(.22,.61,.36,1) both;position:relative;width:100%;will-change:opacity,transform;}
+.msg{display:flex;flex-direction:column;animation:msgIn .32s cubic-bezier(.22,.61,.36,1);position:relative;width:100%;}
 .msg:first-child{padding-top:28px;}
 
 /* User message — right aligned bubble */
@@ -859,6 +859,140 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
   letter-spacing:.01em;
 }
 
+/* ══════════════════════════════════════════════════════════
+   TODO LIST — model's working memory, shown above the answer
+══════════════════════════════════════════════════════════ */
+.todo-list-wrap {
+  margin: 0 0 14px 0;
+  padding: 11px 14px 12px;
+  background: var(--surf);
+  border: var(--bd);
+  box-shadow: var(--shsm);
+  animation: stepWrapIn .3s ease;
+}
+.todo-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding-bottom: 7px;
+  border-bottom: var(--bdt);
+}
+.todo-list-label {
+  font-family: var(--fd);
+  font-size: 9.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: var(--ink);
+  opacity: .8;
+}
+.todo-list-count {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  background: var(--p2);
+  border: 1.5px solid var(--ink);
+  font-family: var(--fu);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  opacity: .85;
+}
+.todo-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 4px 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink);
+  opacity: 0;
+  animation: todoItemIn .28s cubic-bezier(.22,.61,.36,1) forwards;
+}
+@keyframes todoItemIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.todo-check {
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  transition: background .2s ease, border-color .2s ease;
+}
+.todo-item.done .todo-check {
+  background: var(--acc);
+  border-color: var(--acc);
+}
+.todo-item .todo-text {
+  flex: 1;
+  font-weight: 500;
+  transition: opacity .25s ease, text-decoration-color .25s ease;
+}
+.todo-item.done .todo-text {
+  opacity: .42;
+  text-decoration: line-through;
+  text-decoration-color: rgba(10,10,10,.4);
+  text-decoration-thickness: 1.5px;
+}
+.dark .todo-item.done .todo-text {
+  text-decoration-color: rgba(242,238,229,.35);
+}
+
+/* Inline markdown task lists rendered by marked (when model uses `- [ ]`) */
+.bot-content ul li input[type="checkbox"],
+.bot-content-final ul li input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  margin: 0 8px 0 -22px;
+  vertical-align: -2px;
+  cursor: default;
+  position: relative;
+  flex-shrink: 0;
+}
+.bot-content ul li input[type="checkbox"]:checked,
+.bot-content-final ul li input[type="checkbox"]:checked {
+  background: var(--acc);
+  border-color: var(--acc);
+}
+.bot-content ul li input[type="checkbox"]:checked::after,
+.bot-content-final ul li input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 2px; top: 4px;
+  width: 5px; height: 2.5px;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(-45deg);
+}
+.bot-content ul li:has(input[type="checkbox"]),
+.bot-content-final ul li:has(input[type="checkbox"]) {
+  list-style: none;
+  margin-left: 0;
+}
+.bot-content ul:has(li input[type="checkbox"]),
+.bot-content-final ul:has(li input[type="checkbox"]) {
+  padding-left: 0;
+}
+
 /* ── TABLET BREAKPOINT (641-900px) ── */
 @media(min-width:641px) and (max-width:900px){
   .messages{padding:0 0 36px;max-width:680px;}
@@ -1206,26 +1340,31 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
    spinner → checkmark, title, body. Model-controlled only.
 ═══════════════════════════════════════════════════════════ */
 
-/* ── STEP LIST WRAPPER ── */
+/* ── STEP LIST WRAPPER — quiet indented list (Claude style) ── */
 .step-list-wrap {
-  margin-bottom: 14px;
-  border: var(--bd);
-  background: var(--p2);
-  overflow: hidden;
-  animation: stepWrapIn .35s cubic-bezier(.22,.61,.36,1) both;
+  margin-bottom: 12px;
+  border: none;
+  background: transparent;
+  border-left: 2px solid var(--ink);
+  padding-left: 14px;
+  overflow: visible;
+  animation: stepWrapIn .3s ease;
+  opacity: .9;
 }
+.dark .step-list-wrap { border-left-color: rgba(242,238,229,.18); }
+.step-list-wrap { border-left-color: rgba(10,10,10,.16); }
 @keyframes stepWrapIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: .9; transform: translateY(0); }
 }
 
-/* ── HEADER ROW ── */
+/* ── HEADER ROW — flat, quiet ── */
 .step-list-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 9px 13px 9px 12px;
-  border-bottom: var(--bdt);
+  padding: 0 0 4px 0;
+  border-bottom: none;
   cursor: default;
   user-select: none;
 }
@@ -1235,53 +1374,53 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
   gap: 8px;
 }
 .step-header-label {
-  font-family: var(--fd);
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .1em;
+  font-family: var(--fu);
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
   color: var(--ink);
-  opacity: .85;
+  opacity: .6;
   transition: opacity .3s ease;
+  font-style: italic;
 }
-.step-header-dot-done ~ .step-header-label,
-.step-list-header.done .step-header-label {
-  opacity: .55;
-}
+.step-list-header.done .step-header-label { opacity: .42; font-style: normal; }
 
-/* Pulsing dot while thinking */
+/* Pulsing dot while thinking — small, subtle */
 .step-header-dot {
   display: inline-block;
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: var(--acc);
   animation: stepDotPulse 1.4s ease-in-out infinite;
   flex-shrink: 0;
+  opacity: .85;
 }
 .step-header-dot-done {
   animation: none;
-  opacity: .4;
+  opacity: .25;
 }
 @keyframes stepDotPulse {
-  0%,100% { transform: scale(.7); opacity: .4; }
-  50%      { transform: scale(1.2); opacity: 1; }
+  0%,100% { transform: scale(.7); opacity: .35; }
+  50%     { transform: scale(1.1); opacity: .85; }
 }
 
 /* ── COLLAPSE TOGGLE ── */
 .step-collapse-btn {
   background: none;
   border: none;
-  padding: 6px 8px;
+  padding: 4px 6px;
+  margin: -4px -6px;
   cursor: pointer;
   color: var(--ink);
-  opacity: .45;
+  opacity: .3;
   display: flex;
   align-items: center;
   transition: opacity .15s;
   flex-shrink: 0;
-  min-width: 28px;
-  min-height: 28px;
+  min-width: 24px;
+  min-height: 24px;
   justify-content: center;
 }
 .step-collapse-btn:hover { opacity: .65; }
@@ -1296,10 +1435,10 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
   flex-direction: column;
   overflow: hidden;
   max-height: 800px;
-  transition: max-height .42s cubic-bezier(.22,.61,.36,1),
+  transition: max-height .4s cubic-bezier(.22,.61,.36,1),
               opacity .28s ease,
               padding .3s ease;
-  padding: 8px 0 6px;
+  padding: 4px 0 0;
 }
 .step-list-inner.collapsed {
   max-height: 0;
@@ -1308,24 +1447,13 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
   pointer-events: none;
 }
 
-/* ── STEP ROW ── */
+/* ── STEP ROW — flush, list-feel ── */
 .step-row {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 8px 13px 8px 12px;
+  gap: 8px;
+  padding: 3px 0;
   position: relative;
-}
-/* Vertical connector line between consecutive steps */
-.step-row + .step-row::before {
-  content: '';
-  position: absolute;
-  left: 20px;
-  top: -4px;
-  width: 1.5px;
-  height: 12px;
-  background: var(--ink);
-  opacity: .15;
 }
 .step-row-entering {
   opacity: 0;
@@ -1346,17 +1474,19 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
   to   { opacity: 0; transform: translateY(-4px); }
 }
 
-/* ── STEP ICON CELL ── */
+/* ── STEP ICON CELL — small ── */
 .step-icon {
   flex-shrink: 0;
-  width: 18px;
-  height: 18px;
+  width: 13px;
+  height: 13px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 1px;
+  margin-top: 4px;
   color: var(--acc);
+  opacity: .7;
 }
+.step-icon svg { width: 11px; height: 11px; }
 
 /* Spinning arc */
 .step-spinner {
@@ -1390,23 +1520,24 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
   gap: 2px;
 }
 .step-title {
-  font-family: var(--fd);
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .07em;
-  line-height: 1.4;
+  font-family: var(--fu);
+  font-size: 12.5px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  line-height: 1.45;
   color: var(--ink);
+  transition: opacity .35s ease;
 }
-.step-title-active { opacity: 1; }
-.step-title-done   { opacity: .32; transition: opacity .35s ease; }
+.step-title-active { opacity: .85; }
+.step-title-done   { opacity: .38; }
 
 .step-body {
-  font-size: 12px;
-  line-height: 1.6;
+  font-size: 11.5px;
+  line-height: 1.55;
   color: var(--ink);
-  opacity: .62;
-  max-height: 52px;
+  opacity: .5;
+  max-height: 60px;
   overflow: hidden;
   transition: max-height .35s cubic-bezier(.22,.61,.36,1), opacity .3s ease;
 }

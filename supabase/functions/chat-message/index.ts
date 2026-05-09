@@ -117,15 +117,80 @@ const TOOL_DEFINITIONS = [
   { type: "function", function: { name: "get_weather",
     description: "Gets current weather for a city or location.",
     parameters: { type: "object", properties: { location: { type: "string" } }, required: ["location"] } } },
+  { type: "function", function: { name: "manage_todos",
+    description: "Maintain a working todo list to keep yourself on track for multi-step or complex requests. Use for: planning a coding task, multi-part questions, anything where you need to remember sub-tasks while answering. The list is shown to the user. Call multiple times in a single turn as you make progress.",
+    parameters: {
+      type: "object",
+      properties: {
+        action: { type: "string", enum: ["set", "add", "complete", "uncomplete", "remove", "clear"],
+          description: "set: replace the whole list. add: append items. complete/uncomplete: toggle the status of an item by id. remove: delete an item by id. clear: empty the list." },
+        items: { type: "array",
+          description: "For 'set' or 'add': the new items. Each item is just the text of the task.",
+          items: { type: "string" } },
+        id: { type: "number", description: "For 'complete'/'uncomplete'/'remove': the 1-based id of the item." },
+      },
+      required: ["action"],
+    } } },
 ];
 
-async function executeTool(name: string, args: Record<string, string>): Promise<string> {
+// Per-request todo state. Threaded through executeTool calls within a single request.
+type Todo = { id: number; text: string; done: boolean };
+type TodoState = { todos: Todo[]; nextId: number };
+function newTodoState(): TodoState { return { todos: [], nextId: 1 }; }
+
+function manageTodos(state: TodoState, args: { action: string; items?: string[]; id?: number }): string {
+  const { action } = args;
+  switch (action) {
+    case "set": {
+      const items = (args.items || []).map((t) => String(t).trim()).filter(Boolean);
+      state.todos = items.map((text) => ({ id: state.nextId++, text, done: false }));
+      break;
+    }
+    case "add": {
+      const items = (args.items || []).map((t) => String(t).trim()).filter(Boolean);
+      for (const text of items) state.todos.push({ id: state.nextId++, text, done: false });
+      break;
+    }
+    case "complete": {
+      const t = state.todos.find((t) => t.id === args.id);
+      if (t) t.done = true;
+      else return JSON.stringify({ error: `No todo with id ${args.id}`, todos: state.todos });
+      break;
+    }
+    case "uncomplete": {
+      const t = state.todos.find((t) => t.id === args.id);
+      if (t) t.done = false;
+      else return JSON.stringify({ error: `No todo with id ${args.id}`, todos: state.todos });
+      break;
+    }
+    case "remove": {
+      const before = state.todos.length;
+      state.todos = state.todos.filter((t) => t.id !== args.id);
+      if (state.todos.length === before) return JSON.stringify({ error: `No todo with id ${args.id}`, todos: state.todos });
+      break;
+    }
+    case "clear":
+      state.todos = [];
+      break;
+    default:
+      return JSON.stringify({ error: `Unknown action: ${action}`, todos: state.todos });
+  }
+  return JSON.stringify({ ok: true, todos: state.todos });
+}
+
+async function executeTool(
+  name: string,
+  // deno-lint-ignore no-explicit-any
+  args: Record<string, any>,
+  todoState: TodoState,
+): Promise<string> {
   switch (name) {
     case "duckduckgo_search": return JSON.stringify(await searchDuckDuckGo(args.query));
     case "read_url":          return JSON.stringify(await fetchWebpage(args.url));
     case "calculate":         return calculate(args.expression);
     case "get_datetime":      return getCurrentDateTime();
     case "get_weather":       return JSON.stringify(await fetchWeather(args.location));
+    case "manage_todos":      return manageTodos(todoState, args);
     default:                  return JSON.stringify({ error: `Unknown tool: ${name}` });
   }
 }
@@ -153,10 +218,18 @@ FORMATTING (use only when it genuinely helps readability)
 - \`code\` or \`\`\`language\`\`\` blocks for all code, commands, or technical strings.
 - Bullet lists only for genuinely list-like content — not just to look organized.
 - Numbered lists for steps or ranked items only.
+- Markdown task lists (\`- [ ]\` / \`- [x]\`) for action items the user should do.
 - Tables for structured comparisons with multiple attributes.
 - > Blockquote for quoting external content.
 - If a one-sentence answer works, use it. Never pad.
 - All URLs as plain https://domain format.
+
+WORKING MEMORY (manage_todos tool)
+- For multi-step requests (debugging plans, project breakdowns, anything with sub-tasks), call manage_todos to keep yourself on track.
+- Use action="set" or "add" to record sub-tasks at the start.
+- Use action="complete" with the item id as you finish each one.
+- The list is shown to the user, so phrase items clearly.
+- Don't use it for trivial single-step questions.
 
 CITATIONS
 - If you used a tool result, cite inline with markdown links: [[1]](https://url)
@@ -177,7 +250,8 @@ FLEXIBILITY
 async function groqAgentCall(
   messages: unknown[], systemPrompt: string, reqId: string,
   withTools = true, maxTokens = 2048,
-): Promise<{ content: string; toolResults: { name: string; result: string }[] }> {
+  todoState: TodoState = newTodoState(),
+): Promise<{ content: string; toolResults: { name: string; result: string }[]; todos: Todo[] }> {
   if (GROQ_API_KEYS.length === 0) {
     throw new Error("No Groq API keys configured. Set GROQ_API_KEY_1 in Supabase secrets.");
   }
@@ -218,19 +292,24 @@ async function groqAgentCall(
       let msg: any = j.choices[0].message;
       const toolResults: { name: string; result: string }[] = [];
 
-      if (withTools && msg.tool_calls?.length > 0) {
+      // Allow up to 3 rounds of tool calls so the model can iteratively manage todos
+      let toolRound = 0;
+      while (withTools && msg.tool_calls?.length > 0 && toolRound < 3) {
+        toolRound++;
         const msgs2 = [...(body.messages as unknown[]), msg];
-        console.log(`[${reqId}] Groq tools:`, msg.tool_calls.map((t: { function: { name: string } }) => t.function.name));
+        console.log(`[${reqId}] Groq tools (round ${toolRound}):`, msg.tool_calls.map((t: { function: { name: string } }) => t.function.name));
         for (const tc of msg.tool_calls) {
           const args = JSON.parse(tc.function.arguments || "{}");
-          const result = await executeTool(tc.function.name, args);
+          const result = await executeTool(tc.function.name, args, todoState);
           toolResults.push({ name: tc.function.name, result });
           msgs2.push({ role: "tool", tool_call_id: tc.id, name: tc.function.name, content: result });
         }
+        const reqBody2: Record<string, unknown> = { model: GROQ_MAIN_MODEL, messages: msgs2, temperature: 0.7, max_tokens: maxTokens };
+        if (toolRound < 3) { reqBody2.tools = TOOL_DEFINITIONS; reqBody2.tool_choice = "auto"; }
         r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
           method: "POST",
           headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ model: GROQ_MAIN_MODEL, messages: msgs2, temperature: 0.7, max_tokens: maxTokens }),
+          body: JSON.stringify(reqBody2),
           signal: AbortSignal.timeout(GROQ_TIMEOUT_MS),
         });
         if (!r.ok) {
@@ -239,9 +318,10 @@ async function groqAgentCall(
         }
         j = await r.json();
         msg = j.choices[0].message;
+        body.messages = msgs2; // for the next iteration's slice
       }
 
-      return { content: msg.content || "", toolResults };
+      return { content: msg.content || "", toolResults, todos: todoState.todos };
     } catch (e) {
       if (e instanceof Error && e.name === "AbortError") {
         console.warn(`[${reqId}] Groq key[${ki}] timed out after ${GROQ_TIMEOUT_MS}ms, trying next…`);
@@ -391,6 +471,7 @@ serve(async (req) => {
     let responseText = "";
     let provider     = "groq";
     let toolsUsed: string[] = [];
+    const todoState = newTodoState();
 
     // ── Two-pass: Groq reasons + uses tools → NVIDIA synthesises ──────────────
     if (hasNvidiaKey) {
@@ -400,19 +481,23 @@ serve(async (req) => {
         `You are the internal reasoning engine for Cloak AI. Think step-by-step.\n` +
         `1. What is the user actually asking?\n` +
         `2. What conversation context matters?\n` +
-        `3. Need a tool? (search, calculate, weather, datetime, read_url)\n` +
-        `4. What does the best answer look like?\n` +
-        `5. Edge cases?\n` +
+        `3. Need a tool? (search, calculate, weather, datetime, read_url, manage_todos)\n` +
+        `4. For multi-step or complex requests, use manage_todos to track sub-tasks. Mark them complete as you finish.\n` +
+        `5. What does the best answer look like?\n` +
+        `6. Edge cases?\n` +
         `Be thorough. Do NOT write the final answer yet.`;
 
       try {
-        const thinkResult = await groqAgentCall(conversationMessages, thinkingPrompt, reqId, true, 1200);
+        const thinkResult = await groqAgentCall(conversationMessages, thinkingPrompt, reqId, true, 1200, todoState);
         toolsUsed = thinkResult.toolResults.map((t) => t.name);
 
         let ctx = thinkResult.content;
         if (thinkResult.toolResults.length > 0) {
           ctx += "\n\nTool results:\n";
           for (const tr of thinkResult.toolResults) ctx += `[${tr.name}]: ${tr.result}\n`;
+        }
+        if (todoState.todos.length > 0) {
+          ctx += "\n\nWorking todo list:\n" + todoState.todos.map((t) => `- [${t.done ? "x" : " "}] ${t.text}`).join("\n");
         }
         if (extendedThinking) ctx += "\n\n[Extended thinking: be thorough, consider multiple angles.]";
 
@@ -421,7 +506,7 @@ serve(async (req) => {
       } catch (e) {
         const eMsg = e instanceof Error ? e.message : String(e);
         console.error(`[${reqId}] Two-pass failed (${eMsg}), falling back to Groq-only.`);
-        const fb = await groqAgentCall(conversationMessages, finalSystemPrompt, reqId, true, 2048);
+        const fb = await groqAgentCall(conversationMessages, finalSystemPrompt, reqId, true, 2048, todoState);
         responseText = fb.content;
         toolsUsed    = fb.toolResults.map((t) => t.name);
         provider     = "groq-fallback";
@@ -429,7 +514,7 @@ serve(async (req) => {
     } else {
       // ── Single-pass: Groq only ────────────────────────────────────────────
       console.log(`[${reqId}] Path: Groq only (no NVIDIA key)`);
-      const result = await groqAgentCall(conversationMessages, finalSystemPrompt, reqId, true, 2048);
+      const result = await groqAgentCall(conversationMessages, finalSystemPrompt, reqId, true, 2048, todoState);
       responseText = result.content;
       toolsUsed    = result.toolResults.map((t) => t.name);
       provider     = "groq";
@@ -437,10 +522,17 @@ serve(async (req) => {
 
     if (!responseText) throw new Error("No response generated.");
 
-    console.log(`[${reqId}] SUCCESS provider=${provider} tools=[${toolsUsed.join(",")}] len=${responseText.length}`);
+    console.log(`[${reqId}] SUCCESS provider=${provider} tools=[${toolsUsed.join(",")}] len=${responseText.length} todos=${todoState.todos.length}`);
 
     return new Response(
-      JSON.stringify({ text: responseText, userId: userId ?? "guest", provider, tools_used: toolsUsed, extended_thinking: extendedThinking }),
+      JSON.stringify({
+        text: responseText,
+        userId: userId ?? "guest",
+        provider,
+        tools_used: toolsUsed,
+        todos: todoState.todos,
+        extended_thinking: extendedThinking,
+      }),
       { headers: { ...cors, "Content-Type": "application/json" } }
     );
   } catch (err) {
