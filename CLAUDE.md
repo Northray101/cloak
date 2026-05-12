@@ -25,7 +25,6 @@ There is **no build pipeline**. Files are served as-is. Push to `main` and Cloud
 - `search.js` + `search-patch.js` — web-search overlay used inside chat.
 - `supabase/functions/chat-message/` — Edge Function for chat (Groq + NVIDIA).
 - `supabase/functions/telegram-bot/` — Telegram Bot webhook. Calls `chat-message` internally.
-- `supabase/functions/sms-bot/` — Twilio SMS webhook (TwiML). Calls `chat-message` internally.
 - `supabase/migrations/` — SQL migrations. Apply via Supabase dashboard or CLI.
 - `robots.txt`, `sitemap.xml` — SEO.
 
@@ -85,23 +84,19 @@ No automated tests.
 
 ### Telegram
 - Edge Function: `supabase/functions/telegram-bot/index.ts`
-- Required secrets: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET` (optional but recommended)
+- Required secrets: `TELEGRAM_BOT_TOKEN`
+- Optional secrets: `TELEGRAM_WEBHOOK_SECRET` (adds request validation — recommended for production)
 - Setup:
   1. Create a bot via [@BotFather](https://t.me/BotFather), get the token.
-  2. Deploy the function: `supabase functions deploy telegram-bot`
-  3. Register the webhook: `curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=<SUPABASE_URL>/functions/v1/telegram-bot&secret_token=<WEBHOOK_SECRET>"`
-
-### Twilio SMS
-- Edge Function: `supabase/functions/sms-bot/index.ts`
-- Required secrets: `TWILIO_AUTH_TOKEN`
-- Setup:
-  1. Get a Twilio number, set its "A Message Comes In" webhook URL to `<SUPABASE_URL>/functions/v1/sms-bot`.
-  2. Deploy: `supabase functions deploy sms-bot`
-  3. Set env secret: `supabase secrets set TWILIO_AUTH_TOKEN=<token>`
-- Users can text `reset` to clear their conversation history.
+  2. Set secret: `supabase secrets set TELEGRAM_BOT_TOKEN=<token>`
+  3. Deploy: `supabase functions deploy telegram-bot`
+  4. Register the webhook:
+     ```
+     curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=<SUPABASE_URL>/functions/v1/telegram-bot"
+     ```
 
 ### Session persistence
-- Both bots use the `messaging_sessions` table (see `supabase/migrations/20260512000000_messaging_sessions.sql`).
+- Uses the `messaging_sessions` table (see `supabase/migrations/20260512000000_messaging_sessions.sql`).
 - Apply the migration via Supabase dashboard SQL editor or `supabase db push`.
 
 ## Known follow-ups
