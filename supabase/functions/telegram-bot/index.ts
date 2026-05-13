@@ -56,9 +56,36 @@ async function saveHistory(
   await db.from("messaging_sessions").update({ history: trimmed }).eq("id", sessionId);
 }
 
+async function downloadPhotoAsBase64(fileId: string): Promise<{ base64: string; mimeType: string }> {
+  // Get file path from Telegram
+  const fileRes = await fetch(
+    `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getFile?file_id=${fileId}`,
+  );
+  const fileJson = await fileRes.json();
+  const filePath: string = fileJson.result?.file_path;
+  if (!filePath) throw new Error("Could not get file path from Telegram.");
+
+  // Download the file
+  const imgRes = await fetch(
+    `https://api.telegram.org/file/bot${TELEGRAM_TOKEN}/${filePath}`,
+  );
+  if (!imgRes.ok) throw new Error(`Failed to download image: ${imgRes.status}`);
+
+  const buffer = await imgRes.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+  const base64 = btoa(binary);
+
+  // Infer mime type from file extension
+  const mimeType = filePath.endsWith(".png") ? "image/png" : "image/jpeg";
+  return { base64, mimeType };
+}
+
 async function callChatMessage(
   message: string,
   chatHistory: { role: string; message: string }[],
+  image?: { base64: string; mimeType: string },
 ): Promise<string> {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/chat-message`, {
     method: "POST",
@@ -67,7 +94,11 @@ async function callChatMessage(
       "Authorization": `Bearer ${SERVICE_KEY}`,
       "apikey": SERVICE_KEY,
     },
-    body: JSON.stringify({ message, chat_history: chatHistory }),
+    body: JSON.stringify({
+      message,
+      chat_history: chatHistory,
+      ...(image ? { imageBase64: image.base64, mimeType: image.mimeType } : {}),
+    }),
     signal: AbortSignal.timeout(55_000),
   });
 
@@ -96,6 +127,8 @@ serve(async (req) => {
       chat: { id: number };
       from?: { id: number };
       text?: string;
+      caption?: string;
+      photo?: { file_id: string; width: number; height: number }[];
     };
   };
 
@@ -105,16 +138,17 @@ serve(async (req) => {
     return new Response("Bad Request", { status: 400 });
   }
 
-  // Only handle text messages
   const msg = update?.message;
-  if (!msg?.text || !msg?.chat?.id) {
-    return new Response("ok", { status: 200 });
-  }
+  if (!msg?.chat?.id) return new Response("ok", { status: 200 });
 
-  const chatId     = msg.chat.id;
-  const userText   = msg.text.trim();
+  // Must have text or a photo
+  const hasPhoto = Array.isArray(msg.photo) && msg.photo.length > 0;
+  if (!msg.text && !hasPhoto) return new Response("ok", { status: 200 });
 
-  // Ignore Telegram bot commands other than /start
+  const chatId   = msg.chat.id;
+  const userText = (msg.text ?? msg.caption ?? "").trim();
+
+  // Ignore bot commands other than /start
   if (userText.startsWith("/") && !userText.startsWith("/start")) {
     return new Response("ok", { status: 200 });
   }
@@ -131,18 +165,28 @@ serve(async (req) => {
 
     if (userText === "/start") {
       await sendTelegram(chatId,
-        "Hey, I'm *Cloak* — an AI assistant. Ask me anything."
+        "Hey, I'm *Cloak* — an AI assistant. Ask me anything, or send me an image."
       );
       return new Response("ok", { status: 200 });
     }
 
     const session = await getOrCreateSession(db, String(chatId));
-    const reply   = await callChatMessage(userText, session.history);
 
-    // Append to history
+    // Download photo if present (use largest size)
+    let image: { base64: string; mimeType: string } | undefined;
+    if (hasPhoto) {
+      const largest = msg.photo![msg.photo!.length - 1];
+      image = await downloadPhotoAsBase64(largest.file_id);
+    }
+
+    const reply = await callChatMessage(userText, session.history, image);
+
+    // Store [Image] as user turn text — base64 is too large to persist
+    const userHistoryText = hasPhoto ? (userText ? `[Image] ${userText}` : "[Image]") : userText;
+
     const newHistory = [
       ...session.history,
-      { role: "USER", message: userText },
+      { role: "USER", message: userHistoryText },
       { role: "CHATBOT", message: reply },
     ];
     await saveHistory(db, session.id, newHistory);
