@@ -23,7 +23,9 @@ There is **no build pipeline**. Files are served as-is. Push to `main` and Cloud
 - `cloak.css` — shared design system used by chat / values / landing.
 - `cloak.js` — app logic, auth, Supabase client, settings, theming, chat.
 - `search.js` + `search-patch.js` — web-search overlay used inside chat.
-- `supabase/functions/chat-message/` — Edge Function for chat.
+- `supabase/functions/chat-message/` — Edge Function for chat (Groq + NVIDIA).
+- `supabase/functions/telegram-bot/` — Telegram Bot webhook. Calls `chat-message` internally.
+- `supabase/migrations/` — SQL migrations. Apply via Supabase dashboard or CLI.
 - `robots.txt`, `sitemap.xml` — SEO.
 
 ## Design system
@@ -77,6 +79,25 @@ Then click through:
 5. `/chat.html` → "What is Cloak?" goes to `landing.html`.
 
 No automated tests.
+
+## Messaging integrations
+
+### Telegram
+- Edge Function: `supabase/functions/telegram-bot/index.ts`
+- Required secrets: `TELEGRAM_BOT_TOKEN`
+- Optional secrets: `TELEGRAM_WEBHOOK_SECRET` (adds request validation — recommended for production)
+- Setup:
+  1. Create a bot via [@BotFather](https://t.me/BotFather), get the token.
+  2. Set secret: `supabase secrets set TELEGRAM_BOT_TOKEN=<token>`
+  3. Deploy: `supabase functions deploy telegram-bot`
+  4. Register the webhook:
+     ```
+     curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=<SUPABASE_URL>/functions/v1/telegram-bot"
+     ```
+
+### Session persistence
+- Uses the `messaging_sessions` table (see `supabase/migrations/20260512000000_messaging_sessions.sql`).
+- Apply the migration via Supabase dashboard SQL editor or `supabase db push`.
 
 ## Known follow-ups
 
