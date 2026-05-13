@@ -10,6 +10,7 @@ const GROQ_API_KEYS: string[] = [
 ].filter((k): k is string => typeof k === "string" && k.length > 0);
 
 const GROQ_MAIN_MODEL   = "llama-3.3-70b-versatile";
+const GROQ_VISION_MODEL = "llama-3.2-11b-vision-preview";
 const NVIDIA_API_KEY    = Deno.env.get("NVIDIA_API_KEY") ?? "";
 // Try the full Ultra first; if it times-out or 404s, fall back to the 70B
 const NVIDIA_MODELS     = [
@@ -335,7 +336,11 @@ serve(async (req) => {
 
     const hasNvidiaKey = NVIDIA_API_KEY.length > 0;
     const groqKeyCount = GROQ_API_KEYS.length;
-    console.log(`[${reqId}] REQUEST msgLen=${String(body?.message ?? "").length} nvidia=${hasNvidiaKey} groqKeys=${groqKeyCount}`);
+    const imageBase64: string = body?.imageBase64 ? String(body.imageBase64) : "";
+    const mimeType: string    = body?.mimeType    ? String(body.mimeType)    : "image/jpeg";
+    const hasImage = imageBase64.length > 0;
+
+    console.log(`[${reqId}] REQUEST msgLen=${String(body?.message ?? "").length} nvidia=${hasNvidiaKey} groqKeys=${groqKeyCount} vision=${hasImage}`);
 
     // Guard: no API keys at all
     if (groqKeyCount === 0) {
@@ -369,7 +374,7 @@ serve(async (req) => {
     const extendedThinking: boolean = body?.extended_thinking === true || body?.think_mode === true;
     const userSystemPrompt: string  = body?.system_prompt ? String(body.system_prompt).trim() : "";
 
-    if (!message) {
+    if (!message && !hasImage) {
       return new Response(
         JSON.stringify({ error: "Message is required." }),
         { status: 400, headers: { ...cors, "Content-Type": "application/json" } }
@@ -380,20 +385,62 @@ serve(async (req) => {
       ? `${BASE_SYSTEM_PROMPT}\n\nUser Preferences:\n${userSystemPrompt}`
       : BASE_SYSTEM_PROMPT;
 
+    // Build the last user message — vision content array when image is present
+    const lastUserContent = hasImage
+      ? [
+          { type: "text", text: message || "What is in this image?" },
+          { type: "image_url", image_url: { url: `data:${mimeType};base64,${imageBase64}` } },
+        ]
+      : message;
+
     const conversationMessages = [
       ...chatHistory.map((m: { role: string; message: string }) => ({
         role:    m.role === "CHATBOT" ? "assistant" : "user",
         content: String(m.message || ""),
       })),
-      { role: "user", content: message },
+      { role: "user", content: lastUserContent },
     ];
 
     let responseText = "";
     let provider     = "groq";
     let toolsUsed: string[] = [];
 
+    // ── Vision path: Groq vision model, no tools, no NVIDIA pass ─────────────
+    if (hasImage) {
+      console.log(`[${reqId}] Path: Groq vision`);
+      for (let ki = 0; ki < GROQ_API_KEYS.length; ki++) {
+        const apiKey = GROQ_API_KEYS[ki];
+        try {
+          const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              model: GROQ_VISION_MODEL,
+              messages: [{ role: "system", content: finalSystemPrompt }, ...conversationMessages],
+              temperature,
+              max_tokens: 2048,
+            }),
+            signal: AbortSignal.timeout(GROQ_TIMEOUT_MS),
+          });
+          if (!r.ok) {
+            const errText = await r.text();
+            if (r.status === 401 || r.status === 429) { continue; }
+            throw new Error(`Groq vision ${r.status}: ${errText.slice(0, 200)}`);
+          }
+          const j = await r.json();
+          // deno-lint-ignore no-explicit-any
+          responseText = (j as any).choices[0].message.content || "";
+          provider = "groq-vision";
+          break;
+        } catch (e) {
+          if (e instanceof Error && e.name === "AbortError") { continue; }
+          throw e;
+        }
+      }
+      if (!responseText) throw new Error("Vision model returned no response.");
+    }
     // ── Two-pass: Groq reasons + uses tools → NVIDIA synthesises ──────────────
-    if (hasNvidiaKey) {
+    else if (hasNvidiaKey) {
       console.log(`[${reqId}] Path: Groq reasoning → NVIDIA synthesis`);
 
       const thinkingPrompt =
@@ -427,7 +474,7 @@ serve(async (req) => {
         provider     = "groq-fallback";
       }
     } else {
-      // ── Single-pass: Groq only ────────────────────────────────────────────
+      // ── Single-pass: Groq only (no NVIDIA key) ────────────────────────────
       console.log(`[${reqId}] Path: Groq only (no NVIDIA key)`);
       const result = await groqAgentCall(conversationMessages, finalSystemPrompt, reqId, true, 2048);
       responseText = result.content;
