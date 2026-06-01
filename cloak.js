@@ -873,158 +873,77 @@ function _csShape(kind, N){
 }
 
 function createCloakStatus(botMsgEl){
-  const bc = botMsgEl && botMsgEl.querySelector('.bot-content');
-  if(!bc) return null;
-  bc.innerHTML='';
+  const meta = botMsgEl && botMsgEl.querySelector('.bot-meta');
+  if(!meta) return null;
+  const dot   = meta.querySelector('.bot-dot');
+  const label = meta.querySelector('.bot-label');
+  const origLabel = label ? label.textContent : 'Cloak';
 
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  const wrap=document.createElement('div');
-  wrap.className='cloak-status cs-large';
-  wrap.innerHTML=`
-    <div class="cs-stage">
-      <div class="cs-glyph">
-        <svg viewBox="-72 -72 144 144" aria-hidden="true">
-          <path class="cs-shadow" d=""></path>
-          <path class="cs-shape" d=""></path>
-          <circle class="cs-sat" r="5.5"></circle>
-        </svg>
-      </div>
-    </div>
-    <div class="cs-label"><span class="cs-label-text">Thinking</span></div>`;
-  bc.appendChild(wrap);
+  // Morphing glyph lives exactly where the dot sits — just bigger. Solid
+  // accent fill (no border/shadow) so the resting square matches the dot.
+  const glyph=document.createElement('span');
+  glyph.className='cs-dot-glyph';
+  glyph.innerHTML='<svg viewBox="-52 -52 104 104" aria-hidden="true"><path class="cs-shape" d=""></path></svg>';
+  if(dot){ dot.style.display='none'; meta.insertBefore(glyph, dot); }
+  else { meta.insertBefore(glyph, meta.firstChild); }
 
-  const shapeEl=wrap.querySelector('.cs-shape');
-  const shadowEl=wrap.querySelector('.cs-shadow');
-  const satEl=wrap.querySelector('.cs-sat');
-  const labelText=wrap.querySelector('.cs-label-text');
+  if(label){
+    label.textContent='Cloak is thinking…';
+    label.classList.add('cs-thinking-label');
+  }
 
-  const N=64, R=44, ORB=60;
+  const shapeEl=glyph.querySelector('.cs-shape');
+  const N=64, R=46;
   const order=['triangle','circle','square'];
   const cache={}; order.forEach(k=>cache[k]=_csShape(k,N));
 
-  let alive=true, raf=0;
-
-  function buildPath(pts, scale){
+  function buildPath(pts){
     let d='M';
-    for(let i=0;i<N;i++){
-      d += (i?' L':'') + (pts[i][0]*R*scale).toFixed(2) + ' ' + (pts[i][1]*R*scale).toFixed(2);
-    }
+    for(let i=0;i<N;i++){ d += (i?' L':'') + (pts[i][0]*R).toFixed(2) + ' ' + (pts[i][1]*R).toFixed(2); }
     return d+' Z';
   }
 
+  let alive=true, raf=0;
+
   if(reduce){
-    // No motion for reduced-motion users — clean static glyph.
-    const d=buildPath(cache.square, 1);
-    shapeEl.setAttribute('d', d); shadowEl.setAttribute('d', d);
-    shadowEl.setAttribute('transform','translate(5 6)');
-    satEl.setAttribute('cx', 0); satEl.setAttribute('cy', -ORB);
+    shapeEl.setAttribute('d', buildPath(cache.square));
   } else {
-    wrap.classList.add('cs-enter');
-    requestAnimationFrame(()=>wrap.classList.remove('cs-enter'));
-    const BEAT=900;
+    const BEAT=720;               // ms per shape — smooth, no pulse
     const start=performance.now();
     const frame=(now)=>{
-      if(!alive || !document.body.contains(wrap)){ alive=false; return; }
+      if(!alive || !document.body.contains(glyph)){ alive=false; return; }
       const el=now-start;
-
-      // ── morph between shapes ──
       const beat=Math.floor(el/BEAT);
-      const t=(el%BEAT)/BEAT;
+      const t=_csEaseInOut((el%BEAT)/BEAT);
       const from=cache[order[beat%order.length]];
       const to=cache[order[(beat+1)%order.length]];
-      const mp=_csEaseInOut(t);
-
-      // breathe continuously + gentle pop on arrival + soft dip mid-morph
-      const breathe = 1 + 0.035*Math.sin(el/750);
-      const s = breathe * (1 + 0.10*Math.pow(1-t,4) - 0.055*Math.sin(Math.PI*t));
-      const rot = Math.sin(el/1000)*6;
-
       const pts=new Array(N);
       for(let i=0;i<N;i++){
-        pts[i]=[ from[i][0]+(to[i][0]-from[i][0])*mp, from[i][1]+(to[i][1]-from[i][1])*mp ];
+        pts[i]=[ from[i][0]+(to[i][0]-from[i][0])*t, from[i][1]+(to[i][1]-from[i][1])*t ];
       }
-      const d=buildPath(pts, s);
-      shapeEl.setAttribute('d', d); shadowEl.setAttribute('d', d);
-      const tf=`rotate(${rot.toFixed(2)})`;
-      shapeEl.setAttribute('transform', tf);
-      shadowEl.setAttribute('transform', `translate(5 6) ${tf}`);
-
-      // ── orbiting satellite — guarantees constant playful motion ──
-      const ang = el/560;
-      const orb = ORB * (1 + 0.05*Math.sin(el/430));
-      satEl.setAttribute('cx', (Math.cos(ang)*orb).toFixed(2));
-      satEl.setAttribute('cy', (Math.sin(ang)*orb).toFixed(2));
-
+      shapeEl.setAttribute('d', buildPath(pts));
       raf=requestAnimationFrame(frame);
     };
     raf=requestAnimationFrame(frame);
   }
 
-  let curLabel='Thinking';
+  // Restore the normal dot + label — leaves a square that matches the original.
+  function restore(){
+    alive=false; if(raf) cancelAnimationFrame(raf);
+    if(glyph.parentNode) glyph.remove();
+    if(dot) dot.style.display='';
+    if(label){ label.textContent=origLabel; label.classList.remove('cs-thinking-label'); }
+  }
+
   return {
-    el: wrap,
-    setLabel(txt){
-      txt=String(txt||'').trim();
-      if(!txt || txt===curLabel) return;
-      curLabel=txt;
-      labelText.classList.add('cs-label-out');
-      setTimeout(()=>{ labelText.textContent=txt; labelText.classList.remove('cs-label-out'); }, 150);
-    },
-    dock(){ wrap.classList.remove('cs-large'); wrap.classList.add('cs-small'); scrollBottom(); },
-    exit(cb){
-      alive=false; if(raf) cancelAnimationFrame(raf);
-      wrap.classList.add('cs-exit');
-      setTimeout(()=>{ if(cb) cb(); }, 200);
-    },
-    destroy(){ alive=false; if(raf) cancelAnimationFrame(raf); wrap.remove(); }
+    el: glyph,
+    setLabel(){ /* fixed 'Cloak is thinking…' label — no-op */ },
+    dock(){ /* stays in place — no docking */ },
+    exit(cb){ restore(); if(cb) cb(); },
+    destroy(){ restore(); }
   };
-}
-
-function _csWaitUntil(cond, interval){
-  return new Promise(r=>{ const iv=setInterval(()=>{ if(cond()){ clearInterval(iv); r(); } }, interval||60); });
-}
-
-// Thinking models: hero glyph, then dock and step through model-planned labels.
-async function runStatusSteps(status, model, userMessage, responsePromise){
-  if(!status) return;
-  let ready=false;
-  responsePromise.then(()=>ready=true).catch(()=>ready=true);
-
-  const stepsPromise = generateThoughtSteps(userMessage, model, hist);
-  status.setLabel('Reading your message');
-
-  // Let the large hero breathe before docking inline.
-  await Promise.race([sleep(900), _csWaitUntil(()=>ready)]);
-  if(ready) return;
-  status.dock();
-
-  let steps;
-  try { steps = await stepsPromise; } catch(_) { steps = _fallbackSteps(userMessage, model); }
-
-  for(let i=0;i<steps.length && !ready;i++){
-    status.setLabel(steps[i].title);
-    await Promise.race([sleep(_thoughtDelay(model, i)), _csWaitUntil(()=>ready)]);
-  }
-}
-
-// Other models: hero glyph, then dock and cycle generic phases until the answer lands.
-async function runStatusGeneric(status, responsePromise){
-  if(!status) return;
-  let ready=false;
-  responsePromise.then(()=>ready=true).catch(()=>ready=true);
-
-  const phases=['Thinking','Working through it','Composing a response','Refining the details'];
-  await Promise.race([sleep(800), _csWaitUntil(()=>ready)]);
-  if(ready) return;
-  status.dock();
-
-  let i=0;
-  while(!ready){
-    status.setLabel(phases[Math.min(i, phases.length-1)]);
-    i++;
-    await Promise.race([sleep(1150), _csWaitUntil(()=>ready)]);
-  }
 }
 
 /* ── PLUS MENU / MODES / IMAGE ── */
@@ -1332,12 +1251,7 @@ async function send(){
   fetchAndResolve();
 
   try {
-    // Drive the Cloak status animation in parallel with the fetch.
-    // Thinking models get model-planned step labels; others get generic phases.
-    if (botMsgEl._status) {
-      if (useThoughts) runStatusSteps(botMsgEl._status, model, txt || '[Image]', responsePromise);
-      else runStatusGeneric(botMsgEl._status, responsePromise);
-    }
+    // The Cloak status glyph (created above) morphs on its own while we wait.
 
     // Wait for the actual response
     const {responseText, ms, model: respModel} = await responsePromise;

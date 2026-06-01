@@ -100,21 +100,16 @@ window.send = async function () {
 
   showMessages();
 
-  // ── Instant on-brand waiting indicator ──
-  // Created BEFORE the request fires so the wait is never a blank screen.
-  // This same bubble is reused for the rest of the turn.
+  // ── Instant on-brand thinking indicator ──
+  // A morphing glyph sits in the bot-dot's place (just bigger) and smoothly
+  // switches shapes while we wait, with a "Cloak is thinking…" label. Created
+  // BEFORE the request fires so the wait is never a blank screen. This same
+  // bubble is reused for the rest of the turn.
   let botMsgEl = insertBotBubbleForThoughts();
   try { botMsgEl._status = createCloakStatus(botMsgEl); } catch (_) { botMsgEl._status = null; }
   if (!botMsgEl._status) {
     const _bc = botMsgEl.querySelector('.bot-content');
     if (_bc) _bc.innerHTML = '<div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
-  }
-  // Drive the status label while we wait. _statusDone stops the driver.
-  let _statusDone;
-  const _statusGate = new Promise(r => { _statusDone = r; });
-  if (botMsgEl._status) {
-    if (useThoughts) runStatusSteps(botMsgEl._status, model, txt || '[Image]', _statusGate);
-    else runStatusGeneric(botMsgEl._status, _statusGate);
   }
 
   // Build API messages with search system prompt
@@ -163,9 +158,9 @@ window.send = async function () {
       const toolCalls = CLOAK_SEARCH.parseToolCalls(firstResponse);
 
       if (toolCalls.length > 0) {
-        // Search path takes over the bubble — retire the status glyph and
-        // hand a clean bot-content to the search/thought UI.
-        _statusDone();
+        // Search path takes over the bubble — retire the status glyph
+        // (restores the dot + label) and hand a clean bot-content to the
+        // search/thought UI.
         if (botMsgEl._status) { botMsgEl._status.destroy(); botMsgEl._status = null; }
         const _sbc = botMsgEl.querySelector('.bot-content');
         if (_sbc) _sbc.innerHTML = '';
@@ -286,9 +281,8 @@ window.send = async function () {
     hist.push({ role: 'CHATBOT', message: firstResponse });
     if (hist.length > 20) hist = hist.slice(-20);
 
-    // The status glyph already animated through the wait — dismiss it and
-    // stream the answer (works for both thinking and non-thinking models).
-    _statusDone();
+    // The status glyph already animated through the wait — dismiss it
+    // (restores the square dot) and stream the answer.
     replaceThinkWithContent(botMsgEl, firstResponse);
 
     if (voiceMode) playVoice(firstResponse);
@@ -298,7 +292,6 @@ window.send = async function () {
   } catch (ex) {
     _fetchController = null;
     stopThinkAnimation();
-    if (_statusDone) _statusDone();
     if (ex.name === 'AbortError') {
       if (botMsgEl) botMsgEl.remove();
       else {

@@ -1419,97 +1419,41 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
 /* (bot-dot styles are defined above; duplicate block removed) */
 
 /* ===========================================================
-   CLOAK STATUS — morphing-shape thinking glyph
-   A generous, centered animated waiting area on send that
-   tweens small and docks inline as the model works. Always in
-   motion (morph + breathe + orbiting satellite) so the wait is
-   never a dead screen. On-brand: accent fill, hard ink border.
+   CLOAK STATUS — in-place morphing thinking glyph
+   Sits exactly where the bot-dot is (just bigger). Smoothly
+   switches triangle -> circle -> square (no pulse). On completion
+   the glyph is removed and the normal square dot is restored, so
+   the resting indicator looks identical to a finished message.
 =========================================================== */
-.cloak-status {
-  display: flex;
-  align-items: center;
-  transition: opacity .3s ease;
-}
-
-/* Large hero — fills the empty pane so waiting feels intentional */
-.cloak-status.cs-large {
-  flex-direction: column;
-  justify-content: center;
-  gap: 20px;
-  width: 100%;
-  min-height: 240px;
-  padding: 24px 0;
-  transition: min-height .5s cubic-bezier(.22,.61,.36,1),
-              gap .45s ease, padding .45s ease;
-}
-/* Docked — compact inline row beside the status label */
-.cloak-status.cs-small {
-  flex-direction: row;
-  justify-content: flex-start;
-  gap: 11px;
-  min-height: 0;
-  padding: 2px 0 6px;
-}
-
-.cs-stage {
-  display: flex;
+.cs-dot-glyph {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-}
-.cs-glyph {
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
-  transition: width .55s cubic-bezier(.34,1.3,.5,1),
-              height .55s cubic-bezier(.34,1.3,.5,1);
-  filter: drop-shadow(0 2px 0 rgba(10,10,10,.04));
+  animation: csGlyphIn .28s cubic-bezier(.34,1.56,.64,1) both;
 }
-.cs-large .cs-glyph { width: 96px; height: 96px; }
-.cs-small .cs-glyph { width: 28px; height: 28px; }
-.cs-glyph svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.cs-dot-glyph svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.cs-dot-glyph .cs-shape { fill: var(--acc); }   /* solid accent — matches the dot */
 
-.cs-shape {
-  fill: var(--acc);
-  stroke: var(--ink);
-  stroke-width: 5;
-  stroke-linejoin: round;
-}
-.cs-shadow { fill: var(--ink); opacity: .9; }
-
-/* Orbiting satellite — constant playful motion */
-.cs-sat {
-  fill: var(--surf);
-  stroke: var(--ink);
-  stroke-width: 3;
+@keyframes csGlyphIn {
+  from { opacity: 0; transform: scale(.4); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
-.cs-label {
-  font-family: var(--fd);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .14em;
+/* "Cloak is thinking…" — grayed-out italic, overrides the bot-label style */
+.bot-label.cs-thinking-label {
+  font-family: var(--fu);
+  font-weight: 500;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: .01em;
+  font-size: 11px;
   color: var(--ink);
-  transition: font-size .45s ease, opacity .3s ease, letter-spacing .45s ease;
-}
-.cs-large .cs-label { font-size: 13px; opacity: .85; }
-.cs-small .cs-label { font-size: 10.5px; opacity: .66; letter-spacing: .1em; }
-.cs-label-text {
-  display: inline-block;
-  transition: opacity .15s ease, transform .15s ease;
-}
-.cs-label-out { opacity: 0; transform: translateY(4px); }
-
-.cs-enter { animation: csEnter .5s cubic-bezier(.34,1.56,.64,1) both; }
-@keyframes csEnter {
-  0%   { opacity: 0; transform: scale(.5); }
-  60%  { transform: scale(1.05); }
-  100% { opacity: 1; transform: scale(1); }
-}
-.cs-exit { animation: csExit .22s ease forwards; }
-@keyframes csExit {
-  to { opacity: 0; transform: translateY(5px) scale(.95); }
+  opacity: .42;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cs-enter, .cs-exit { animation: none; }
-  .cs-glyph, .cs-label, .cloak-status { transition: none; }
-  .cs-label-text { transition: none; }
+  .cs-dot-glyph { animation: none; }
 }
