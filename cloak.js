@@ -813,19 +813,201 @@ function replaceThinkWithContent(botMsgEl, rawText) {
   const bc = botMsgEl.querySelector('.bot-content');
   if (!bc) return;
 
+  const status = botMsgEl._status;
   const typing = bc.querySelector('.typing');
   const start = () => {
     bc.innerHTML = '';
     streamContent(bc, rawText, () => { setBusy(false); });
   };
 
-  if (typing) {
+  if (status) {
+    botMsgEl._status = null;
+    status.exit(start);
+  } else if (typing) {
     typing.classList.add('fade-out');
     setTimeout(start, 160);
   } else {
     start();
   }
   scrollBottom();
+}
+
+/* ════════════════════════════════════════════════════════
+   CLOAK STATUS — high-fidelity morphing-shape thinking glyph
+   On send, a large on-brand glyph pops up and cycles through
+   triangle → circle → square, pulsing as it morphs. Once the
+   model starts working it tweens smaller and docks inline,
+   updating its status label as the bot does different things.
+   ════════════════════════════════════════════════════════ */
+
+function _csEaseInOut(x){ return x < 0.5 ? 4*x*x*x : 1 - Math.pow(-2*x+2,3)/2; }
+
+// Resample a closed polyline into N equally arc-spaced points.
+function _csResample(loop, N){
+  const segs=[]; let total=0;
+  for(let i=0;i<loop.length-1;i++){
+    const len=Math.hypot(loop[i+1][0]-loop[i][0], loop[i+1][1]-loop[i][1]);
+    segs.push(len); total+=len;
+  }
+  const out=[], step=total/N; let target=0, si=0, acc=0;
+  for(let i=0;i<N;i++){
+    while(si<segs.length-1 && acc+segs[si]<target){ acc+=segs[si]; si++; }
+    const segLen=segs[si]||1e-6, f=(target-acc)/segLen;
+    const a=loop[si], b=loop[si+1];
+    out.push([a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f]);
+    target+=step;
+  }
+  return out;
+}
+
+// Unit-radius shape sampled to N points, all starting at top, going clockwise.
+function _csShape(kind, N){
+  if(kind==='circle'){
+    const p=[];
+    for(let i=0;i<N;i++){ const a=-Math.PI/2 + 2*Math.PI*i/N; p.push([Math.cos(a), Math.sin(a)]); }
+    return p;
+  }
+  if(kind==='square') return _csResample([[0,-0.94],[0.94,-0.94],[0.94,0.94],[-0.94,0.94],[-0.94,-0.94],[0,-0.94]], N);
+  // triangle, pointing up
+  return _csResample([[0,-1.12],[0.99,0.64],[-0.99,0.64],[0,-1.12]], N);
+}
+
+function createCloakStatus(botMsgEl){
+  const bc = botMsgEl && botMsgEl.querySelector('.bot-content');
+  if(!bc) return null;
+  bc.innerHTML='';
+
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const wrap=document.createElement('div');
+  wrap.className='cloak-status cs-large';
+  wrap.innerHTML=`
+    <div class="cs-glyph">
+      <svg viewBox="-64 -64 128 128" aria-hidden="true">
+        <path class="cs-shadow" d=""></path>
+        <path class="cs-shape" d=""></path>
+      </svg>
+    </div>
+    <div class="cs-label"><span class="cs-label-text">Thinking</span></div>`;
+  bc.appendChild(wrap);
+
+  const shapeEl=wrap.querySelector('.cs-shape');
+  const shadowEl=wrap.querySelector('.cs-shadow');
+  const labelText=wrap.querySelector('.cs-label-text');
+
+  const N=64, R=46;
+  const order=['triangle','circle','square'];
+  const cache={}; order.forEach(k=>cache[k]=_csShape(k,N));
+
+  let alive=true, raf=0;
+
+  function buildPath(pts, scale){
+    let d='M';
+    for(let i=0;i<N;i++){
+      d += (i?' L':'') + (pts[i][0]*R*scale).toFixed(2) + ' ' + (pts[i][1]*R*scale).toFixed(2);
+    }
+    return d+' Z';
+  }
+
+  if(reduce){
+    // Static rounded square — no motion for reduced-motion users.
+    const d=buildPath(cache.square, 1);
+    shapeEl.setAttribute('d', d); shadowEl.setAttribute('d', d);
+    shadowEl.setAttribute('transform','translate(5 6)');
+  } else {
+    wrap.classList.add('cs-enter');
+    requestAnimationFrame(()=>wrap.classList.remove('cs-enter'));
+    const BEAT=820;
+    const start=performance.now();
+    const frame=(now)=>{
+      if(!alive || !document.body.contains(wrap)){ alive=false; return; }
+      const el=now-start;
+      const beat=Math.floor(el/BEAT);
+      const t=(el%BEAT)/BEAT;
+      const from=cache[order[beat%order.length]];
+      const to=cache[order[(beat+1)%order.length]];
+      const mp=_csEaseInOut(t);
+      // pop on arrival, dip through the morph
+      const s = 1 + 0.13*Math.pow(1-t,5) - 0.11*Math.sin(Math.PI*t);
+      const rot = Math.sin(el/900)*7;
+      const pts=new Array(N);
+      for(let i=0;i<N;i++){
+        pts[i]=[ from[i][0]+(to[i][0]-from[i][0])*mp, from[i][1]+(to[i][1]-from[i][1])*mp ];
+      }
+      const d=buildPath(pts, s);
+      shapeEl.setAttribute('d', d); shadowEl.setAttribute('d', d);
+      const tf=`rotate(${rot.toFixed(2)})`;
+      shapeEl.setAttribute('transform', tf);
+      shadowEl.setAttribute('transform', `translate(5 6) ${tf}`);
+      raf=requestAnimationFrame(frame);
+    };
+    raf=requestAnimationFrame(frame);
+  }
+
+  let curLabel='Thinking';
+  return {
+    el: wrap,
+    setLabel(txt){
+      txt=String(txt||'').trim();
+      if(!txt || txt===curLabel) return;
+      curLabel=txt;
+      labelText.classList.add('cs-label-out');
+      setTimeout(()=>{ labelText.textContent=txt; labelText.classList.remove('cs-label-out'); }, 150);
+    },
+    dock(){ wrap.classList.remove('cs-large'); wrap.classList.add('cs-small'); },
+    exit(cb){
+      alive=false; if(raf) cancelAnimationFrame(raf);
+      wrap.classList.add('cs-exit');
+      setTimeout(()=>{ if(cb) cb(); }, 180);
+    },
+    destroy(){ alive=false; if(raf) cancelAnimationFrame(raf); wrap.remove(); }
+  };
+}
+
+function _csWaitUntil(cond, interval){
+  return new Promise(r=>{ const iv=setInterval(()=>{ if(cond()){ clearInterval(iv); r(); } }, interval||60); });
+}
+
+// Thinking models: hero glyph, then dock and step through model-planned labels.
+async function runStatusSteps(status, model, userMessage, responsePromise){
+  if(!status) return;
+  let ready=false;
+  responsePromise.then(()=>ready=true).catch(()=>ready=true);
+
+  const stepsPromise = generateThoughtSteps(userMessage, model, hist);
+  status.setLabel('Reading your message');
+
+  // Let the large hero breathe before docking inline.
+  await Promise.race([sleep(900), _csWaitUntil(()=>ready)]);
+  if(ready) return;
+  status.dock();
+
+  let steps;
+  try { steps = await stepsPromise; } catch(_) { steps = _fallbackSteps(userMessage, model); }
+
+  for(let i=0;i<steps.length && !ready;i++){
+    status.setLabel(steps[i].title);
+    await Promise.race([sleep(_thoughtDelay(model, i)), _csWaitUntil(()=>ready)]);
+  }
+}
+
+// Other models: hero glyph, then dock and cycle generic phases until the answer lands.
+async function runStatusGeneric(status, responsePromise){
+  if(!status) return;
+  let ready=false;
+  responsePromise.then(()=>ready=true).catch(()=>ready=true);
+
+  const phases=['Thinking','Working through it','Composing a response','Refining the details'];
+  await Promise.race([sleep(800), _csWaitUntil(()=>ready)]);
+  if(ready) return;
+  status.dock();
+
+  let i=0;
+  while(!ready){
+    status.setLabel(phases[Math.min(i, phases.length-1)]);
+    i++;
+    await Promise.race([sleep(1150), _csWaitUntil(()=>ready)]);
+  }
 }
 
 /* ── PLUS MENU / MODES / IMAGE ── */
@@ -1076,9 +1258,10 @@ async function send(){
   stats.req++;
   log('req',`"${(txt||'[image]').slice(0,60)}" model=${model} guest=${guest} hwMode=${hwMode} thinkMode=${thinkModeActive} imgs=${imgs.length} thoughts=${useThoughts}`);
 
-  // Create bot bubble
+  // Create bot bubble + Cloak status hero animation
   showMessages();
-  const botMsgEl = useThoughts ? insertBotBubbleForThoughts() : insertBotBubble();
+  const botMsgEl = insertBotBubbleForThoughts();
+  botMsgEl._status = createCloakStatus(botMsgEl);
 
   // Build API request body
   const apiMessages = hist.slice(0,-1).map(m=>({
@@ -1126,9 +1309,11 @@ async function send(){
   fetchAndResolve();
 
   try {
-    // Run dynamic thought sequence in parallel with fetch (only for logos/kairos/thinkMode)
-    if (useThoughts) {
-      await runThoughtSequence(botMsgEl, model, txt || '[Image]', responsePromise);
+    // Drive the Cloak status animation in parallel with the fetch.
+    // Thinking models get model-planned step labels; others get generic phases.
+    if (botMsgEl._status) {
+      if (useThoughts) runStatusSteps(botMsgEl._status, model, txt || '[Image]', responsePromise);
+      else runStatusGeneric(botMsgEl._status, responsePromise);
     }
 
     // Wait for the actual response
