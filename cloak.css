@@ -1435,7 +1435,7 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
   animation: csGlyphIn .28s cubic-bezier(.34,1.56,.64,1) both;
 }
 .cs-dot-glyph svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.cs-dot-glyph .cs-shape { fill: var(--acc); }   /* solid accent — matches the dot */
+.cs-dot-glyph .cs-shape { fill: var(--acc); stroke: var(--ink); stroke-width: 2.5; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 
 @keyframes csGlyphIn {
   from { opacity: 0; transform: scale(.4); }
