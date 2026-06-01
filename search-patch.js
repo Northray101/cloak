@@ -100,6 +100,23 @@ window.send = async function () {
 
   showMessages();
 
+  // ── Instant on-brand waiting indicator ──
+  // Created BEFORE the request fires so the wait is never a blank screen.
+  // This same bubble is reused for the rest of the turn.
+  let botMsgEl = insertBotBubbleForThoughts();
+  try { botMsgEl._status = createCloakStatus(botMsgEl); } catch (_) { botMsgEl._status = null; }
+  if (!botMsgEl._status) {
+    const _bc = botMsgEl.querySelector('.bot-content');
+    if (_bc) _bc.innerHTML = '<div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  }
+  // Drive the status label while we wait. _statusDone stops the driver.
+  let _statusDone;
+  const _statusGate = new Promise(r => { _statusDone = r; });
+  if (botMsgEl._status) {
+    if (useThoughts) runStatusSteps(botMsgEl._status, model, txt || '[Image]', _statusGate);
+    else runStatusGeneric(botMsgEl._status, _statusGate);
+  }
+
   // Build API messages with search system prompt
   const apiMessages = hist.slice(0, -1).map(m => ({
     role: m.role === 'CHATBOT' ? 'assistant' : 'user',
@@ -124,7 +141,6 @@ window.send = async function () {
 
   /* ── ROUND 1: Get model's initial response (may include tool calls) ── */
   _fetchController = new AbortController();
-  let botMsgEl = null;
 
   try {
     const res = await fetch(CLOAK_API + '/v1/chat', {
@@ -147,8 +163,12 @@ window.send = async function () {
       const toolCalls = CLOAK_SEARCH.parseToolCalls(firstResponse);
 
       if (toolCalls.length > 0) {
-        // Create bot bubble for search UI
-        botMsgEl = insertBotBubbleForThoughts();
+        // Search path takes over the bubble — retire the status glyph and
+        // hand a clean bot-content to the search/thought UI.
+        _statusDone();
+        if (botMsgEl._status) { botMsgEl._status.destroy(); botMsgEl._status = null; }
+        const _sbc = botMsgEl.querySelector('.bot-content');
+        if (_sbc) _sbc.innerHTML = '';
 
         // Run thoughts in parallel with search if applicable
         let thoughtsPromise = null;
@@ -266,18 +286,10 @@ window.send = async function () {
     hist.push({ role: 'CHATBOT', message: firstResponse });
     if (hist.length > 20) hist = hist.slice(-20);
 
-    if (useThoughts) {
-      botMsgEl = insertBotBubbleForThoughts();
-      const responsePromise = Promise.resolve({ responseText: firstResponse });
-      await runThoughtSequence(botMsgEl, model, txt || '[Image]', responsePromise);
-      replaceThinkWithContent(botMsgEl, firstResponse);
-    } else {
-      botMsgEl = insertBotBubble();
-      const bc = botMsgEl.querySelector('.bot-content');
-      if (bc) streamContent(bc, firstResponse, () => { setBusy(false); });
-      else setBusy(false);
-      return;
-    }
+    // The status glyph already animated through the wait — dismiss it and
+    // stream the answer (works for both thinking and non-thinking models).
+    _statusDone();
+    replaceThinkWithContent(botMsgEl, firstResponse);
 
     if (voiceMode) playVoice(firstResponse);
     if (guest) { guestN++; if (guestN >= GUEST_MAX) setTimeout(showLimit, 500); }
@@ -286,6 +298,7 @@ window.send = async function () {
   } catch (ex) {
     _fetchController = null;
     stopThinkAnimation();
+    if (_statusDone) _statusDone();
     if (ex.name === 'AbortError') {
       if (botMsgEl) botMsgEl.remove();
       else {
