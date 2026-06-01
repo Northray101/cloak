@@ -882,20 +882,24 @@ function createCloakStatus(botMsgEl){
   const wrap=document.createElement('div');
   wrap.className='cloak-status cs-large';
   wrap.innerHTML=`
-    <div class="cs-glyph">
-      <svg viewBox="-64 -64 128 128" aria-hidden="true">
-        <path class="cs-shadow" d=""></path>
-        <path class="cs-shape" d=""></path>
-      </svg>
+    <div class="cs-stage">
+      <div class="cs-glyph">
+        <svg viewBox="-72 -72 144 144" aria-hidden="true">
+          <path class="cs-shadow" d=""></path>
+          <path class="cs-shape" d=""></path>
+          <circle class="cs-sat" r="5.5"></circle>
+        </svg>
+      </div>
     </div>
     <div class="cs-label"><span class="cs-label-text">Thinking</span></div>`;
   bc.appendChild(wrap);
 
   const shapeEl=wrap.querySelector('.cs-shape');
   const shadowEl=wrap.querySelector('.cs-shadow');
+  const satEl=wrap.querySelector('.cs-sat');
   const labelText=wrap.querySelector('.cs-label-text');
 
-  const N=64, R=46;
+  const N=64, R=44, ORB=60;
   const order=['triangle','circle','square'];
   const cache={}; order.forEach(k=>cache[k]=_csShape(k,N));
 
@@ -910,26 +914,32 @@ function createCloakStatus(botMsgEl){
   }
 
   if(reduce){
-    // Static rounded square — no motion for reduced-motion users.
+    // No motion for reduced-motion users — clean static glyph.
     const d=buildPath(cache.square, 1);
     shapeEl.setAttribute('d', d); shadowEl.setAttribute('d', d);
     shadowEl.setAttribute('transform','translate(5 6)');
+    satEl.setAttribute('cx', 0); satEl.setAttribute('cy', -ORB);
   } else {
     wrap.classList.add('cs-enter');
     requestAnimationFrame(()=>wrap.classList.remove('cs-enter'));
-    const BEAT=820;
+    const BEAT=900;
     const start=performance.now();
     const frame=(now)=>{
       if(!alive || !document.body.contains(wrap)){ alive=false; return; }
       const el=now-start;
+
+      // ── morph between shapes ──
       const beat=Math.floor(el/BEAT);
       const t=(el%BEAT)/BEAT;
       const from=cache[order[beat%order.length]];
       const to=cache[order[(beat+1)%order.length]];
       const mp=_csEaseInOut(t);
-      // pop on arrival, dip through the morph
-      const s = 1 + 0.13*Math.pow(1-t,5) - 0.11*Math.sin(Math.PI*t);
-      const rot = Math.sin(el/900)*7;
+
+      // breathe continuously + gentle pop on arrival + soft dip mid-morph
+      const breathe = 1 + 0.035*Math.sin(el/750);
+      const s = breathe * (1 + 0.10*Math.pow(1-t,4) - 0.055*Math.sin(Math.PI*t));
+      const rot = Math.sin(el/1000)*6;
+
       const pts=new Array(N);
       for(let i=0;i<N;i++){
         pts[i]=[ from[i][0]+(to[i][0]-from[i][0])*mp, from[i][1]+(to[i][1]-from[i][1])*mp ];
@@ -939,6 +949,13 @@ function createCloakStatus(botMsgEl){
       const tf=`rotate(${rot.toFixed(2)})`;
       shapeEl.setAttribute('transform', tf);
       shadowEl.setAttribute('transform', `translate(5 6) ${tf}`);
+
+      // ── orbiting satellite — guarantees constant playful motion ──
+      const ang = el/560;
+      const orb = ORB * (1 + 0.05*Math.sin(el/430));
+      satEl.setAttribute('cx', (Math.cos(ang)*orb).toFixed(2));
+      satEl.setAttribute('cy', (Math.sin(ang)*orb).toFixed(2));
+
       raf=requestAnimationFrame(frame);
     };
     raf=requestAnimationFrame(frame);
@@ -954,11 +971,11 @@ function createCloakStatus(botMsgEl){
       labelText.classList.add('cs-label-out');
       setTimeout(()=>{ labelText.textContent=txt; labelText.classList.remove('cs-label-out'); }, 150);
     },
-    dock(){ wrap.classList.remove('cs-large'); wrap.classList.add('cs-small'); },
+    dock(){ wrap.classList.remove('cs-large'); wrap.classList.add('cs-small'); scrollBottom(); },
     exit(cb){
       alive=false; if(raf) cancelAnimationFrame(raf);
       wrap.classList.add('cs-exit');
-      setTimeout(()=>{ if(cb) cb(); }, 180);
+      setTimeout(()=>{ if(cb) cb(); }, 200);
     },
     destroy(){ alive=false; if(raf) cancelAnimationFrame(raf); wrap.remove(); }
   };
@@ -1261,7 +1278,13 @@ async function send(){
   // Create bot bubble + Cloak status hero animation
   showMessages();
   const botMsgEl = insertBotBubbleForThoughts();
-  botMsgEl._status = createCloakStatus(botMsgEl);
+  try { botMsgEl._status = createCloakStatus(botMsgEl); } catch(_) { botMsgEl._status = null; }
+  // Safety net: if the status failed to build, show the classic typing dots so
+  // the wait is never a blank screen.
+  if(!botMsgEl._status){
+    const bc=botMsgEl.querySelector('.bot-content');
+    if(bc) bc.innerHTML='<div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  }
 
   // Build API request body
   const apiMessages = hist.slice(0,-1).map(m=>({

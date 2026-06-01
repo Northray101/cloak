@@ -1420,34 +1420,50 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
 
 /* ===========================================================
    CLOAK STATUS — morphing-shape thinking glyph
-   Large hero on send -> tweens small and docks inline as the
-   model works. On-brand: accent fill, hard ink border + shadow.
+   A generous, centered animated waiting area on send that
+   tweens small and docks inline as the model works. Always in
+   motion (morph + breathe + orbiting satellite) so the wait is
+   never a dead screen. On-brand: accent fill, hard ink border.
 =========================================================== */
 .cloak-status {
   display: flex;
   align-items: center;
-  transition: opacity .25s ease;
+  transition: opacity .3s ease;
 }
+
+/* Large hero — fills the empty pane so waiting feels intentional */
 .cloak-status.cs-large {
   flex-direction: column;
   justify-content: center;
-  gap: 15px;
-  padding: 20px 0 6px;
+  gap: 20px;
+  width: 100%;
+  min-height: 240px;
+  padding: 24px 0;
+  transition: min-height .5s cubic-bezier(.22,.61,.36,1),
+              gap .45s ease, padding .45s ease;
 }
+/* Docked — compact inline row beside the status label */
 .cloak-status.cs-small {
   flex-direction: row;
   justify-content: flex-start;
   gap: 11px;
-  padding: 2px 0;
+  min-height: 0;
+  padding: 2px 0 6px;
 }
 
+.cs-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .cs-glyph {
   flex-shrink: 0;
-  transition: width .55s cubic-bezier(.22,.61,.36,1),
-              height .55s cubic-bezier(.22,.61,.36,1);
+  transition: width .55s cubic-bezier(.34,1.3,.5,1),
+              height .55s cubic-bezier(.34,1.3,.5,1);
+  filter: drop-shadow(0 2px 0 rgba(10,10,10,.04));
 }
-.cs-large .cs-glyph { width: 84px; height: 84px; }
-.cs-small .cs-glyph { width: 26px; height: 26px; }
+.cs-large .cs-glyph { width: 96px; height: 96px; }
+.cs-small .cs-glyph { width: 28px; height: 28px; }
 .cs-glyph svg { display: block; width: 100%; height: 100%; overflow: visible; }
 
 .cs-shape {
@@ -1456,37 +1472,44 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
   stroke-width: 5;
   stroke-linejoin: round;
 }
-.cs-shadow { fill: var(--ink); opacity: .92; }
+.cs-shadow { fill: var(--ink); opacity: .9; }
+
+/* Orbiting satellite — constant playful motion */
+.cs-sat {
+  fill: var(--surf);
+  stroke: var(--ink);
+  stroke-width: 3;
+}
 
 .cs-label {
   font-family: var(--fd);
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: .12em;
+  letter-spacing: .14em;
   color: var(--ink);
-  transition: font-size .4s ease, opacity .3s ease;
+  transition: font-size .45s ease, opacity .3s ease, letter-spacing .45s ease;
 }
-.cs-large .cs-label { font-size: 12px; opacity: .82; }
-.cs-small .cs-label { font-size: 10.5px; opacity: .68; }
+.cs-large .cs-label { font-size: 13px; opacity: .85; }
+.cs-small .cs-label { font-size: 10.5px; opacity: .66; letter-spacing: .1em; }
 .cs-label-text {
   display: inline-block;
   transition: opacity .15s ease, transform .15s ease;
 }
-.cs-label-out { opacity: 0; transform: translateY(3px); }
+.cs-label-out { opacity: 0; transform: translateY(4px); }
 
-.cs-enter { animation: csEnter .42s cubic-bezier(.34,1.56,.64,1) both; }
+.cs-enter { animation: csEnter .5s cubic-bezier(.34,1.56,.64,1) both; }
 @keyframes csEnter {
-  0%   { opacity: 0; transform: scale(.4); }
-  60%  { transform: scale(1.06); }
+  0%   { opacity: 0; transform: scale(.5); }
+  60%  { transform: scale(1.05); }
   100% { opacity: 1; transform: scale(1); }
 }
-.cs-exit { animation: csExit .2s ease forwards; }
+.cs-exit { animation: csExit .22s ease forwards; }
 @keyframes csExit {
-  to { opacity: 0; transform: translateY(4px) scale(.96); }
+  to { opacity: 0; transform: translateY(5px) scale(.95); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .cs-enter, .cs-exit { animation: none; }
-  .cs-glyph { transition: none; }
+  .cs-glyph, .cs-label, .cloak-status { transition: none; }
   .cs-label-text { transition: none; }
 }
