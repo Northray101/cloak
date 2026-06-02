@@ -597,7 +597,7 @@ function addMsg(role,content,noAnim=false,imgs=[]){
     const wrap=d.querySelector('.msg-wrap');if(wrap)wrap.appendChild(actions);
   }else{
     const html=noAnim?marked.parse(content):'';
-    d.innerHTML='<div class="bot-body"><div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="bot-content">'+html+'</div></div>';
+    d.innerHTML='<div class="bot-body"><div class="bot-meta">'+CLOAK_ORB_HTML+'<span class="bot-label">Cloak</span></div><div class="bot-content">'+html+'</div></div>';
     if(noAnim){
       const bc=d.querySelector('.bot-content');
       if(bc)requestAnimationFrame(()=>animWords(bc));
@@ -784,12 +784,61 @@ function setBusy(b){
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 
 /* ── INSERT BOT BUBBLE ── */
+/* ── CLOAK ORB ──
+   The little indicator next to the "Cloak" label. Default state is a circle
+   with the neobrutalist ink outline (the "orb"). It's interactive: click it
+   and it bounces like a squishy button and pops a speech bubble. While Cloak
+   is thinking, createCloakStatus() swaps it for the morphing glyph. */
+const CLOAK_ORB_HTML =
+  '<span class="bot-dot cloak-orb" role="button" tabindex="0" aria-label="Say hi to Cloak">' +
+  '<svg viewBox="-52 -52 104 104" aria-hidden="true"><circle class="cs-shape" cx="0" cy="0" r="46"></circle></svg>' +
+  '</span>';
+
+function _orbBounce(orb){
+  orb.classList.remove('orb-bounce');
+  void orb.offsetWidth;            // reflow so the animation can restart
+  orb.classList.add('orb-bounce');
+}
+
+function _orbSpeak(orb){
+  const existing = orb.querySelector('.orb-bubble');
+  if(existing){                     // already open → toggle it closed
+    existing.classList.remove('show');
+    clearTimeout(orb._bubbleT);
+    setTimeout(()=>existing.remove(), 280);
+    return;
+  }
+  const bubble = document.createElement('div');
+  bubble.className = 'orb-bubble';
+  bubble.textContent = "Hey! I'm Cloak, how can I help?";
+  orb.appendChild(bubble);
+  requestAnimationFrame(()=>bubble.classList.add('show'));
+  clearTimeout(orb._bubbleT);
+  orb._bubbleT = setTimeout(()=>{
+    bubble.classList.remove('show');
+    setTimeout(()=>{ if(bubble.parentNode) bubble.remove(); }, 300);
+  }, 3400);
+}
+
+function _orbActivate(orb){ _orbBounce(orb); _orbSpeak(orb); }
+
+// One delegated listener handles every orb on the page (current + future).
+document.addEventListener('click', (e)=>{
+  const orb = e.target.closest && e.target.closest('.cloak-orb');
+  if(orb){ e.stopPropagation(); _orbActivate(orb); }
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key!=='Enter' && e.key!==' ') return;
+  const orb = e.target.closest && e.target.closest('.cloak-orb');
+  if(orb){ e.preventDefault(); _orbActivate(orb); }
+});
+
 function insertBotBubble() {
   const box = document.getElementById('messages');
   showMessages();
   const wrap = document.createElement('div');
   wrap.className = 'msg bot';
-  wrap.innerHTML = '<div class="bot-body"><div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="bot-content"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>';
+  wrap.innerHTML = '<div class="bot-body"><div class="bot-meta">'+CLOAK_ORB_HTML+'<span class="bot-label">Cloak</span></div><div class="bot-content"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>';
   box.appendChild(wrap);
   scrollBottom();
   return wrap;
@@ -800,7 +849,7 @@ function insertBotBubbleForThoughts() {
   showMessages();
   const wrap = document.createElement('div');
   wrap.className = 'msg bot';
-  wrap.innerHTML = '<div class="bot-body"><div class="bot-meta"><div class="bot-dot"></div><span class="bot-label">Cloak</span></div><div class="bot-content"></div></div>';
+  wrap.innerHTML = '<div class="bot-body"><div class="bot-meta">'+CLOAK_ORB_HTML+'<span class="bot-label">Cloak</span></div><div class="bot-content"></div></div>';
   box.appendChild(wrap);
   scrollBottom();
   return wrap;

@@ -1457,3 +1457,88 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
 @media (prefers-reduced-motion: reduce) {
   .cs-dot-glyph { animation: none; }
 }
+
+/* ── CLOAK ORB — the interactive circle indicator next to the label ── */
+.bot-dot.cloak-orb {
+  width: 15px;
+  height: 15px;
+  background: none;
+  animation: none;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: filter .15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.bot-dot.cloak-orb svg { display: block; width: 100%; height: 100%; overflow: visible; }
+/* Share the morph-glyph look: accent fill + ink outline */
+.cloak-orb .cs-shape { fill: var(--acc); stroke: var(--ink); stroke-width: 2.5; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.bot-dot.cloak-orb:hover { filter: brightness(1.06); }
+.bot-dot.cloak-orb:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 50%; }
+/* don't let the thinking-pulse square ring show behind the round orb */
+.bot-dot.cloak-orb.thinking::after { display: none; }
+
+/* Squishy bounce on click */
+.bot-dot.cloak-orb.orb-bounce { animation: orbBounce .5s cubic-bezier(.34,1.56,.64,1); }
+@keyframes orbBounce {
+  0%   { transform: scale(1, 1); }
+  25%  { transform: scale(.78, 1.18); }
+  45%  { transform: scale(1.18, .82); }
+  65%  { transform: scale(.92, 1.08); }
+  82%  { transform: scale(1.04, .96); }
+  100% { transform: scale(1, 1); }
+}
+
+/* Speech bubble popping out of the orb */
+.orb-bubble {
+  position: absolute;
+  bottom: calc(100% + 9px);
+  left: -4px;
+  z-index: 30;
+  white-space: nowrap;
+  font-family: var(--fu);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: .005em;
+  color: var(--ink);
+  background: var(--surf);
+  border: var(--bd);
+  box-shadow: var(--shsm);
+  padding: 8px 11px;
+  cursor: default;
+  opacity: 0;
+  transform: translateY(5px) scale(.85);
+  transform-origin: bottom left;
+  pointer-events: none;
+  transition: opacity .22s ease, transform .26s cubic-bezier(.34,1.56,.64,1);
+}
+.orb-bubble.show { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+/* little tail */
+.orb-bubble::before,
+.orb-bubble::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  width: 0; height: 0;
+  border-style: solid;
+}
+.orb-bubble::before {
+  bottom: -9px;
+  border-width: 9px 8px 0 0;
+  border-color: var(--ink) transparent transparent transparent;
+}
+.orb-bubble::after {
+  bottom: -6px;
+  border-width: 7px 6px 0 0;
+  border-color: var(--surf) transparent transparent transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bot-dot.cloak-orb.orb-bounce { animation: none; }
+  .orb-bubble { transition: opacity .15s ease; }
+  .orb-bubble.show { transform: none; }
+}
