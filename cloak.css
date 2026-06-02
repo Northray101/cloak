@@ -333,8 +333,9 @@ a.sb-btn:hover{background:var(--p3);border-color:var(--ink);}
   color:var(--ink);
   overflow-wrap:break-word;
   word-break:normal;
+  width:fit-content;
 }
-.msg-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:3px;max-width:72%;}
+.msg-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:3px;width:100%;max-width:100%;}
 
 /* ── BOT MESSAGE — full width, no bubble ── */
 .bot-body{display:flex;flex-direction:column;gap:4px;width:100%;}
@@ -1492,6 +1493,19 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
   100% { transform: scale(1, 1); }
 }
 
+/* Thinking: the orb gently bounces like a bouncy ball, squishing on landing */
+.bot-dot.cloak-orb.orb-thinking {
+  animation: orbThink 0.92s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+@keyframes orbThink {
+  0%   { transform: translateY(0)     scale(1, 1); }
+  18%  { transform: translateY(1px)   scale(1.12, .88); }  /* land + squish */
+  50%  { transform: translateY(-6px)  scale(.96, 1.04); }  /* spring up, slight stretch */
+  82%  { transform: translateY(1px)   scale(1.1, .9); }    /* land + squish */
+  100% { transform: translateY(0)     scale(1, 1); }
+}
+
 /* Speech bubble popping out of the orb */
 .orb-bubble {
   position: absolute;
@@ -1539,6 +1553,7 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
 
 @media (prefers-reduced-motion: reduce) {
   .bot-dot.cloak-orb.orb-bounce { animation: none; }
+  .bot-dot.cloak-orb.orb-thinking { animation: none; opacity: .6; }
   .orb-bubble { transition: opacity .15s ease; }
   .orb-bubble.show { transform: none; }
 }

@@ -930,76 +930,23 @@ function createCloakStatus(botMsgEl){
 
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // Morphing glyph lives exactly where the dot sits — just bigger. Solid
-  // accent fill (no border/shadow) so the resting square matches the dot.
-  const glyph=document.createElement('span');
-  glyph.className='cs-dot-glyph';
-  glyph.innerHTML='<svg viewBox="-52 -52 104 104" aria-hidden="true"><path class="cs-shape" d=""></path></svg>';
-  if(dot){ dot.style.display='none'; meta.insertBefore(glyph, dot); }
-  else { meta.insertBefore(glyph, meta.firstChild); }
-
+  // While Cloak thinks, the orb itself gently bounces like a bouncy ball —
+  // squishing as it lands and springing back up. No separate glyph; we just
+  // animate the resting orb (reliable, always visible) and dim the label.
+  if(dot) dot.classList.add('orb-thinking');
   if(label){
     label.textContent='Cloak is thinking…';
     label.classList.add('cs-thinking-label');
   }
 
-  const shapeEl=glyph.querySelector('.cs-shape');
-  const N=64, R=46;
-  const order=['triangle','circle','square'];
-  const cache={}; order.forEach(k=>cache[k]=_csShape(k,N));
-
-  // Catmull-Rom cubic spline through the N closed points — smooth liquid edges.
-  function buildPath(pts){
-    const n=N, fp=(v)=>(v*R).toFixed(2);
-    let d='M '+fp(pts[0][0])+' '+fp(pts[0][1]);
-    for(let i=0;i<n;i++){
-      const p0=pts[(i-1+n)%n], p1=pts[i], p2=pts[(i+1)%n], p3=pts[(i+2)%n];
-      const cp1x=p1[0]+(p2[0]-p0[0])/6, cp1y=p1[1]+(p2[1]-p0[1])/6;
-      const cp2x=p2[0]-(p3[0]-p1[0])/6, cp2y=p2[1]-(p3[1]-p1[1])/6;
-      d+=' C '+fp(cp1x)+' '+fp(cp1y)+','+fp(cp2x)+' '+fp(cp2y)+','+fp(p2[0])+' '+fp(p2[1]);
-    }
-    return d+' Z';
-  }
-
-  let alive=true, raf=0;
-
-  if(reduce){
-    shapeEl.setAttribute('d', buildPath(cache.square));
-  } else {
-    const BEAT=820;
-    const start=performance.now();
-    const frame=(now)=>{
-      if(!alive || !document.body.contains(glyph)){ alive=false; return; }
-      const el=now-start;
-      const beat=Math.floor(el/BEAT);
-      const tRaw=(el%BEAT)/BEAT;
-      // Ease with a tiny sine ripple at mid-morph for a liquid jiggle
-      const t=Math.max(0,Math.min(1, _csEaseInOut(tRaw)+0.05*Math.sin(tRaw*Math.PI)));
-      // Radial squish: shape swells ~8% at mid-transition like a liquid blob
-      const bulge=1+0.08*Math.sin(tRaw*Math.PI);
-      const from=cache[order[beat%order.length]];
-      const to=cache[order[(beat+1)%order.length]];
-      const pts=new Array(N);
-      for(let i=0;i<N;i++){
-        pts[i]=[ (from[i][0]+(to[i][0]-from[i][0])*t)*bulge,
-                 (from[i][1]+(to[i][1]-from[i][1])*t)*bulge ];
-      }
-      shapeEl.setAttribute('d', buildPath(pts));
-      raf=requestAnimationFrame(frame);
-    };
-    raf=requestAnimationFrame(frame);
-  }
-
-  // Restore the normal dot + label — leaves a square that matches the original.
+  // Restore the normal orb + label.
   function restore(){
-    alive=false; if(raf) cancelAnimationFrame(raf);
-    if(glyph.parentNode) glyph.remove();
-    if(dot) dot.style.display='';
+    if(dot) dot.classList.remove('orb-thinking');
     if(label){ label.textContent=origLabel; label.classList.remove('cs-thinking-label'); }
   }
 
   return {
-    el: glyph,
+    el: dot,
     setLabel(){ /* fixed 'Cloak is thinking…' label — no-op */ },
     dock(){ /* stays in place — no docking */ },
     exit(cb){ restore(); if(cb) cb(); },
