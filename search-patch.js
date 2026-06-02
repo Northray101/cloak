@@ -73,6 +73,8 @@ window.send = async function () {
   const txt = inp.value.trim();
   if ((!txt && !attachedImgs.length) || busy) return;
   if (guest && guestN >= GUEST_MAX) { showLimit(); return; }
+  if (typeof hapticTap === 'function') hapticTap();
+  if (typeof primeAudio === 'function') primeAudio();
   checkMentalHealth(txt);
   if (!chatId) { chatId = Date.now().toString(); hist = []; }
 

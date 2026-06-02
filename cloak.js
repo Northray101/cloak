@@ -191,11 +191,46 @@ async function loadAppConfig() {
 
 /* ── THEME ── */
 function setTheme(t){
+  hapticTap();
   currentTheme=t;localStorage.setItem('cloak_theme',t);
   document.documentElement.setAttribute('data-theme',t);
   document.querySelectorAll('.theme-card').forEach(el=>el.classList.toggle('active',el.id==='theme-'+t));
+  syncThemeColor();
 }
 function initThemeUI(){document.querySelectorAll('.theme-card').forEach(el=>el.classList.toggle('active',el.id==='theme-'+currentTheme));}
+
+/* ── HAPTICS ──
+   navigator.vibrate works on Android; iOS Safari ignores it (no-op). Wrapped so
+   it never throws. iOS true haptics aren't exposed to the web, so we degrade
+   gracefully rather than faking it. */
+function hapticTap(){ try{ if(navigator.vibrate) navigator.vibrate(8); }catch(_){ } }
+function hapticImpact(){ try{ if(navigator.vibrate) navigator.vibrate([14]); }catch(_){ } }
+function hapticError(){ try{ if(navigator.vibrate) navigator.vibrate([18,40,18]); }catch(_){ } }
+
+/* ── STATUS-BAR / THEME-COLOR SYNC ──
+   Keep <meta name=theme-color> matching the active theme's paper so the iOS
+   standalone status bar and Android address bar tint track light/dark + theme. */
+function syncThemeColor(){
+  try{
+    let c=getComputedStyle(document.body).getPropertyValue('--paper').trim();
+    if(!c) c=dark?'#131110':'#F2EEE5';
+    let m=document.querySelector('meta[name="theme-color"]');
+    if(!m){ m=document.createElement('meta'); m.name='theme-color'; document.head.appendChild(m); }
+    m.setAttribute('content', c);
+  }catch(_){ }
+}
+
+/* ── AUDIO PRIMING (iOS) ──
+   iOS blocks AudioContext / speechSynthesis until a user gesture. Prime once on
+   the first pointer interaction so voice mode can speak later. */
+let _audioPrimed=false;
+function primeAudio(){
+  if(_audioPrimed) return; _audioPrimed=true;
+  try{ const Ctx=window.AudioContext||window.webkitAudioContext;
+    if(Ctx){ window._actx=window._actx||new Ctx(); if(window._actx.state==='suspended') window._actx.resume(); } }catch(_){ }
+  try{ if(synth){ const u=new SpeechSynthesisUtterance(''); u.volume=0; synth.speak(u); } }catch(_){ }
+}
+document.addEventListener('pointerdown', primeAudio, {once:true});
 
 /* ── VIEWPORT FIX ── */
 (function(){
@@ -820,7 +855,7 @@ function _orbSpeak(orb){
   }, 3400);
 }
 
-function _orbActivate(orb){ _orbBounce(orb); _orbSpeak(orb); }
+function _orbActivate(orb){ hapticTap(); _orbBounce(orb); _orbSpeak(orb); }
 
 // One delegated listener handles every orb on the page (current + future).
 document.addEventListener('click', (e)=>{
@@ -1078,7 +1113,7 @@ async function handleMfa(){
   if(code.length<6){showE(err,'Enter the 6-digit code.');return;}
   try{const{data:f}=await sb.auth.mfa.listFactors();const t=f?.totp?.[0];if(!t){showE(err,'No authenticator registered.');return;}const{data:ch}=await sb.auth.mfa.challenge({factorId:t.id});const{error:e}=await sb.auth.mfa.verify({factorId:t.id,challengeId:ch.id,code});if(e){showE(err,e.message);return;}enterChat();}catch(ex){showE(err,ex.message);}
 }
-async function doLogout(){await sb.auth.signOut();closeModal('modal-settings');}
+async function doLogout(){hapticTap();await sb.auth.signOut();show('auth');}
 
 /* ── PROFILE ── */
 async function loadProfile(){
@@ -1122,21 +1157,28 @@ function refreshUI(){
   document.querySelectorAll('.moon').forEach(el=>el.style.display=dark?'none':'block');
   document.querySelectorAll('.sun').forEach(el=>el.style.display=dark?'block':'none');
 }
-function toggleDark(){dark=!dark;document.body.classList.toggle('dark',dark);document.documentElement.classList.toggle('dark',dark);localStorage.setItem('cloak_dark',dark?'1':'0');const ml=document.getElementById('mode-label');if(ml)ml.textContent=dark?'dark':'light';refreshUI();}
-function toggleSidebar(){const el=document.getElementById('sidebar');const mobile=window.innerWidth<=640;if(mobile){const open=!el.classList.contains('collapsed');if(open){el.classList.add('collapsed');document.getElementById('sb-overlay').classList.remove('show');}else{el.classList.remove('collapsed');document.getElementById('sb-overlay').classList.add('show');}}else el.classList.toggle('collapsed');}
+function toggleDark(){hapticTap();dark=!dark;document.body.classList.toggle('dark',dark);document.documentElement.classList.toggle('dark',dark);localStorage.setItem('cloak_dark',dark?'1':'0');const ml=document.getElementById('mode-label');if(ml)ml.textContent=dark?'dark':'light';refreshUI();syncThemeColor();}
+function toggleSidebar(){hapticTap();const el=document.getElementById('sidebar');const mobile=window.innerWidth<=640;if(mobile){const open=!el.classList.contains('collapsed');if(open){el.classList.add('collapsed');document.getElementById('sb-overlay').classList.remove('show');}else{el.classList.remove('collapsed');document.getElementById('sb-overlay').classList.add('show');}}else el.classList.toggle('collapsed');}
 function closeMobileSidebar(){document.getElementById('sidebar').classList.add('collapsed');document.getElementById('sb-overlay').classList.remove('show');}
 
-/* ── SETTINGS ── */
+/* ── SETTINGS (full-page screen) ── */
+let _prevScreen='chat';
 function openSettings(){
   if(guest){show('auth');return;}
+  hapticTap();
+  // Remember where we came from so the back button returns there.
+  const active=document.querySelector('.screen.active');
+  _prevScreen = (active && active.id && active.id!=='s-settings') ? active.id.replace(/^s-/,'') : 'chat';
+  try{ closeMobileSidebar(); }catch(_){ }
   document.getElementById('s-name-inp').value=name;
   document.getElementById('mode-label').textContent=dark?'dark':'light';
-  document.getElementById('modal-settings').style.display='flex';
+  show('settings');
   initThemeUI();if(admin)loadAdminAnns();updateStats();renderLogs();
 }
-function closeModal(id){const el=document.getElementById(id);el.classList.add('hiding');setTimeout(()=>{el.style.display='none';el.classList.remove('hiding');},120);}
+function closeSettings(){ hapticTap(); show(_prevScreen||'chat'); }
+function closeModal(id){const el=document.getElementById(id);if(!el)return;el.classList.add('hiding');setTimeout(()=>{el.style.display='none';el.classList.remove('hiding');},120);}
 function overlayClick(e,id){if(e.target===document.getElementById(id))closeModal(id);}
-function switchSettingsTab(t){atab=t;document.querySelectorAll('.snav-btn').forEach(el=>el.classList.toggle('on',el.id==='snav-'+t));document.querySelectorAll('.spane').forEach(el=>el.classList.remove('on'));const p=document.getElementById('spane-'+t);if(p)p.classList.add('on');if(t==='console'){updateStats();renderLogs();}}
+function switchSettingsTab(t){hapticTap();atab=t;document.querySelectorAll('.snav-btn').forEach(el=>el.classList.toggle('on',el.id==='snav-'+t));document.querySelectorAll('.spane').forEach(el=>el.classList.remove('on'));const p=document.getElementById('spane-'+t);if(p)p.classList.add('on');if(t==='console'){updateStats();renderLogs();}}
 async function clearAllChats(){if(!confirm('Delete ALL conversations?'))return;const{error}=await sb.from('chats').delete().eq('user_id',uid);if(error)log('err','Clear failed: '+error.message);else{convs=[];newChat();log('inf','All chats deleted');}}
 
 /* ── 2FA ── */
@@ -1144,7 +1186,7 @@ async function start2FA(){try{const{data,error}=await sb.auth.mfa.enroll({factor
 async function confirmTOTP(){const code=document.getElementById('totp-code').value.trim();const err=document.getElementById('totp-err');if(!code){showE(err,'Enter code');return;}try{const{data:ch}=await sb.auth.mfa.challenge({factorId:window._totpFactorId});const{error}=await sb.auth.mfa.verify({factorId:window._totpFactorId,challengeId:ch.id,code});if(error){showE(err,error.message);return;}document.getElementById('totp-section').style.display='none';alert('2FA enabled!');}catch(e){showE(err,e.message);}}
 
 /* ── CONSOLE ── */
-function log(type,msg){const n=new Date();const ts=n.toLocaleTimeString('en-US',{hour12:false})+'.'+String(n.getMilliseconds()).padStart(3,'0');logs.push({type,msg,ts});if(logs.length>500)logs.shift();if(document.getElementById('modal-settings')?.style.display!=='none'&&atab==='console'){renderLogs();updateStats();}}
+function log(type,msg){const n=new Date();const ts=n.toLocaleTimeString('en-US',{hour12:false})+'.'+String(n.getMilliseconds()).padStart(3,'0');logs.push({type,msg,ts});if(logs.length>500)logs.shift();if(document.getElementById('s-settings')?.classList.contains('active')&&atab==='console'){renderLogs();updateStats();}}
 function renderLogs(){const box=document.getElementById('console-log');const fl=logF==='all'?logs:logs.filter(l=>l.type===logF);if(!fl.length){box.innerHTML='<div class="log-empty">No logs yet</div>';return;}box.innerHTML=fl.map(l=>'<div class="log-row"><span class="log-ts">'+l.ts+'</span><span class="log-badge b-'+l.type+'">'+l.type+'</span><div class="log-msg">'+hesc(l.msg)+'</div></div>').join('');box.scrollTop=box.scrollHeight;}
 function updateStats(){document.getElementById('st-req').textContent=stats.req;document.getElementById('st-res').textContent=stats.res;document.getElementById('st-err').textContent=stats.err;const avg=stats.lat.length?Math.round(stats.lat.reduce((a,b)=>a+b,0)/stats.lat.length):null;document.getElementById('st-lat').textContent=avg?avg+'ms':'—';}
 function setFilter(f,el){logF=f;document.querySelectorAll('.filter-pill').forEach(b=>b.classList.remove('on'));el.classList.add('on');renderLogs();}
@@ -1297,4 +1339,11 @@ async function send(){
 }
 
 (function(){const sb=document.getElementById('sidebar');if(window.innerWidth<=640&&sb)sb.classList.add('collapsed');})();
-whenDomReady().then(()=>{checkAdConsent();init();});
+whenDomReady().then(()=>{checkAdConsent();syncThemeColor();init();});
+
+/* ── PWA: register the app-shell service worker (non-blocking) ── */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('/sw.js?v=20260602a').catch(e=>console.warn('SW registration failed',e));
+  });
+}

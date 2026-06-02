@@ -556,6 +556,30 @@ textarea.inp-field{height:auto;padding:10px 13px;}
 .danger{display:inline-flex;align-items:center;height:38px;padding:0 15px;background:transparent;border:2px solid var(--acc);color:var(--acc);font-family:var(--fu);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;cursor:pointer;width:fit-content;transition:background var(--t),color var(--t),box-shadow var(--t);}
 .danger:hover{background:var(--acc);color:#fff;box-shadow:var(--shsm);}
 
+/* ── SETTINGS — FULL-PAGE SCREEN ── */
+.settings-screen{background:var(--paper);flex-direction:column;align-items:stretch;justify-content:flex-start;padding:0;overflow:hidden;height:100vh;height:100dvh;}
+.settings-topbar{
+  display:flex;align-items:center;gap:14px;flex-shrink:0;
+  padding:max(14px,calc(env(safe-area-inset-top,0px) + 12px)) max(18px,calc(env(safe-area-inset-right,0px) + 18px)) 14px max(18px,calc(env(safe-area-inset-left,0px) + 18px));
+  border-bottom:var(--bd);background:var(--p2);
+}
+.settings-back{
+  width:42px;height:42px;flex-shrink:0;border:var(--bd);background:var(--surf);color:var(--ink);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shsm);
+  transition:background var(--t),box-shadow var(--t),transform var(--t);
+}
+.settings-back:hover{background:var(--acc);color:#fff;box-shadow:var(--sh);transform:translate(-1px,-1px);}
+.settings-back:active{box-shadow:none;transform:translate(2px,2px);}
+.settings-scroll{
+  flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;min-height:0;
+  padding-bottom:max(24px,calc(env(safe-area-inset-bottom,0px) + 20px));
+}
+/* In the full-page context the page scrolls, not the inner panes. */
+.settings-screen .settings-layout{overflow:visible;min-height:0;border:var(--bd);box-shadow:var(--sh);background:var(--surf);max-width:880px;margin:26px auto;width:calc(100% - 52px);}
+.settings-screen .settings-nav{overflow:visible;}
+.settings-screen .settings-body{overflow:visible;}
+.settings-screen .settings-nav{position:sticky;top:14px;align-self:flex-start;}
+
 /* ── THEME PICKER ── */
 .theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px;}
 .theme-card{padding:14px 10px;border:var(--bd);background:var(--surf);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:7px;transition:box-shadow var(--tm),transform var(--tm),background var(--tm);position:relative;overflow:hidden;}
@@ -757,6 +781,13 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
   .settings-nav{width:136px;}
   .snav-btn{font-size:9.5px;padding:9px 8px;}
   .spane{padding:14px;}
+  /* Full-page settings on phones: nav becomes a horizontal tab strip on top */
+  .settings-topbar{padding-top:max(14px,calc(env(safe-area-inset-top,0px) + 10px));}
+  .settings-screen .settings-layout{flex-direction:column;margin:0;width:100%;border-left:none;border-right:none;border-top:none;box-shadow:none;}
+  .settings-screen .settings-nav{flex-direction:row;width:100%;position:static;border-right:none;border-bottom:var(--bd);overflow-x:auto;gap:4px;padding:8px;}
+  .settings-screen .settings-nav::-webkit-scrollbar{height:0;}
+  .settings-screen .snav-btn{width:auto;white-space:nowrap;flex:0 0 auto;min-height:40px;}
+  .settings-screen .snav-btn::after{display:none;}
   .stats-row{grid-template-columns:repeat(2,1fr);}
   .stat:nth-child(2){border-right:none;}.stat:nth-child(3){border-top:var(--bd);}.stat:nth-child(4){border-top:var(--bd);border-right:none;}
   .onboard-card{width:100%;border-left:none;border-right:none;border-bottom:none;}
@@ -1556,4 +1587,19 @@ body.values-page{overflow:auto;background:var(--paper);color:var(--ink);font-fam
   .bot-dot.cloak-orb.orb-thinking { animation: none; opacity: .6; }
   .orb-bubble { transition: opacity .15s ease; }
   .orb-bubble.show { transform: none; }
+}
+
+/* ── TOUCH TARGETS (coarse pointers / phones) ── */
+@media(pointer:coarse){
+  .plus-btn{width:44px;height:44px;}
+  .send-btn{width:44px;height:44px;}
+  .settings-back{width:46px;height:46px;}
+  .snav-btn{min-height:44px;}
+  .ann-x{width:32px;height:32px;}
+}
+
+/* ── PWA STANDALONE (added to home screen) ── */
+@media(display-mode:standalone){
+  /* Browser chrome is gone; soften the footer disclaimer a touch. */
+  .input-disc{opacity:.34;}
 }

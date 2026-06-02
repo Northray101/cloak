@@ -11,11 +11,14 @@
 <meta name="format-detection" content="telephone=no">
 <meta name="description" content="Cloak — A human resource, not a companion. Ethical AI that serves you.">
 <title>Cloak</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2L19.5 12.5L30 16L19.5 19.5L16 30L12.5 19.5L2 16L12.5 12.5Z' fill='%23D44D2A'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="/icons/orb.svg?v=20260602a">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png?v=20260602a">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=20260602a">
+<link rel="manifest" href="/manifest.json?v=20260602a">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="cloak.css?v=20260601f">
-<link rel="stylesheet" href="search.css?v=20260601f">
+<link rel="stylesheet" href="cloak.css?v=20260602a">
+<link rel="stylesheet" href="search.css?v=20260602a">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
@@ -156,6 +159,171 @@
   </div>
 </div>
 
+<!-- ── SETTINGS (full-page screen) ── -->
+<div id="s-settings" class="screen settings-screen">
+  <div class="settings-topbar">
+    <button class="settings-back" onclick="closeSettings()" aria-label="Back to chat">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="modal-title">Settings</div>
+  </div>
+  <div class="settings-scroll">
+    <div class="settings-layout">
+      <nav class="settings-nav">
+        <button class="snav-btn on" id="snav-general" onclick="switchSettingsTab('general')">
+          <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+          Account
+        </button>
+        <button class="snav-btn" id="snav-appearance" onclick="switchSettingsTab('appearance')">
+          <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
+          Appearance
+        </button>
+        <button class="snav-btn" id="snav-security" onclick="switchSettingsTab('security')">
+          <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+          Security
+        </button>
+        <button class="snav-btn" id="snav-console" onclick="switchSettingsTab('console')">
+          <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></span>
+          Console
+        </button>
+        <button class="snav-btn" id="snav-admin" style="display:none" onclick="switchSettingsTab('admin')">
+          <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg></span>
+          Admin
+        </button>
+      </nav>
+      <div class="settings-body">
+        <!-- Account -->
+        <div class="spane on" id="spane-general">
+          <div class="srow">
+            <div class="srow-name">Account</div>
+            <div class="info-box" style="display:flex;align-items:center;gap:10px;margin-top:8px">
+              <div class="user-av" id="s-av" style="width:36px;height:36px;font-size:14px">?</div>
+              <div><div style="font-size:14px;font-weight:500" id="s-name">—</div><div style="font-size:12px;opacity:.5" id="s-email">—</div></div>
+            </div>
+          </div>
+          <div class="srow">
+            <div class="srow-name">Display name</div>
+            <div class="srow-desc">Shown in conversations and the greeting.</div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <input class="inp-field" id="s-name-inp" placeholder="Your name" style="flex:1">
+              <button class="cta" onclick="saveName()">Save</button>
+            </div>
+          </div>
+          <div class="srow">
+            <div class="srow-name">Clear all chats</div>
+            <button class="danger" style="margin-top:8px" onclick="clearAllChats()">Delete all conversations</button>
+          </div>
+          <div class="srow">
+            <div class="srow-name">Sign out</div>
+            <button class="danger" style="margin-top:8px" onclick="doLogout()">Sign out of Cloak</button>
+          </div>
+        </div>
+
+        <!-- Appearance -->
+        <div class="spane" id="spane-appearance">
+          <div class="srow">
+            <div class="srow-head"><div class="srow-name">Light / Dark mode</div></div>
+            <div class="srow-desc">Currently <span id="mode-label">dark</span> mode.</div>
+            <button class="cta" style="margin-top:8px" onclick="toggleDark()">Toggle light / dark</button>
+          </div>
+          <div class="srow">
+            <div class="srow-name">Theme</div>
+            <div class="srow-desc">Choose a color palette. All themes support light and dark mode.</div>
+            <div class="theme-grid" style="margin-top:10px">
+              <div class="theme-card" id="theme-default" onclick="setTheme('default')">
+                <div class="theme-swatch">
+                  <div class="theme-dot" style="background:#F2EEE5;border-color:#0A0A0A"></div>
+                  <div class="theme-dot" style="background:#D44D2A"></div>
+                  <div class="theme-dot" style="background:#0A0A0A"></div>
+                </div>
+                <div class="theme-name">Default</div>
+                <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+              </div>
+              <div class="theme-card" id="theme-eco" onclick="setTheme('eco')">
+                <div class="theme-swatch">
+                  <div class="theme-dot" style="background:#F0F7EC;border-color:#1A2E10"></div>
+                  <div class="theme-dot" style="background:#3A7D2C"></div>
+                  <div class="theme-dot" style="background:#8BC34A"></div>
+                </div>
+                <div class="theme-name">Eco</div>
+                <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+              </div>
+              <div class="theme-card" id="theme-aqua" onclick="setTheme('aqua')">
+                <div class="theme-swatch">
+                  <div class="theme-dot" style="background:#EAF4F8;border-color:#0A1E2E"></div>
+                  <div class="theme-dot" style="background:#0B7EA8"></div>
+                  <div class="theme-dot" style="background:#00B4D8"></div>
+                </div>
+                <div class="theme-name">Aqua</div>
+                <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Security -->
+        <div class="spane" id="spane-security">
+          <div class="srow">
+            <div class="srow-head"><div class="srow-name">Two-factor authentication</div></div>
+            <div class="srow-desc">Add an authenticator app as a second step on sign-in.</div>
+            <button class="cta" style="margin-top:10px" onclick="start2FA()">Set up 2FA</button>
+            <div id="totp-section" style="display:none;margin-top:14px">
+              <div id="totp-qr" style="text-align:center;margin-bottom:10px"></div>
+              <div class="secret-box" id="totp-secret" style="margin-bottom:12px"></div>
+              <div style="font-size:12px;opacity:.5;margin-bottom:10px">Enter the 6-digit code to confirm:</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <input class="input mono-input" id="totp-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" style="max-width:160px;font-size:18px">
+                <button class="cta" onclick="confirmTOTP()">Enable</button>
+              </div>
+              <div class="err-msg" id="totp-err" style="margin-top:8px"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Console -->
+        <div class="spane" id="spane-console">
+          <div class="srow" style="padding-top:0">
+            <div class="stats-row">
+              <div class="stat s-req"><div class="stat-n" id="st-req">0</div><div class="stat-l">Requests</div></div>
+              <div class="stat s-res"><div class="stat-n" id="st-res">0</div><div class="stat-l">Responses</div></div>
+              <div class="stat s-err"><div class="stat-n" id="st-err">0</div><div class="stat-l">Errors</div></div>
+              <div class="stat s-lat"><div class="stat-n" id="st-lat">—</div><div class="stat-l">Avg ms</div></div>
+            </div>
+            <div class="filter-row">
+              <div class="filter-pills">
+                <button class="filter-pill on" onclick="setFilter('all',this)">All</button>
+                <button class="filter-pill" onclick="setFilter('req',this)">Req</button>
+                <button class="filter-pill" onclick="setFilter('res',this)">Res</button>
+                <button class="filter-pill" onclick="setFilter('err',this)">Err</button>
+                <button class="filter-pill" onclick="setFilter('inf',this)">Info</button>
+              </div>
+              <button class="clear-log" onclick="clearLogs()">Clear</button>
+            </div>
+            <div class="console-log" id="console-log"><div class="log-empty">No logs yet</div></div>
+          </div>
+        </div>
+
+        <!-- Admin -->
+        <div class="spane" id="spane-admin">
+          <div class="srow">
+            <div class="srow-head"><div class="srow-name">Admin panel</div><span class="srow-badge">Owner</span></div>
+            <div class="srow-desc">Announcements appear as a banner to all signed-in users.</div>
+          </div>
+          <div class="srow">
+            <div class="srow-name">Post announcement</div>
+            <textarea class="inp-field" id="ann-compose" placeholder="Write an announcement…" style="margin-top:8px;min-height:76px;resize:vertical;font-family:inherit;font-size:13px;line-height:1.6"></textarea>
+            <button class="cta" style="margin-top:8px" onclick="postAnn()">Post</button>
+          </div>
+          <div class="srow">
+            <div class="srow-name">Active announcements</div>
+            <div class="ann-list" id="admin-ann-list" style="margin-top:8px"><div style="font-size:13px;opacity:.5">None active.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ── CHAT ── -->
 <div id="s-chat">
   <div id="ios-inset"></div>
@@ -165,169 +333,6 @@
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M22 8.93V3l-8 5H6a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h1l2 5h3l-1-5h3l8 5V8.93z"/></svg>
     <span class="ann-text" id="ann-msg"></span>
     <button class="ann-x" onclick="dismissAnn()">&times;</button>
-  </div>
-
-  <!-- ── SETTINGS MODAL ── -->
-  <div class="overlay" id="modal-settings" style="display:none" onclick="overlayClick(event,'modal-settings')">
-    <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-head">
-        <div class="modal-title">Settings</div>
-        <button class="modal-x" onclick="closeModal('modal-settings')">&times;</button>
-      </div>
-      <div class="settings-layout">
-        <nav class="settings-nav">
-          <button class="snav-btn on" id="snav-general" onclick="switchSettingsTab('general')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
-            Account
-          </button>
-          <button class="snav-btn" id="snav-appearance" onclick="switchSettingsTab('appearance')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
-            Appearance
-          </button>
-          <button class="snav-btn" id="snav-security" onclick="switchSettingsTab('security')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
-            Security
-          </button>
-          <button class="snav-btn" id="snav-console" onclick="switchSettingsTab('console')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></span>
-            Console
-          </button>
-          <button class="snav-btn" id="snav-admin" style="display:none" onclick="switchSettingsTab('admin')">
-            <span class="snav-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg></span>
-            Admin
-          </button>
-        </nav>
-        <div class="settings-body">
-          <!-- Account -->
-          <div class="spane on" id="spane-general">
-            <div class="srow">
-              <div class="srow-name">Account</div>
-              <div class="info-box" style="display:flex;align-items:center;gap:10px;margin-top:8px">
-                <div class="user-av" id="s-av" style="width:36px;height:36px;font-size:14px">?</div>
-                <div><div style="font-size:14px;font-weight:500" id="s-name">—</div><div style="font-size:12px;opacity:.5" id="s-email">—</div></div>
-              </div>
-            </div>
-            <div class="srow">
-              <div class="srow-name">Display name</div>
-              <div class="srow-desc">Shown in conversations and the greeting.</div>
-              <div style="display:flex;gap:8px;margin-top:8px">
-                <input class="inp-field" id="s-name-inp" placeholder="Your name" style="flex:1">
-                <button class="cta" onclick="saveName()">Save</button>
-              </div>
-            </div>
-            <div class="srow">
-              <div class="srow-name">Clear all chats</div>
-              <button class="danger" style="margin-top:8px" onclick="clearAllChats()">Delete all conversations</button>
-            </div>
-            <div class="srow">
-              <div class="srow-name">Sign out</div>
-              <button class="danger" style="margin-top:8px" onclick="doLogout()">Sign out of Cloak</button>
-            </div>
-          </div>
-
-          <!-- Appearance -->
-          <div class="spane" id="spane-appearance">
-            <div class="srow">
-              <div class="srow-head"><div class="srow-name">Light / Dark mode</div></div>
-              <div class="srow-desc">Currently <span id="mode-label">dark</span> mode.</div>
-              <button class="cta" style="margin-top:8px" onclick="toggleDark()">Toggle light / dark</button>
-            </div>
-            <div class="srow">
-              <div class="srow-name">Theme</div>
-              <div class="srow-desc">Choose a color palette. All themes support light and dark mode.</div>
-              <div class="theme-grid" style="margin-top:10px">
-                <div class="theme-card" id="theme-default" onclick="setTheme('default')">
-                  <div class="theme-swatch">
-                    <div class="theme-dot" style="background:#F2EEE5;border-color:#0A0A0A"></div>
-                    <div class="theme-dot" style="background:#D44D2A"></div>
-                    <div class="theme-dot" style="background:#0A0A0A"></div>
-                  </div>
-                  <div class="theme-name">Default</div>
-                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-                </div>
-                <div class="theme-card" id="theme-eco" onclick="setTheme('eco')">
-                  <div class="theme-swatch">
-                    <div class="theme-dot" style="background:#F0F7EC;border-color:#1A2E10"></div>
-                    <div class="theme-dot" style="background:#3A7D2C"></div>
-                    <div class="theme-dot" style="background:#8BC34A"></div>
-                  </div>
-                  <div class="theme-name">Eco</div>
-                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-                </div>
-                <div class="theme-card" id="theme-aqua" onclick="setTheme('aqua')">
-                  <div class="theme-swatch">
-                    <div class="theme-dot" style="background:#EAF4F8;border-color:#0A1E2E"></div>
-                    <div class="theme-dot" style="background:#0B7EA8"></div>
-                    <div class="theme-dot" style="background:#00B4D8"></div>
-                  </div>
-                  <div class="theme-name">Aqua</div>
-                  <svg class="theme-check" width="12" height="12" fill="none" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Security -->
-          <div class="spane" id="spane-security">
-            <div class="srow">
-              <div class="srow-head"><div class="srow-name">Two-factor authentication</div></div>
-              <div class="srow-desc">Add an authenticator app as a second step on sign-in.</div>
-              <button class="cta" style="margin-top:10px" onclick="start2FA()">Set up 2FA</button>
-              <div id="totp-section" style="display:none;margin-top:14px">
-                <div id="totp-qr" style="text-align:center;margin-bottom:10px"></div>
-                <div class="secret-box" id="totp-secret" style="margin-bottom:12px"></div>
-                <div style="font-size:12px;opacity:.5;margin-bottom:10px">Enter the 6-digit code to confirm:</div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap">
-                  <input class="input mono-input" id="totp-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" style="max-width:160px;font-size:18px">
-                  <button class="cta" onclick="confirmTOTP()">Enable</button>
-                </div>
-                <div class="err-msg" id="totp-err" style="margin-top:8px"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Console -->
-          <div class="spane" id="spane-console">
-            <div class="srow" style="padding-top:0">
-              <div class="stats-row">
-                <div class="stat s-req"><div class="stat-n" id="st-req">0</div><div class="stat-l">Requests</div></div>
-                <div class="stat s-res"><div class="stat-n" id="st-res">0</div><div class="stat-l">Responses</div></div>
-                <div class="stat s-err"><div class="stat-n" id="st-err">0</div><div class="stat-l">Errors</div></div>
-                <div class="stat s-lat"><div class="stat-n" id="st-lat">—</div><div class="stat-l">Avg ms</div></div>
-              </div>
-              <div class="filter-row">
-                <div class="filter-pills">
-                  <button class="filter-pill on" onclick="setFilter('all',this)">All</button>
-                  <button class="filter-pill" onclick="setFilter('req',this)">Req</button>
-                  <button class="filter-pill" onclick="setFilter('res',this)">Res</button>
-                  <button class="filter-pill" onclick="setFilter('err',this)">Err</button>
-                  <button class="filter-pill" onclick="setFilter('inf',this)">Info</button>
-                </div>
-                <button class="clear-log" onclick="clearLogs()">Clear</button>
-              </div>
-              <div class="console-log" id="console-log"><div class="log-empty">No logs yet</div></div>
-            </div>
-          </div>
-
-          <!-- Admin -->
-          <div class="spane" id="spane-admin">
-            <div class="srow">
-              <div class="srow-head"><div class="srow-name">Admin panel</div><span class="srow-badge">Owner</span></div>
-              <div class="srow-desc">Announcements appear as a banner to all signed-in users.</div>
-            </div>
-            <div class="srow">
-              <div class="srow-name">Post announcement</div>
-              <textarea class="inp-field" id="ann-compose" placeholder="Write an announcement…" style="margin-top:8px;min-height:76px;resize:vertical;font-family:inherit;font-size:13px;line-height:1.6"></textarea>
-              <button class="cta" style="margin-top:8px" onclick="postAnn()">Post</button>
-            </div>
-            <div class="srow">
-              <div class="srow-name">Active announcements</div>
-              <div class="ann-list" id="admin-ann-list" style="margin-top:8px"><div style="font-size:13px;opacity:.5">None active.</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 
   <div class="chat-shell">
@@ -684,9 +689,9 @@ window.cloakSendMessage = async function(messages, opts = {}) {
 </script>
 
 <!-- search.js must load before cloak.js so CLOAK_SEARCH is available -->
-<script src="search.js?v=20260601f"></script>
-<script src="cloak.js?v=20260601f" defer></script>
+<script src="search.js?v=20260602a"></script>
+<script src="cloak.js?v=20260602a" defer></script>
 <!-- search-patch.js overrides send() — must load after cloak.js -->
-<script src="search-patch.js?v=20260601f" defer></script>
+<script src="search-patch.js?v=20260602a" defer></script>
 </body>
 </html>
